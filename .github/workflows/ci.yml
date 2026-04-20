@@ -98,7 +98,7 @@ jobs:
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
@@ -120,7 +120,15 @@ jobs:
           git clone --depth=1 --branch dev/26.1.1 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
           cd /tmp/MockBukkit && ./gradlew publishToMavenLocal -xtest -xjavadoc
 
+      - name: Build plugin JAR
+        run: mvn -B -ntp -DskipTests package
+
       - name: Publish Maven artifacts
         run: mvn -B -ntp -DskipTests -pl teams-api deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attach plugin JAR to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: teams-api-plugin/target/teams-api-plugin-*.jar
