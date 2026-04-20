@@ -1,11 +1,11 @@
-// TeamsAPI — dark/blue color scheme for just-the-docs
+// TeamsAPI — dark/blue/white color scheme for just-the-docs
 //
 // Palette:
 //   Background   #141414  (body)
 //   Surface      #1c1c1c  (sidebar, cards)
 //   Elevated     #222222  (code blocks, search, table rows)
 //   Border       #2e2e2e
-//   Text         #d0d0d0  (body)  /  #ffffff (headings)
+//   Text         #d0d0d0  (body)   /  #ffffff (headings)
 //   Accent       #6cb4ff  (sky blue — links, nav highlight, buttons)
 //   Accent dim   #4e9de0  (hover state)
 
@@ -28,7 +28,7 @@ $btn-primary-color: #6cb4ff;
 $border-color: #2e2e2e;
 
 // ── Code ─────────────────────────────────────────────────────────────────────
-$code-background-color: #222222;
+$code-background-color: #1e1e1e;
 
 // ── Tables ────────────────────────────────────────────────────────────────────
 $table-background-color: #1a1a1a;
@@ -40,3 +40,52 @@ $search-border-color:      #333333;
 
 // ── Buttons ───────────────────────────────────────────────────────────────────
 $base-button-color: #252525;
+
+// ── Syntax highlighting (Rouge / Pygments) ────────────────────────────────────
+//
+// Token mapping (Atom-One-Dark-style with sky-blue keywords):
+//   Keywords      #6cb4ff  — accent (sky blue)
+//   Types/Classes #93ddff  — lighter blue
+//   Functions     #88d4ff  — blue-tinted
+//   Strings       #98c379  — soft green
+//   Comments      #5c6370  — muted grey   (italic)
+//   Numbers       #d19a66  — soft orange
+//   Operators     #56b6c2  — teal
+//   Builtins      #e5c07b  — warm gold
+//   Errors        #f87171  — soft red
+
+.highlight {
+  background-color: #1e1e1e;
+
+  // ── Comments ────────────────────────────────────────────────────────────────
+  .c, .c1, .cm, .cp, .cs { color: #5c6370; font-style: italic; }
+
+  // ── Keywords ────────────────────────────────────────────────────────────────
+  .k, .kd, .kn, .kr, .kp { color: #6cb4ff; font-weight: bold; }
+  .kc                     { color: #e5c07b; }  // true / false / null
+  .kt                     { color: #93ddff; }  // keyword type
+
+  // ── Names ────────────────────────────────────────────────────────────────────
+  .nc, .nn  { color: #93ddff; }  // class / namespace
+  .nf, .fm  { color: #88d4ff; }  // function / method
+  .nd       { color: #6cb4ff; }  // decorator / annotation
+  .nb       { color: #e5c07b; }  // builtin
+  .ni       { color: #d0d0d0; }  // entity
+  .na       { color: #d0d0d0; }  // attribute
+
+  // ── Strings ──────────────────────────────────────────────────────────────────
+  .s, .s1, .s2, .sb, .sc,
+  .sd, .se, .sh, .si, .sx,
+  .ss, .sr              { color: #98c379; }
+
+  // ── Numbers ──────────────────────────────────────────────────────────────────
+  .m, .mi, .mf,
+  .mh, .mo              { color: #d19a66; }
+
+  // ── Operators & punctuation ──────────────────────────────────────────────────
+  .o, .ow  { color: #56b6c2; }
+  .p       { color: #d0d0d0; }
+
+  // ── Errors ───────────────────────────────────────────────────────────────────
+  .err { color: #f87171; }
+}
