@@ -9,7 +9,7 @@ permalink: /
 # TeamsAPI
 
 [![JitPack](https://jitpack.io/v/ez-plugins/teams-api.svg)](https://jitpack.io/#ez-plugins/teams-api)
-[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-1.0.0-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
+[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-1.0.1-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
 
 **TeamsAPI** is a passive bridge plugin for Paper 26.1+ servers, modelled on
 [Vault](https://github.com/MilkBowl/VaultAPI). It defines a standard interface
@@ -45,7 +45,7 @@ team plugin — without coupling them together.
 <dependency>
   <groupId>com.github.ez-plugins</groupId>
   <artifactId>teams-api</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <scope>provided</scope>
 </dependency>
 ```

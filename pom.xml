@@ -6,7 +6,7 @@
 
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>pom</packaging>
     <name>TeamsAPI Parent</name>
     <description>Universal Teams API for Minecraft — bridges team plugins with a clean, timeless interface.</description>
