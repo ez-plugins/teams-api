@@ -2,12 +2,8 @@
 
 **The universal bridge between team plugins and everything else.**
 
-TeamsAPI is a passive, server-side bridge plugin for Paper servers, inspired by
-[Vault](https://github.com/MilkBowl/VaultAPI). It provides a single, stable
-interface for team operations — so any plugin that needs team data can work with
-any compatible team plugin, without either plugin knowing about the other.
+TeamsAPI is a passive, server-side bridge plugin for Paper servers, inspired by Vault. It provides a single, stable interface for team operations, so any plugin that needs team data can work with any compatible team plugin, without either plugin knowing about the other.
 
----
 
 ## How it works
 
@@ -24,23 +20,21 @@ Your Plugin (consumer)  →  TeamsAPI (bridge)  →  Team Plugin (provider)
 No two plugins need to know about each other. When the team plugin changes, every
 consumer plugin keeps working without a recompile.
 
----
 
 ## Features
 
-- **Provider-agnostic** — works with any team plugin that ships a `TeamsService` implementation.
-- **Graceful fallback** — if no provider is present, `TeamsAPI.isAvailable()` returns `false`;
+- **Provider-agnostic**: works with any team plugin that ships a `TeamsService` implementation.
+- **Graceful fallback**: if no provider is present, `TeamsAPI.isAvailable()` returns `false`;
   consumers can disable their team features cleanly instead of crashing.
-- **Read-only snapshots** — `Team` and `TeamMember` are immutable interfaces; providers own
+- **Read-only snapshots**: `Team` and `TeamMember` are immutable interfaces; providers own
   the backing data.
-- **Role hierarchy** — built-in `OWNER › ADMIN › MEMBER` with `outranks()` and
+- **Role hierarchy**: built-in `OWNER › ADMIN › MEMBER` with `outranks()` and
   `canManage()` helpers.
-- **Cancellable events** — five Bukkit events that providers can fire so other plugins can
+- **Cancellable events**: five Bukkit events that providers can fire so other plugins can
   react to or cancel team operations.
-- **Lightweight** — a single shaded JAR with no runtime dependencies beyond Paper.
-- **JitPack-ready** — depend on just the API module at compile time; no transitive dependencies leak into your plugin.
+- **Lightweight**: a single shaded JAR with no runtime dependencies beyond Paper.
+- **JitPack-ready**: depend on just the API module at compile time; no transitive dependencies leak into your plugin.
 
----
 
 ## Requirements
 
@@ -50,7 +44,6 @@ consumer plugin keeps working without a recompile.
 | Java              | 25+        |
 | Plugin dependencies | None     |
 
----
 
 ## Installation (server owners)
 
@@ -63,7 +56,6 @@ consumer plugin keeps working without a recompile.
 TeamsAPI has no configuration files. The only command is `/teamsapi version` (requires
 `teamsapi.admin`).
 
----
 
 ## For developers
 
@@ -82,7 +74,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -94,7 +86,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.0.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.0.1'
 }
 ```
 
@@ -148,7 +140,6 @@ public void onDisable() {
 }
 ```
 
----
 
 ## API surface
 
@@ -194,7 +185,6 @@ Providers are encouraged (but not required) to fire them.
 | `ADMIN` | 50 | Can manage members with a lower priority |
 | `MEMBER` | 10 | Regular team member |
 
----
 
 ## Links
 
@@ -205,4 +195,4 @@ Providers are encouraged (but not required) to fire them.
 
 ---
 
-*MIT License — free to use in any project, open- or closed-source.*
+*MIT License - free to use in any project, open- or closed-source.*
