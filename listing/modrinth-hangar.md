@@ -74,7 +74,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -86,7 +86,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.0.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.0.1'
 }
 ```
 
