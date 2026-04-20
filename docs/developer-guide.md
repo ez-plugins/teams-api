@@ -24,7 +24,7 @@ compatible team plugin without coupling them together.
 
 ## Architecture
 
-```
+```text
 ┌───────────────────────────┐
 │  Your plugin (consumer)   │  depends on  teams-api  only
 └─────────────┬─────────────┘
