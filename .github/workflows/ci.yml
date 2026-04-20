@@ -25,6 +25,11 @@ jobs:
           java-version: '25'
           cache: maven
 
+      - name: Build and install MockBukkit dev/26.1.1
+        run: |
+          git clone --depth=1 --branch dev/26.1.1 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
+          cd /tmp/MockBukkit && ./gradlew publishToMavenLocal -xtest -xjavadoc
+
       - name: Run Checkstyle
         run: mvn -B -ntp -pl teams-api checkstyle:check
 
@@ -42,6 +47,11 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
+
+      - name: Build and install MockBukkit dev/26.1.1
+        run: |
+          git clone --depth=1 --branch dev/26.1.1 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
+          cd /tmp/MockBukkit && ./gradlew publishToMavenLocal -xtest -xjavadoc
 
       - name: Compile
         run: mvn -B -ntp -DskipTests compile
@@ -67,6 +77,11 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
+
+      - name: Build and install MockBukkit dev/26.1.1
+        run: |
+          git clone --depth=1 --branch dev/26.1.1 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
+          cd /tmp/MockBukkit && ./gradlew publishToMavenLocal -xtest -xjavadoc
 
       - name: Package
         run: mvn -B -ntp -DskipTests package
@@ -99,6 +114,11 @@ jobs:
           server-id: github
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
+
+      - name: Build and install MockBukkit dev/26.1.1
+        run: |
+          git clone --depth=1 --branch dev/26.1.1 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
+          cd /tmp/MockBukkit && ./gradlew publishToMavenLocal -xtest -xjavadoc
 
       - name: Publish Maven artifacts
         run: mvn -B -ntp -DskipTests deploy
