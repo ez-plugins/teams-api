@@ -1,0 +1,9 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+TeamsAPI,com.skyblockexp.teamsapi.model,TeamRole,0,67,0,8,0,14,0,9,0,5
+TeamsAPI,com.skyblockexp.teamsapi.api,TeamsAPI,3,52,2,14,2,17,2,11,0,5
+TeamsAPI,com.skyblockexp.teamsapi.event,TeamEvent,16,0,0,0,7,0,3,0,3,0
+TeamsAPI,com.skyblockexp.teamsapi.event,TeamJoinEvent,32,0,0,0,12,0,8,0,8,0
+TeamsAPI,com.skyblockexp.teamsapi.event,TeamCreateEvent,26,0,0,0,10,0,7,0,7,0
+TeamsAPI,com.skyblockexp.teamsapi.event,TeamRoleChangeEvent,38,0,0,0,14,0,9,0,9,0
+TeamsAPI,com.skyblockexp.teamsapi.event,TeamLeaveEvent,32,0,0,0,12,0,8,0,8,0
+TeamsAPI,com.skyblockexp.teamsapi.event,TeamDeleteEvent,20,0,0,0,8,0,6,0,6,0

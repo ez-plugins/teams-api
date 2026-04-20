@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TeamCreateEvent.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TeamsAPI</a> &gt; <a href="index.source.html" class="el_package">com.skyblockexp.teamsapi.event</a> &gt; <span class="el_source">TeamCreateEvent.java</span></div><h1>TeamCreateEvent.java</h1><pre class="source lang-java linenums">package com.skyblockexp.teamsapi.event;
+
+import com.skyblockexp.teamsapi.model.Team;
+
+import java.util.UUID;
+
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.HandlerList;
+
+/**
+ * Fired when a new team is about to be created.
+ *
+ * &lt;p&gt;Providers should fire this event before persisting the new team. If the event is
+ * cancelled, the team must not be created and {@link com.skyblockexp.teamsapi.api.TeamsService#createTeam}
+ * should return an empty {@link java.util.Optional}.&lt;/p&gt;
+ *
+ * &lt;p&gt;At the time this event is fired, the team may already exist as an in-memory object
+ * but is not yet persisted or visible to queries.&lt;/p&gt;
+ */
+public class TeamCreateEvent extends TeamEvent implements Cancellable {
+
+    /** Shared handler list for this event type. */
+<span class="nc" id="L23">    private static final HandlerList HANDLERS = new HandlerList();</span>
+
+    /** The UUID of the player who requested the team creation. */
+    private final UUID creatorUUID;
+
+    /** Whether this event has been cancelled. */
+    private boolean cancelled;
+
+    /**
+     * Creates a new {@link TeamCreateEvent}.
+     *
+     * @param team        the team being created; must not be {@code null}
+     * @param creatorUUID the UUID of the player who requested the creation; must not be {@code null}
+     */
+    public TeamCreateEvent(final Team team, final UUID creatorUUID) {
+<span class="nc" id="L38">        super(team);</span>
+<span class="nc" id="L39">        this.creatorUUID = creatorUUID;</span>
+<span class="nc" id="L40">    }</span>
+
+    /**
+     * Returns the UUID of the player who requested the team creation.
+     *
+     * @return the creator's UUID; never {@code null}
+     */
+    public UUID getCreatorUUID() {
+<span class="nc" id="L48">        return creatorUUID;</span>
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isCancelled() {
+<span class="nc" id="L56">        return cancelled;</span>
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setCancelled(final boolean cancel) {
+<span class="nc" id="L64">        this.cancelled = cancel;</span>
+<span class="nc" id="L65">    }</span>
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public HandlerList getHandlers() {
+<span class="nc" id="L72">        return HANDLERS;</span>
+    }
+
+    /**
+     * Returns the shared {@link HandlerList} for this event type.
+     *
+     * @return the handler list; never {@code null}
+     */
+    public static HandlerList getHandlerList() {
+<span class="nc" id="L81">        return HANDLERS;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

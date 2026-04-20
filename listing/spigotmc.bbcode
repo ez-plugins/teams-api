@@ -1,0 +1,202 @@
+[CENTER]
+[SIZE=7][B][COLOR=#6cb4ff]TeamsAPI[/COLOR][/B][/SIZE]
+[SIZE=4][COLOR=#aaaaaa]The universal bridge between team plugins and everything else.[/COLOR][/SIZE]
+[/CENTER]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#6cb4ff]What is TeamsAPI?[/COLOR][/B][/SIZE]
+
+[COLOR=#dddddd]TeamsAPI is a passive, server-side bridge plugin for Paper servers, inspired by [URL=https://github.com/MilkBowl/VaultAPI]Vault[/URL].
+It defines a clean, stable interface for team operations so that any plugin needing team data can work with any compatible team plugin — without either plugin knowing about the other.[/COLOR]
+
+[LEFT]
+[LIST]
+[*][B]Providers[/B] — faction, clan, guild, or custom team plugins [I]implement[/I] [COLOR=#6cb4ff]TeamsService[/COLOR] and register with TeamsAPI on startup.
+[*][B]Consumers[/B] — scoreboard plugins, chat formatters, quest plugins, or any plugin that needs team data calls [COLOR=#6cb4ff]TeamsAPI.getService()[/COLOR] once and uses the returned interface.
+[*][B]Server owners[/B] — install [COLOR=#6cb4ff]TeamsAPI.jar[/COLOR] alongside one compatible team plugin. Done.
+[/LIST]
+[/LEFT]
+
+[COLOR=#dddddd]No two plugins need to know about each other. When the team plugin changes, every consumer keeps working without a recompile.[/COLOR]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#6cb4ff]Features[/COLOR][/B][/SIZE]
+
+[LIST]
+[*][B]Provider-agnostic[/B] — works with any team plugin that ships a [COLOR=#6cb4ff]TeamsService[/COLOR] implementation.
+[*][B]Graceful fallback[/B] — if no provider is present, [COLOR=#6cb4ff]TeamsAPI.isAvailable()[/COLOR] returns [COLOR=#f08080]false[/COLOR]; consumers can disable team features cleanly instead of crashing.
+[*][B]Read-only snapshots[/B] — [COLOR=#6cb4ff]Team[/COLOR] and [COLOR=#6cb4ff]TeamMember[/COLOR] are immutable interfaces; providers own the backing data.
+[*][B]Role hierarchy[/B] — built-in [COLOR=#ffd700]OWNER[/COLOR] › [COLOR=#ffd700]ADMIN[/COLOR] › [COLOR=#ffd700]MEMBER[/COLOR] with [COLOR=#6cb4ff]outranks()[/COLOR] and [COLOR=#6cb4ff]canManage()[/COLOR] helpers.
+[*][B]Cancellable events[/B] — five Bukkit events that providers can fire so other plugins can react to or cancel team operations.
+[*][B]Lightweight[/B] — a single shaded JAR with no runtime dependencies beyond Paper.
+[*][B]JitPack-ready[/B] — depend on just the API module at compile time via Maven or Gradle.
+[/LIST]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#6cb4ff]Requirements[/COLOR][/B][/SIZE]
+
+[LIST]
+[*][B]Server software:[/B] Paper [COLOR=#6cb4ff]26.1+[/COLOR]
+[*][B]Java:[/B] [COLOR=#6cb4ff]25+[/COLOR]
+[*][B]Plugin dependencies:[/B] None
+[/LIST]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#6cb4ff]Installation (server owners)[/COLOR][/B][/SIZE]
+
+[LIST=1]
+[*]Download [B]teams-api-plugin-VERSION.jar[/B] from the [B]Download[/B] button at the top of this page or from [URL=https://github.com/ez-plugins/teams-api/releases]GitHub Releases[/URL].
+[*]Drop it into your server's [COLOR=#6cb4ff]plugins/[/COLOR] folder.
+[*]Install a compatible team plugin that provides a [COLOR=#6cb4ff]TeamsService[/COLOR] implementation.
+[*]Restart the server.
+[/LIST]
+
+[COLOR=#aaaaaa]TeamsAPI has no configuration files. The only command is [COLOR=#6cb4ff]/teamsapi version[/COLOR] (requires [COLOR=#6cb4ff]teamsapi.admin[/COLOR]).[/COLOR]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#6cb4ff]For Developers[/COLOR][/B][/SIZE]
+
+[COLOR=#dddddd]Add the API artifact to your project via [URL=https://jitpack.io/#ez-plugins/teams-api]JitPack[/URL]. Use [COLOR=#6cb4ff]scope: provided[/COLOR] (Maven) or [COLOR=#6cb4ff]compileOnly[/COLOR] (Gradle) — the classes are provided by [COLOR=#6cb4ff]TeamsAPI.jar[/COLOR] at runtime.[/COLOR]
+
+[SPOILER=Maven dependency]
+[CODE=xml]
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependency>
+    <groupId>com.github.ez-plugins</groupId>
+    <artifactId>teams-api</artifactId>
+    <version>1.0.0</version>
+    <scope>provided</scope>
+</dependency>
+[/CODE]
+[/SPOILER]
+
+[SPOILER=Gradle dependency]
+[CODE=groovy]
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+dependencies {
+    compileOnly 'com.github.ez-plugins:teams-api:1.0.0'
+}
+[/CODE]
+[/SPOILER]
+
+[SIZE=4][B]Consumer quick-start[/B][/SIZE]
+
+[COLOR=#aaaaaa]Declare the dependency in [COLOR=#6cb4ff]plugin.yml[/COLOR] (use [COLOR=#6cb4ff]softdepend[/COLOR] if team support is optional):[/COLOR]
+
+[CODE=yaml]
+depend:
+  - TeamsAPI
+[/CODE]
+
+[COLOR=#aaaaaa]Then use the API at runtime:[/COLOR]
+
+[CODE=java]
+@Override
+public void onEnable() {
+    if (!TeamsAPI.isAvailable()) {
+        getLogger().warning("No team plugin found — team features disabled.");
+        return;
+    }
+    getLogger().info("TeamsAPI found: team features enabled.");
+}
+
+// In a command or listener:
+TeamsService teams = TeamsAPI.getService();
+Optional<Team> team = teams.getPlayerTeam(player.getUniqueId());
+team.ifPresent(t -> player.sendMessage("Your team: " + t.getDisplayName()));
+[/CODE]
+
+[SIZE=4][B]Provider quick-start[/B][/SIZE]
+
+[COLOR=#aaaaaa]Declare a soft-dependency in [COLOR=#6cb4ff]plugin.yml[/COLOR] and register your implementation:[/COLOR]
+
+[CODE=yaml]
+softdepend:
+  - TeamsAPI
+[/CODE]
+
+[CODE=java]
+@Override
+public void onEnable() {
+    TeamsAPI.registerProvider(this, new MyTeamsService(this));
+}
+
+@Override
+public void onDisable() {
+    TeamsAPI.unregisterProvider(teamsService);
+}
+[/CODE]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#6cb4ff]API Surface[/COLOR][/B][/SIZE]
+
+[SIZE=4][B]Team lifecycle & lookup[/B][/SIZE]
+
+[LIST]
+[*][COLOR=#6cb4ff]createTeam(name, ownerUUID)[/COLOR] → [COLOR=#ffd700]Optional<Team>[/COLOR] — Creates a new team
+[*][COLOR=#6cb4ff]deleteTeam(teamId)[/COLOR] → [COLOR=#ffd700]boolean[/COLOR] — Deletes a team by UUID
+[*][COLOR=#6cb4ff]getTeam(teamId)[/COLOR] → [COLOR=#ffd700]Optional<Team>[/COLOR] — Looks up a team by UUID
+[*][COLOR=#6cb4ff]getTeamByName(name)[/COLOR] → [COLOR=#ffd700]Optional<Team>[/COLOR] — Looks up a team by name
+[*][COLOR=#6cb4ff]getPlayerTeam(playerUUID)[/COLOR] → [COLOR=#ffd700]Optional<Team>[/COLOR] — Returns the player's current team
+[*][COLOR=#6cb4ff]getAllTeams()[/COLOR] → [COLOR=#ffd700]Collection<Team>[/COLOR] — Returns every registered team
+[*][COLOR=#6cb4ff]getTeamCount()[/COLOR] → [COLOR=#ffd700]int[/COLOR] — Total number of teams
+[/LIST]
+
+[SIZE=4][B]Membership management[/B][/SIZE]
+
+[LIST]
+[*][COLOR=#6cb4ff]addMember(teamId, playerUUID, role)[/COLOR] → [COLOR=#ffd700]boolean[/COLOR] — Adds a player with the given role
+[*][COLOR=#6cb4ff]removeMember(teamId, playerUUID)[/COLOR] → [COLOR=#ffd700]boolean[/COLOR] — Removes a player from the team
+[*][COLOR=#6cb4ff]setMemberRole(teamId, playerUUID, role)[/COLOR] → [COLOR=#ffd700]boolean[/COLOR] — Changes a member's role
+[*][COLOR=#6cb4ff]getMemberRole(teamId, playerUUID)[/COLOR] → [COLOR=#ffd700]Optional<TeamRole>[/COLOR] — Returns the member's current role
+[/LIST]
+
+[SIZE=4][B]Events[/B][/SIZE]
+
+[COLOR=#aaaaaa]All five events are [B]cancellable[/B] and live in [COLOR=#6cb4ff]com.skyblockexp.teamsapi.event[/COLOR].
+Providers are encouraged (but not required) to fire them.[/COLOR]
+
+[LIST]
+[*][COLOR=#6cb4ff]TeamCreateEvent[/COLOR] — fired before a team is created
+[*][COLOR=#6cb4ff]TeamDeleteEvent[/COLOR] — fired before a team is deleted
+[*][COLOR=#6cb4ff]TeamJoinEvent[/COLOR] — fired before a player joins a team
+[*][COLOR=#6cb4ff]TeamLeaveEvent[/COLOR] — fired before a player leaves a team
+[*][COLOR=#6cb4ff]TeamRoleChangeEvent[/COLOR] — fired before a member's role changes
+[/LIST]
+
+[SIZE=4][B]Roles[/B][/SIZE]
+
+[LIST]
+[*][COLOR=#ffd700]OWNER[/COLOR] (priority 100) — Full control; cannot be removed by others
+[*][COLOR=#ffd700]ADMIN[/COLOR] (priority 50) — Can manage members with a lower priority
+[*][COLOR=#ffd700]MEMBER[/COLOR] (priority 10) — Regular team member
+[/LIST]
+
+[HR][/HR]
+
+[SIZE=5][B][COLOR=#6cb4ff]Links[/COLOR][/B][/SIZE]
+
+[LIST]
+[*][URL=https://github.com/ez-plugins/teams-api][B]GitHub[/B][/URL] — source code & issue tracker
+[*][URL=https://ez-plugins.github.io/teams-api/developer-guide.html][B]Developer Guide[/B][/URL] — full integration walkthrough
+[*][URL=https://ez-plugins.github.io/teams-api/api.html][B]API Reference[/B][/URL] — complete method tables
+[*][URL=https://jitpack.io/#ez-plugins/teams-api][B]JitPack[/B][/URL] — Maven / Gradle dependency
+[/LIST]
+
+[HR][/HR]
+
+[CENTER][COLOR=#aaaaaa]MIT License — free to use in any project, open- or closed-source.[/COLOR][/CENTER]

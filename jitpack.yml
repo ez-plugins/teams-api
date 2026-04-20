@@ -1,0 +1,4 @@
+jdk:
+  - openjdk25
+build:
+  - mvn -B -ntp install -DskipTests

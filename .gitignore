@@ -1,0 +1,52 @@
+# Maven
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Build
+/build/
+
+# Coverage
+jacoco.exec
+coverage/
+
+# Misc
+*.swp
+*.swo
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Java
+*.class
+
+# GitHub Actions
+.github/workflows/*.secrets.enc
+
+# Jekyll docs (platform-specific lock file should not be committed)
+docs/Gemfile.lock
+docs/.jekyll-cache/
+docs/_site/

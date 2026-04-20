@@ -1,0 +1,13 @@
+#Mon Apr 20 10:40:32 CEST 2026
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/api/TeamsAPI.java=1776645182544
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/api/TeamsService.java=1776645158076
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/event/TeamCreateEvent.java=1776645202925
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/event/TeamDeleteEvent.java=1776645209432
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/event/TeamEvent.java=1776645190713
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/event/TeamJoinEvent.java=1776645219022
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/event/TeamLeaveEvent.java=1776645228220
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/event/TeamRoleChangeEvent.java=1776645238830
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/model/Team.java=1776645126879
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/model/TeamMember.java=1776645094103
+/home/niels/gyvex/teams-api/teams-api/src/main/java/com/skyblockexp/teamsapi/model/TeamRole.java=1776645087443
+configuration*?=A88D798B25E767BE161F23DC6A7C4403EF482E2B
