@@ -74,8 +74,7 @@ from the team plugin directly. Providers register and unregister themselves via
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.0.1</version>
-    <scope>provided</scope>
+    <version>1.1.0</version>
 </dependency>
 ```
 
@@ -86,7 +85,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.0.1'
+    compileOnly 'com.github.ez-plugins:teams-api:1.1.0'
 }
 ```
 
@@ -127,7 +126,53 @@ public void onDisable() {
 }
 ```
 
-### 4. Declare the soft-dependency in `plugin.yml`
+### 4. Optionally implement `TeamsInviteService`
+
+If your plugin supports team invitations, implement and register `TeamsInviteService`
+alongside `TeamsService`:
+
+```java
+public class MyInviteService implements TeamsInviteService {
+
+    @Override
+    public boolean invitePlayer(UUID teamId, UUID inviterUUID, UUID inviteeUUID) {
+        // Fire TeamInviteEvent first; return false if cancelled
+    }
+
+    @Override
+    public Optional<Team> acceptInvite(UUID teamId, UUID playerUUID) {
+        // Add player, fire TeamInviteAcceptEvent, return the team
+    }
+
+    @Override
+    public boolean declineInvite(UUID teamId, UUID playerUUID) {
+        // Remove pending invite, fire TeamInviteDeclineEvent
+    }
+}
+```
+
+Register and unregister it alongside `TeamsService`:
+
+```java
+private MyTeamsService teamsService;
+private MyInviteService inviteService;
+
+@Override
+public void onEnable() {
+    teamsService = new MyTeamsService(this);
+    inviteService = new MyInviteService(this);
+    TeamsAPI.registerProvider(this, teamsService);
+    TeamsAPI.registerInviteProvider(this, inviteService);
+}
+
+@Override
+public void onDisable() {
+    TeamsAPI.unregisterProvider(teamsService);
+    TeamsAPI.unregisterInviteProvider(inviteService);
+}
+```
+
+### 5. Declare the soft-dependency in `plugin.yml`
 
 ```yaml
 softdepend:
@@ -183,13 +228,25 @@ private void handlePlayerCommand(Player player) {
 }
 ```
 
+If your plugin also wants to send invitations, check for `TeamsInviteService`:
+
+```java
+private void handleInviteCommand(Player sender, Player target, UUID teamId) {
+    if (!TeamsAPI.isInviteAvailable()) {
+        sender.sendMessage("The active team plugin does not support invitations.");
+        return;
+    }
+    TeamsInviteService invites = TeamsAPI.getInviteService();
+    boolean sent = invites.invitePlayer(teamId, sender.getUniqueId(), target.getUniqueId());
+    sender.sendMessage(sent ? "Invitation sent!" : "Could not send invitation.");
+}
+```
+
 ---
 
 ## Events
 
-All events are in the `com.skyblockexp.teamsapi.event` package.
-Providers are **encouraged** to fire these events; whether they do is
-implementation-specific.
+**Core events** — providers are **encouraged** to fire these; whether they do is implementation-specific.
 
 | Event                  | When fired                          | Cancellable |
 |------------------------|-------------------------------------|-------------|
@@ -199,7 +256,15 @@ implementation-specific.
 | `TeamLeaveEvent`       | Before a player leaves a team       | Yes         |
 | `TeamRoleChangeEvent`  | Before a member's role changes      | Yes         |
 
-Example listener:
+**Invite events** — fired by providers that implement `TeamsInviteService`.
+
+| Event                    | When fired                                 | Cancellable |
+|--------------------------|--------------------------------------------|-------------|
+| `TeamInviteEvent`        | Before an invitation is recorded           | Yes         |
+| `TeamInviteAcceptEvent`  | After the player has joined the team       | No          |
+| `TeamInviteDeclineEvent` | After the pending invitation was removed   | No          |
+
+Example listeners:
 
 ```java
 @EventHandler
@@ -211,6 +276,16 @@ public void onTeamJoin(TeamJoinEvent event) {
         event.setCancelled(true);
         // Notify player that the team is full
     }
+}
+
+@EventHandler
+public void onInvite(TeamInviteEvent event) {
+    // Cancel to block the invitation
+}
+
+@EventHandler
+public void onInviteAccepted(TeamInviteAcceptEvent event) {
+    // Informational — player has already joined
 }
 ```
 
