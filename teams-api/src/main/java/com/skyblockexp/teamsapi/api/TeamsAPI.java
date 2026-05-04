@@ -45,7 +45,7 @@ public final class TeamsAPI {
      * compatibility when the API introduces breaking changes. The version follows
      * Semantic Versioning ({@code MAJOR.MINOR.PATCH}).</p>
      */
-    public static final String API_VERSION = "1.0.1";
+    public static final String API_VERSION = "1.1.0";
 
     /** Suppresses default constructor, ensuring non-instantiability. */
     private TeamsAPI() { }
@@ -147,5 +147,100 @@ public final class TeamsAPI {
         }
 
         Bukkit.getServicesManager().unregister(TeamsService.class, provider);
+    }
+
+    // -------------------------------------------------------------------------
+    // Invite provider registration and lookup
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the currently registered {@link TeamsInviteService} provider, or {@code null}
+     * if no invite provider has been registered.
+     *
+     * <p>Consumers should check {@link #isInviteAvailable()} before calling this method
+     * to handle gracefully the case where no team plugin supports invitations.</p>
+     *
+     * @return the active {@link TeamsInviteService}, or {@code null} if unavailable
+     */
+    public static TeamsInviteService getInviteService() {
+        try {
+            final RegisteredServiceProvider<TeamsInviteService> reg =
+                Bukkit.getServicesManager().getRegistration(TeamsInviteService.class);
+
+            return reg != null ? reg.getProvider() : null;
+        }
+        catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns {@code true} if at least one {@link TeamsInviteService} provider is
+     * currently registered.
+     *
+     * @return {@code true} if an invite provider is available, {@code false} otherwise
+     */
+    public static boolean isInviteAvailable() {
+        return getInviteService() != null;
+    }
+
+    /**
+     * Registers a {@link TeamsInviteService} provider with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at {@link ServicePriority#Normal}.
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin   the plugin registering the provider; must not be {@code null}
+     * @param provider the {@link TeamsInviteService} implementation; must not be {@code null}
+     */
+    public static void registerInviteProvider(final Plugin plugin,
+            final TeamsInviteService provider) {
+        if (plugin == null || provider == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsInviteService.class, provider, plugin, ServicePriority.Normal);
+    }
+
+    /**
+     * Registers a {@link TeamsInviteService} provider with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at the specified priority.
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin   the plugin registering the provider; must not be {@code null}
+     * @param provider the {@link TeamsInviteService} implementation; must not be {@code null}
+     * @param priority the {@link ServicePriority} to register at; must not be {@code null}
+     */
+    public static void registerInviteProvider(
+            final Plugin plugin,
+            final TeamsInviteService provider,
+            final ServicePriority priority) {
+        if (plugin == null || provider == null || priority == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsInviteService.class, provider, plugin, priority);
+    }
+
+    /**
+     * Unregisters a {@link TeamsInviteService} provider from Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager}.
+     *
+     * <p>Providers should call this in their plugin's {@code onDisable()} alongside
+     * {@link #unregisterProvider(TeamsService)}.</p>
+     *
+     * <p>This method silently ignores a {@code null} argument.</p>
+     *
+     * @param provider the {@link TeamsInviteService} provider to unregister; may be {@code null}
+     */
+    public static void unregisterInviteProvider(final TeamsInviteService provider) {
+        if (provider == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager().unregister(TeamsInviteService.class, provider);
     }
 }

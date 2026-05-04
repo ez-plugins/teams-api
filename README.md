@@ -49,7 +49,7 @@ Your Plugin (consumer)  →  TeamsAPI (bridge)  →  Team Plugin (provider)
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -61,7 +61,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.0.1'
+    compileOnly 'com.github.ez-plugins:teams-api:1.1.0'
 }
 ```
 
@@ -97,9 +97,36 @@ public void onDisable() {
 }
 ```
 
+### Invite service (optional)
+
+If the active team plugin also supports invitations, a `TeamsInviteService` is available:
+
+```java
+if (TeamsAPI.isInviteAvailable()) {
+    TeamsInviteService invites = TeamsAPI.getInviteService();
+    invites.invitePlayer(teamId, sender.getUniqueId(), target.getUniqueId());
+}
+```
+
+Providers that support invitations register the service alongside `TeamsService`:
+
+```java
+@Override
+public void onEnable() {
+    TeamsAPI.registerProvider(this, teamsService);
+    TeamsAPI.registerInviteProvider(this, inviteService);
+}
+
+@Override
+public void onDisable() {
+    TeamsAPI.unregisterProvider(teamsService);
+    TeamsAPI.unregisterInviteProvider(inviteService);
+}
+```
+
 ### Events
 
-All provider events are cancellable and extend `TeamEvent`:
+Provider events extend `TeamEvent`. Core events are cancellable; invite result events are informational:
 
 ```java
 @EventHandler
@@ -107,6 +134,11 @@ public void onTeamJoin(TeamJoinEvent event) {
     if (event.getTeam().getSize() >= 10) {
         event.setCancelled(true);
     }
+}
+
+@EventHandler
+public void onInviteAccepted(TeamInviteAcceptEvent event) {
+    // player has already joined — informational only
 }
 ```
 

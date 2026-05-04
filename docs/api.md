@@ -21,6 +21,8 @@ This document describes each type in the `teams-api` artifact.
 
 Entry point for all API interactions. All methods are static.
 
+**Core service**
+
 | Method | Description |
 |--------|-------------|
 | `getService()` | Returns the active `TeamsService`, or `null` if none is registered. |
@@ -29,6 +31,30 @@ Entry point for all API interactions. All methods are static.
 | `registerProvider(plugin, service, priority)` | Registers a provider at the given priority. |
 | `unregisterProvider(service)` | Unregisters a provider from Bukkit's ServicesManager. |
 | `API_VERSION` | The current API version string (Semantic Versioning). |
+
+**Invite service**
+
+| Method | Description |
+|--------|-------------|
+| `getInviteService()` | Returns the active `TeamsInviteService`, or `null` if none is registered. |
+| `isInviteAvailable()` | Returns `true` when an invite provider is registered. |
+| `registerInviteProvider(plugin, service)` | Registers an invite provider at `ServicePriority.Normal`. |
+| `registerInviteProvider(plugin, service, priority)` | Registers an invite provider at the given priority. |
+| `unregisterInviteProvider(service)` | Unregisters an invite provider from Bukkit's ServicesManager. |
+
+---
+
+## `TeamsInviteService` (interface)
+
+Optional extension service for team invitation flows. Providers that support
+invitations register an implementation via `TeamsAPI.registerInviteProvider()`.
+Existing `TeamsService` implementations are **not required** to support it.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `invitePlayer(teamId, inviterUUID, inviteeUUID)` | `boolean` | Sends an invitation. Providers should fire `TeamInviteEvent` before recording it; return `false` if cancelled or a pending invite already exists. |
+| `acceptInvite(teamId, playerUUID)` | `Optional<Team>` | Accepts a pending invitation and adds the player as `MEMBER`. Empty if no invite exists or the join failed. |
+| `declineInvite(teamId, playerUUID)` | `boolean` | Removes a pending invitation. Returns `false` if none existed. |
 
 ---
 
@@ -128,6 +154,8 @@ Helper methods:
 All events extend `TeamEvent` which extends Bukkit's `Event`.
 All concrete events implement `Cancellable`.
 
+**Core events** (all cancellable)
+
 | Class | Key fields |
 |-------|------------|
 | `TeamCreateEvent` | `getTeam()`, `getCreatorUUID()` |
@@ -136,9 +164,26 @@ All concrete events implement `Cancellable`.
 | `TeamLeaveEvent` | `getTeam()`, `getPlayerUUID()`, `getFormerRole()` |
 | `TeamRoleChangeEvent` | `getTeam()`, `getPlayerUUID()`, `getOldRole()`, `getNewRole()` |
 
+**Invite events**
+
+| Class | Cancellable | Key fields |
+|-------|-------------|------------|
+| `TeamInviteEvent` | Yes | `getTeam()`, `getInviterUUID()`, `getInviteeUUID()` |
+| `TeamInviteAcceptEvent` | No | `getTeam()`, `getPlayerUUID()` |
+| `TeamInviteDeclineEvent` | No | `getTeam()`, `getPlayerUUID()` |
+
 ---
 
 ## Migration notes
+
+### 1.1.0
+
+Non-breaking addition. No changes required for existing providers or consumers.
+
+- New optional `TeamsInviteService` interface for invitation flows.
+- New `TeamsAPI` static methods: `getInviteService()`, `isInviteAvailable()`,
+  `registerInviteProvider(...)`, `unregisterInviteProvider(...)`.
+- New events: `TeamInviteEvent` (cancellable), `TeamInviteAcceptEvent`, `TeamInviteDeclineEvent`.
 
 ### 1.0.0
 
