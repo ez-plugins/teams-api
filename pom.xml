@@ -23,10 +23,10 @@
         <maven.compiler.target>25</maven.compiler.target>
         <maven.compiler.release>25</maven.compiler.release>
         <!-- Allow CI to override Paper API version via -Dpaper.version -->
-        <paper.version>26.1.2.build.57-stable</paper.version>
+        <paper.version>26.1.1.build.17-alpha</paper.version>
         <mockbukkit.groupId>org.mockbukkit.mockbukkit</mockbukkit.groupId>
         <mockbukkit.artifactId>mockbukkit-v26.1</mockbukkit.artifactId>
-        <mockbukkit.version>dev-7fba375</mockbukkit.version>
+        <mockbukkit.version>dev-d245e0a</mockbukkit.version>
         <junit.jupiter.version>6.0.3</junit.jupiter.version>
         <mockito.version>5.23.0</mockito.version>
         <checkstyle.version>10.21.4</checkstyle.version>
