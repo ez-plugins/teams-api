@@ -1,7 +1,7 @@
 title: TeamsAPI
 description: >-
-  Universal Teams API for Minecraft — a timeless bridge between team plugins
-  and the plugins that depend on them. Vault-style provider interface for Paper 26.1+.
+  Universal Teams API for Minecraft. A Vault-style bridge between team plugins
+  and the plugins that depend on them. Provider interface for Paper 26.1+.
 
 url: "https://ez-plugins.github.io"
 baseurl: "/teams-api"

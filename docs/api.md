@@ -4,7 +4,7 @@ nav_order: 10
 description: "Complete public method tables for every class and interface in teams-api"
 ---
 
-# TeamsAPI — Public API Reference
+# API Reference
 {: .no_toc }
 
 This document describes each type in the `teams-api` artifact.
@@ -14,8 +14,6 @@ This document describes each type in the `teams-api` artifact.
 
 1. TOC
 {:toc}
-
----
 
 ## `TeamsAPI` (static facade)
 
@@ -42,21 +40,15 @@ Entry point for all API interactions. All methods are static.
 | `registerInviteProvider(plugin, service, priority)` | Registers an invite provider at the given priority. |
 | `unregisterInviteProvider(service)` | Unregisters an invite provider from Bukkit's ServicesManager. |
 
----
+**Warp service**
 
-## `TeamsInviteService` (interface)
-
-Optional extension service for team invitation flows. Providers that support
-invitations register an implementation via `TeamsAPI.registerInviteProvider()`.
-Existing `TeamsService` implementations are **not required** to support it.
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `invitePlayer(teamId, inviterUUID, inviteeUUID)` | `boolean` | Sends an invitation. Providers should fire `TeamInviteEvent` before recording it; return `false` if cancelled or a pending invite already exists. |
-| `acceptInvite(teamId, playerUUID)` | `Optional<Team>` | Accepts a pending invitation and adds the player as `MEMBER`. Empty if no invite exists or the join failed. |
-| `declineInvite(teamId, playerUUID)` | `boolean` | Removes a pending invitation. Returns `false` if none existed. |
-
----
+| Method | Description |
+|--------|-------------|
+| `getWarpService()` | Returns the active `TeamsWarpService`, or `null` if none is registered. |
+| `isWarpAvailable()` | Returns `true` when a warp provider is registered. |
+| `registerWarpProvider(plugin, service)` | Registers a warp provider at `ServicePriority.Normal`. |
+| `registerWarpProvider(plugin, service, priority)` | Registers a warp provider at the given priority. |
+| `unregisterWarpProvider(service)` | Unregisters a warp provider from Bukkit's ServicesManager. |
 
 ## `TeamsService` (interface)
 
@@ -97,7 +89,30 @@ Implemented by team plugins. Obtained via `TeamsAPI.getService()`.
 | `teamExists(name)` | `boolean` | Whether a team with that name exists. |
 | `isMember(teamId, playerUUID)` | `boolean` | Whether the player is a member of that team. |
 
----
+## `TeamsInviteService` (interface)
+
+Optional extension service for team invitation flows. Providers that support
+invitations register an implementation via `TeamsAPI.registerInviteProvider()`.
+Existing `TeamsService` implementations are not required to support it.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `invitePlayer(teamId, inviterUUID, inviteeUUID)` | `boolean` | Sends an invitation. Providers should fire `TeamInviteEvent` before recording it; return `false` if cancelled or a pending invite already exists. |
+| `acceptInvite(teamId, playerUUID)` | `Optional<Team>` | Accepts a pending invitation and adds the player as `MEMBER`. Empty if no invite exists or the join failed. |
+| `declineInvite(teamId, playerUUID)` | `boolean` | Removes a pending invitation. Returns `false` if none existed. |
+
+## `TeamsWarpService` (interface)
+
+Optional extension service for team warp management. Providers that support
+warps register an implementation via `TeamsAPI.registerWarpProvider()`.
+Existing `TeamsService` implementations are not required to support it.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `setWarp(teamId, name, location, creatorUUID)` | `boolean` | Creates or updates a named warp. Providers should fire `TeamWarpSetEvent` before persisting; return `false` if cancelled or the team does not exist. |
+| `removeWarp(teamId, name)` | `boolean` | Removes the named warp. Providers should fire `TeamWarpDeleteEvent` before removing; return `false` if cancelled or no such warp exists. |
+| `getWarp(teamId, name)` | `Optional<TeamWarp>` | Returns the named warp, or empty if it does not exist. |
+| `getWarps(teamId)` | `Collection<TeamWarp>` | Returns all warps for the team. Never `null`; empty if the team has no warps. |
 
 ## `Team` (interface)
 
@@ -117,8 +132,6 @@ A read-only snapshot of a team. Obtain via `TeamsService` lookup methods.
 | `isMember(playerUUID)` | `boolean` | Whether the player is a member (any role). |
 | `isOwner(playerUUID)` | `boolean` | Whether the player holds the OWNER role. |
 
----
-
 ## `TeamMember` (interface)
 
 A read-only record of a player's membership.
@@ -129,7 +142,18 @@ A read-only record of a player's membership.
 | `getRole()` | `TeamRole` | The role the player holds in the team. |
 | `getJoinedAt()` | `Instant` | When the player joined; may be `Instant.EPOCH` if unsupported. |
 
----
+## `TeamWarp` (interface)
+
+A read-only snapshot of a team warp point. Obtain via `TeamsWarpService` lookup
+methods.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getTeamId()` | `UUID` | The UUID of the team this warp belongs to. |
+| `getName()` | `String` | The warp name. Unique within a team; case-sensitivity is provider-defined. |
+| `getLocation()` | `Location` | The Bukkit `Location` this warp points to. |
+| `getCreatorUUID()` | `UUID` | UUID of the player who created or last updated this warp. |
+| `getCreatedAt()` | `Instant` | When the warp was created or last updated; may be `Instant.EPOCH` if unsupported. |
 
 ## `TeamRole` (enum)
 
@@ -146,8 +170,6 @@ Helper methods:
 | `getPriority()` | Numeric priority value. Higher = more authority. |
 | `outranks(other)` | Returns `true` if this role has a higher priority than `other`. |
 | `canManage(target)` | Returns `true` if this role can manage members of the `target` role. |
-
----
 
 ## Events
 
@@ -172,9 +194,24 @@ All concrete events implement `Cancellable`.
 | `TeamInviteAcceptEvent` | No | `getTeam()`, `getPlayerUUID()` |
 | `TeamInviteDeclineEvent` | No | `getTeam()`, `getPlayerUUID()` |
 
----
+**Warp events**
+
+| Class | Cancellable | Key fields |
+|-------|-------------|------------|
+| `TeamWarpSetEvent` | Yes | `getTeam()`, `getName()`, `getLocation()`, `getCreatorUUID()` |
+| `TeamWarpDeleteEvent` | Yes | `getTeam()`, `getName()` |
 
 ## Migration notes
+
+### 1.2.0
+
+Non-breaking addition. No changes required for existing providers or consumers.
+
+- New optional `TeamsWarpService` interface for warp management.
+- New `TeamWarp` model interface.
+- New `TeamsAPI` static methods: `getWarpService()`, `isWarpAvailable()`,
+  `registerWarpProvider(...)`, `unregisterWarpProvider(...)`.
+- New events: `TeamWarpSetEvent` (cancellable), `TeamWarpDeleteEvent` (cancellable).
 
 ### 1.1.0
 
