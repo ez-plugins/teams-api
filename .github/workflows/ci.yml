@@ -46,16 +46,22 @@ jobs:
       - name: Build and install MockBukkit minecraft/v26
         run: |
           git clone --depth=1 --branch minecraft/v26 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
-          cd /tmp/MockBukkit && GITHUB_REPOSITORY=MockBukkit/MockBukkit ./gradlew publishToMavenLocal -x test -Pmockbukkit.version=ci-local
+          cd /tmp/MockBukkit
+          VERSION="dev-$(git rev-parse --short HEAD)"
+          echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
+          ./gradlew jar generatePomFileForMavenPublication -x test
+          JAR=$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*-sources*' ! -name '*-javadoc*' | head -1)
+          POM=$(find build/publications -name 'pom-default.xml' | head -1)
+          mvn install:install-file -Dfile="$JAR" -DpomFile="$POM"
 
       - name: Compile
-        run: mvn -B -ntp -DskipTests compile
+        run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} compile
 
       - name: Run unit tests
-        run: mvn -B -ntp -pl teams-api test
+        run: mvn -B -ntp -pl teams-api -Dmockbukkit.version=${MOCKBUKKIT_VERSION} test
 
       - name: Coverage report
-        run: mvn -B -ntp -pl teams-api jacoco:report
+        run: mvn -B -ntp -pl teams-api -Dmockbukkit.version=${MOCKBUKKIT_VERSION} jacoco:report
 
   package:
     name: Package Plugin
@@ -76,10 +82,16 @@ jobs:
       - name: Build and install MockBukkit minecraft/v26
         run: |
           git clone --depth=1 --branch minecraft/v26 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
-          cd /tmp/MockBukkit && GITHUB_REPOSITORY=MockBukkit/MockBukkit ./gradlew publishToMavenLocal -x test -Pmockbukkit.version=ci-local
+          cd /tmp/MockBukkit
+          VERSION="dev-$(git rev-parse --short HEAD)"
+          echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
+          ./gradlew jar generatePomFileForMavenPublication -x test
+          JAR=$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*-sources*' ! -name '*-javadoc*' | head -1)
+          POM=$(find build/publications -name 'pom-default.xml' | head -1)
+          mvn install:install-file -Dfile="$JAR" -DpomFile="$POM"
 
       - name: Package
-        run: mvn -B -ntp -DskipTests package
+        run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} package
 
       - name: Upload plugin JAR
         uses: actions/upload-artifact@v4
@@ -113,13 +125,19 @@ jobs:
       - name: Build and install MockBukkit minecraft/v26
         run: |
           git clone --depth=1 --branch minecraft/v26 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
-          cd /tmp/MockBukkit && GITHUB_REPOSITORY=MockBukkit/MockBukkit ./gradlew publishToMavenLocal -x test -Pmockbukkit.version=ci-local
+          cd /tmp/MockBukkit
+          VERSION="dev-$(git rev-parse --short HEAD)"
+          echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
+          ./gradlew jar generatePomFileForMavenPublication -x test
+          JAR=$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*-sources*' ! -name '*-javadoc*' | head -1)
+          POM=$(find build/publications -name 'pom-default.xml' | head -1)
+          mvn install:install-file -Dfile="$JAR" -DpomFile="$POM"
 
       - name: Build plugin JAR
-        run: mvn -B -ntp -DskipTests package
+        run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} package
 
       - name: Publish Maven artifacts
-        run: mvn -B -ntp -DskipTests -pl teams-api deploy
+        run: mvn -B -ntp -DskipTests -pl teams-api -Dmockbukkit.version=${MOCKBUKKIT_VERSION} deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
