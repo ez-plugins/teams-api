@@ -49,10 +49,7 @@ jobs:
           cd /tmp/MockBukkit
           VERSION="dev-$(git rev-parse --short HEAD)"
           echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
-          ./gradlew jar generatePomFileForMavenPublication -x test
-          JAR=$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*-sources*' ! -name '*-javadoc*' | head -1)
-          POM=$(find build/publications -name 'pom-default.xml' | head -1)
-          mvn install:install-file -Dfile="$JAR" -DpomFile="$POM"
+          ./gradlew publishToMavenLocal -x test -x signMavenPublication
 
       - name: Compile
         run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} compile
@@ -85,10 +82,7 @@ jobs:
           cd /tmp/MockBukkit
           VERSION="dev-$(git rev-parse --short HEAD)"
           echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
-          ./gradlew jar generatePomFileForMavenPublication -x test
-          JAR=$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*-sources*' ! -name '*-javadoc*' | head -1)
-          POM=$(find build/publications -name 'pom-default.xml' | head -1)
-          mvn install:install-file -Dfile="$JAR" -DpomFile="$POM"
+          ./gradlew publishToMavenLocal -x test -x signMavenPublication
 
       - name: Package
         run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} package
@@ -128,10 +122,7 @@ jobs:
           cd /tmp/MockBukkit
           VERSION="dev-$(git rev-parse --short HEAD)"
           echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
-          ./gradlew jar generatePomFileForMavenPublication -x test
-          JAR=$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*-sources*' ! -name '*-javadoc*' | head -1)
-          POM=$(find build/publications -name 'pom-default.xml' | head -1)
-          mvn install:install-file -Dfile="$JAR" -DpomFile="$POM"
+          ./gradlew publishToMavenLocal -x test -x signMavenPublication
 
       - name: Build plugin JAR
         run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} package
