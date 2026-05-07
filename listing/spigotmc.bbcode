@@ -8,13 +8,13 @@
 [SIZE=5][B][COLOR=#6cb4ff]What is TeamsAPI?[/COLOR][/B][/SIZE]
 
 [COLOR=#dddddd]TeamsAPI is a passive, server-side bridge plugin for Paper servers, inspired by [URL=https://github.com/MilkBowl/VaultAPI]Vault[/URL].
-It defines a clean, stable interface for team operations so that any plugin needing team data can work with any compatible team plugin — without either plugin knowing about the other.[/COLOR]
+It defines a clean, stable interface for team operations so that any plugin needing team data can work with any compatible team plugin, without either plugin knowing about the other.[/COLOR]
 
 [LEFT]
 [LIST]
-[*][B]Providers[/B] — faction, clan, guild, or custom team plugins [I]implement[/I] [COLOR=#6cb4ff]TeamsService[/COLOR] and register with TeamsAPI on startup.
-[*][B]Consumers[/B] — scoreboard plugins, chat formatters, quest plugins, or any plugin that needs team data calls [COLOR=#6cb4ff]TeamsAPI.getService()[/COLOR] once and uses the returned interface.
-[*][B]Server owners[/B] — install [COLOR=#6cb4ff]TeamsAPI.jar[/COLOR] alongside one compatible team plugin. Done.
+[*][B]Providers[/B] -- faction, clan, guild, or custom team plugins [I]implement[/I] [COLOR=#6cb4ff]TeamsService[/COLOR] and register with TeamsAPI on startup.
+[*][B]Consumers[/B] -- scoreboard plugins, chat formatters, quest plugins, or any plugin that needs team data calls [COLOR=#6cb4ff]TeamsAPI.getService()[/COLOR] once and uses the returned interface.
+[*][B]Server owners[/B] -- install [COLOR=#6cb4ff]TeamsAPI.jar[/COLOR] alongside one compatible team plugin. Done.
 [/LIST]
 [/LEFT]
 
@@ -25,13 +25,15 @@ It defines a clean, stable interface for team operations so that any plugin need
 [SIZE=5][B][COLOR=#6cb4ff]Features[/COLOR][/B][/SIZE]
 
 [LIST]
-[*][B]Provider-agnostic[/B] — works with any team plugin that ships a [COLOR=#6cb4ff]TeamsService[/COLOR] implementation.
-[*][B]Graceful fallback[/B] — if no provider is present, [COLOR=#6cb4ff]TeamsAPI.isAvailable()[/COLOR] returns [COLOR=#f08080]false[/COLOR]; consumers can disable team features cleanly instead of crashing.
-[*][B]Read-only snapshots[/B] — [COLOR=#6cb4ff]Team[/COLOR] and [COLOR=#6cb4ff]TeamMember[/COLOR] are immutable interfaces; providers own the backing data.
-[*][B]Role hierarchy[/B] — built-in [COLOR=#ffd700]OWNER[/COLOR] › [COLOR=#ffd700]ADMIN[/COLOR] › [COLOR=#ffd700]MEMBER[/COLOR] with [COLOR=#6cb4ff]outranks()[/COLOR] and [COLOR=#6cb4ff]canManage()[/COLOR] helpers.
-[*][B]Cancellable events[/B] — five Bukkit events that providers can fire so other plugins can react to or cancel team operations.
-[*][B]Lightweight[/B] — a single shaded JAR with no runtime dependencies beyond Paper.
-[*][B]JitPack-ready[/B] — depend on just the API module at compile time via Maven or Gradle.
+[*][B]Provider-agnostic[/B] -- works with any team plugin that ships a [COLOR=#6cb4ff]TeamsService[/COLOR] implementation.
+[*][B]Graceful fallback[/B] -- if no provider is present, [COLOR=#6cb4ff]TeamsAPI.isAvailable()[/COLOR] returns [COLOR=#f08080]false[/COLOR]; consumers can disable team features cleanly instead of crashing.
+[*][B]Read-only snapshots[/B] -- [COLOR=#6cb4ff]Team[/COLOR] and [COLOR=#6cb4ff]TeamMember[/COLOR] are immutable interfaces; providers own the backing data.
+[*][B]Role hierarchy[/B] -- built-in [COLOR=#ffd700]OWNER[/COLOR] > [COLOR=#ffd700]ADMIN[/COLOR] > [COLOR=#ffd700]MEMBER[/COLOR] with [COLOR=#6cb4ff]outranks()[/COLOR] and [COLOR=#6cb4ff]canManage()[/COLOR] helpers.
+[*][B]Optional invite service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsInviteService[/COLOR] for invitation workflows.
+[*][B]Optional warp service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsWarpService[/COLOR] for named team warps.
+[*][B]Cancellable events[/B] -- ten Bukkit events that providers can fire so other plugins can react to or cancel team operations.
+[*][B]Lightweight[/B] -- a single shaded JAR with no runtime dependencies beyond Paper.
+[*][B]JitPack-ready[/B] -- depend on just the API module at compile time via Maven or Gradle.
 [/LIST]
 
 [HR][/HR]
@@ -55,13 +57,13 @@ It defines a clean, stable interface for team operations so that any plugin need
 [*]Restart the server.
 [/LIST]
 
-[COLOR=#aaaaaa]TeamsAPI has no configuration files. The only command is [COLOR=#6cb4ff]/teamsapi version[/COLOR] (requires [COLOR=#6cb4ff]teamsapi.admin[/COLOR]).[/COLOR]
+[COLOR=#aaaaaa]TeamsAPI has no configuration files.[/COLOR]
 
 [HR][/HR]
 
 [SIZE=5][B][COLOR=#6cb4ff]For Developers[/COLOR][/B][/SIZE]
 
-[COLOR=#dddddd]Add the API artifact to your project via [URL=https://jitpack.io/#ez-plugins/teams-api]JitPack[/URL]. Use [COLOR=#6cb4ff]scope: provided[/COLOR] (Maven) or [COLOR=#6cb4ff]compileOnly[/COLOR] (Gradle) — the classes are provided by [COLOR=#6cb4ff]TeamsAPI.jar[/COLOR] at runtime.[/COLOR]
+[COLOR=#dddddd]Add the API artifact to your project via [URL=https://jitpack.io/#ez-plugins/teams-api]JitPack[/URL]. Use [COLOR=#6cb4ff]scope: provided[/COLOR] (Maven) or [COLOR=#6cb4ff]compileOnly[/COLOR] (Gradle) -- the classes are provided by [COLOR=#6cb4ff]TeamsAPI.jar[/COLOR] at runtime.[/COLOR]
 
 [SPOILER=Maven dependency]
 [CODE=xml]
@@ -75,7 +77,7 @@ It defines a clean, stable interface for team operations so that any plugin need
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.0.1</version>
+    <version>1.2.2</version>
     <scope>provided</scope>
 </dependency>
 [/CODE]
@@ -87,7 +89,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.0.1'
+    compileOnly 'com.github.ez-plugins:teams-api:1.2.2'
 }
 [/CODE]
 [/SPOILER]
@@ -107,10 +109,10 @@ depend:
 @Override
 public void onEnable() {
     if (!TeamsAPI.isAvailable()) {
-        getLogger().warning("No team plugin found — team features disabled.");
+        getLogger().warning("No team plugin found. Team features disabled.");
         return;
     }
-    getLogger().info("TeamsAPI found: team features enabled.");
+    getLogger().info("TeamsAPI found. Team features enabled.");
 }
 
 // In a command or listener:
@@ -147,43 +149,69 @@ public void onDisable() {
 [SIZE=4][B]Team lifecycle & lookup[/B][/SIZE]
 
 [LIST]
-[*][COLOR=#6cb4ff]createTeam(name, ownerUUID)[/COLOR] → [COLOR=#ffd700]Optional<Team>[/COLOR] — Creates a new team
-[*][COLOR=#6cb4ff]deleteTeam(teamId)[/COLOR] → [COLOR=#ffd700]boolean[/COLOR] — Deletes a team by UUID
-[*][COLOR=#6cb4ff]getTeam(teamId)[/COLOR] → [COLOR=#ffd700]Optional<Team>[/COLOR] — Looks up a team by UUID
-[*][COLOR=#6cb4ff]getTeamByName(name)[/COLOR] → [COLOR=#ffd700]Optional<Team>[/COLOR] — Looks up a team by name
-[*][COLOR=#6cb4ff]getPlayerTeam(playerUUID)[/COLOR] → [COLOR=#ffd700]Optional<Team>[/COLOR] — Returns the player's current team
-[*][COLOR=#6cb4ff]getAllTeams()[/COLOR] → [COLOR=#ffd700]Collection<Team>[/COLOR] — Returns every registered team
-[*][COLOR=#6cb4ff]getTeamCount()[/COLOR] → [COLOR=#ffd700]int[/COLOR] — Total number of teams
+[*][COLOR=#6cb4ff]createTeam(name, ownerUUID)[/COLOR] -> [COLOR=#ffd700]Optional<Team>[/COLOR] -- Creates a new team
+[*][COLOR=#6cb4ff]deleteTeam(teamId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Deletes a team by UUID
+[*][COLOR=#6cb4ff]getTeam(teamId)[/COLOR] -> [COLOR=#ffd700]Optional<Team>[/COLOR] -- Looks up a team by UUID
+[*][COLOR=#6cb4ff]getTeamByName(name)[/COLOR] -> [COLOR=#ffd700]Optional<Team>[/COLOR] -- Looks up a team by name
+[*][COLOR=#6cb4ff]getPlayerTeam(playerUUID)[/COLOR] -> [COLOR=#ffd700]Optional<Team>[/COLOR] -- Returns the player's current team
+[*][COLOR=#6cb4ff]getAllTeams()[/COLOR] -> [COLOR=#ffd700]Collection<Team>[/COLOR] -- Returns every registered team
+[*][COLOR=#6cb4ff]getTeamCount()[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Total number of teams
 [/LIST]
 
 [SIZE=4][B]Membership management[/B][/SIZE]
 
 [LIST]
-[*][COLOR=#6cb4ff]addMember(teamId, playerUUID, role)[/COLOR] → [COLOR=#ffd700]boolean[/COLOR] — Adds a player with the given role
-[*][COLOR=#6cb4ff]removeMember(teamId, playerUUID)[/COLOR] → [COLOR=#ffd700]boolean[/COLOR] — Removes a player from the team
-[*][COLOR=#6cb4ff]setMemberRole(teamId, playerUUID, role)[/COLOR] → [COLOR=#ffd700]boolean[/COLOR] — Changes a member's role
-[*][COLOR=#6cb4ff]getMemberRole(teamId, playerUUID)[/COLOR] → [COLOR=#ffd700]Optional<TeamRole>[/COLOR] — Returns the member's current role
+[*][COLOR=#6cb4ff]addMember(teamId, playerUUID, role)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Adds a player with the given role
+[*][COLOR=#6cb4ff]removeMember(teamId, playerUUID)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes a player from the team
+[*][COLOR=#6cb4ff]setMemberRole(teamId, playerUUID, role)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Changes a member's role
+[*][COLOR=#6cb4ff]getMemberRole(teamId, playerUUID)[/COLOR] -> [COLOR=#ffd700]Optional<TeamRole>[/COLOR] -- Returns the member's current role
+[/LIST]
+
+[SIZE=4][B]Invite service (optional)[/B][/SIZE]
+
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isInviteAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getInviteService()[/COLOR].[/COLOR]
+
+[LIST]
+[*][COLOR=#6cb4ff]invitePlayer(teamId, inviterUUID, inviteeUUID)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Sends an invitation
+[*][COLOR=#6cb4ff]acceptInvite(teamId, playerUUID)[/COLOR] -> [COLOR=#ffd700]Optional<Team>[/COLOR] -- Accepts the invitation and joins the team
+[*][COLOR=#6cb4ff]declineInvite(teamId, playerUUID)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Declines an invitation
+[/LIST]
+
+[SIZE=4][B]Warp service (optional)[/B][/SIZE]
+
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isWarpAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getWarpService()[/COLOR].[/COLOR]
+
+[LIST]
+[*][COLOR=#6cb4ff]setWarp(teamId, name, location, creatorUUID)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Creates or updates a named warp
+[*][COLOR=#6cb4ff]removeWarp(teamId, name)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Deletes a warp by name
+[*][COLOR=#6cb4ff]getWarp(teamId, name)[/COLOR] -> [COLOR=#ffd700]Optional<TeamWarp>[/COLOR] -- Looks up a warp by name
+[*][COLOR=#6cb4ff]getWarps(teamId)[/COLOR] -> [COLOR=#ffd700]Collection<TeamWarp>[/COLOR] -- Returns all warps for a team
 [/LIST]
 
 [SIZE=4][B]Events[/B][/SIZE]
 
-[COLOR=#aaaaaa]All five events are [B]cancellable[/B] and live in [COLOR=#6cb4ff]com.skyblockexp.teamsapi.event[/COLOR].
+[COLOR=#aaaaaa]All events live in [COLOR=#6cb4ff]com.skyblockexp.teamsapi.event[/COLOR].
 Providers are encouraged (but not required) to fire them.[/COLOR]
 
 [LIST]
-[*][COLOR=#6cb4ff]TeamCreateEvent[/COLOR] — fired before a team is created
-[*][COLOR=#6cb4ff]TeamDeleteEvent[/COLOR] — fired before a team is deleted
-[*][COLOR=#6cb4ff]TeamJoinEvent[/COLOR] — fired before a player joins a team
-[*][COLOR=#6cb4ff]TeamLeaveEvent[/COLOR] — fired before a player leaves a team
-[*][COLOR=#6cb4ff]TeamRoleChangeEvent[/COLOR] — fired before a member's role changes
+[*][COLOR=#6cb4ff]TeamCreateEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a team is created
+[*][COLOR=#6cb4ff]TeamDeleteEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a team is deleted
+[*][COLOR=#6cb4ff]TeamJoinEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a player joins a team
+[*][COLOR=#6cb4ff]TeamLeaveEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a player leaves a team
+[*][COLOR=#6cb4ff]TeamRoleChangeEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a member's role changes
+[*][COLOR=#6cb4ff]TeamInviteEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before an invitation is sent
+[*][COLOR=#6cb4ff]TeamInviteAcceptEvent[/COLOR] [COLOR=#aaaaaa](informational)[/COLOR] -- fired after a player accepts an invitation
+[*][COLOR=#6cb4ff]TeamInviteDeclineEvent[/COLOR] [COLOR=#aaaaaa](informational)[/COLOR] -- fired after a player declines an invitation
+[*][COLOR=#6cb4ff]TeamWarpSetEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a warp is created or updated
+[*][COLOR=#6cb4ff]TeamWarpDeleteEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a warp is deleted
 [/LIST]
 
 [SIZE=4][B]Roles[/B][/SIZE]
 
 [LIST]
-[*][COLOR=#ffd700]OWNER[/COLOR] (priority 100) — Full control; cannot be removed by others
-[*][COLOR=#ffd700]ADMIN[/COLOR] (priority 50) — Can manage members with a lower priority
-[*][COLOR=#ffd700]MEMBER[/COLOR] (priority 10) — Regular team member
+[*][COLOR=#ffd700]OWNER[/COLOR] (priority 100) -- Full control; cannot be removed by others
+[*][COLOR=#ffd700]ADMIN[/COLOR] (priority 50) -- Can manage members with a lower priority
+[*][COLOR=#ffd700]MEMBER[/COLOR] (priority 10) -- Regular team member
 [/LIST]
 
 [HR][/HR]
@@ -191,12 +219,12 @@ Providers are encouraged (but not required) to fire them.[/COLOR]
 [SIZE=5][B][COLOR=#6cb4ff]Links[/COLOR][/B][/SIZE]
 
 [LIST]
-[*][URL=https://github.com/ez-plugins/teams-api][B]GitHub[/B][/URL] — source code & issue tracker
-[*][URL=https://ez-plugins.github.io/teams-api/developer-guide.html][B]Developer Guide[/B][/URL] — full integration walkthrough
-[*][URL=https://ez-plugins.github.io/teams-api/api.html][B]API Reference[/B][/URL] — complete method tables
-[*][URL=https://jitpack.io/#ez-plugins/teams-api][B]JitPack[/B][/URL] — Maven / Gradle dependency
+[*][URL=https://github.com/ez-plugins/teams-api][B]GitHub[/B][/URL] -- source code & issue tracker
+[*][URL=https://ez-plugins.github.io/teams-api/developer-guide.html][B]Developer Guide[/B][/URL] -- full integration walkthrough
+[*][URL=https://ez-plugins.github.io/teams-api/api.html][B]API Reference[/B][/URL] -- complete method tables
+[*][URL=https://jitpack.io/#ez-plugins/teams-api][B]JitPack[/B][/URL] -- Maven / Gradle dependency
 [/LIST]
 
 [HR][/HR]
 
-[CENTER][COLOR=#aaaaaa]MIT License — free to use in any project, open- or closed-source.[/COLOR][/CENTER]
+[CENTER][COLOR=#aaaaaa]MIT License -- free to use in any project, open- or closed-source.[/COLOR][/CENTER]
