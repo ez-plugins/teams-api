@@ -47,7 +47,7 @@ API artifact (`teams-api-*.jar`). The API artifact is for developers only.
 
 Copy `teams-api-plugin-VERSION.jar` into your server's `plugins/` directory.
 
-```
+```text
 your-server/
   plugins/
     teams-api-plugin-1.2.0.jar   <-- add this
@@ -73,7 +73,7 @@ Look for log messages from your team plugin confirming that it has registered
 with TeamsAPI. The exact wording depends on the team plugin, but you should see
 something like:
 
-```
+```text
 [YourTeamPlugin] Registered TeamsService with TeamsAPI.
 ```
 
@@ -83,7 +83,7 @@ unavailable, check the troubleshooting section below.
 You can also check which plugins are installed and enabled from the server
 console:
 
-```
+```text
 /plugins
 ```
 
