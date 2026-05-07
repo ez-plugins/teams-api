@@ -4,33 +4,27 @@
 [![License](https://img.shields.io/github/license/ez-plugins/teams-api)](LICENSE)
 [![Jitpack](https://jitpack.io/v/ez-plugins/teams-api.svg)](https://jitpack.io/#ez-plugins/teams-api)
 
-TeamsAPI is a universal, timeless bridge plugin for Minecraft servers. Inspired by
+TeamsAPI is a universal bridge plugin for Minecraft servers. Inspired by
 [Vault](https://github.com/MilkBowl/VaultAPI), it defines a clean, stable interface
 for team operations so any plugin that needs team data can work with any compatible
-team plugin — without coupling them together.
-
----
+team plugin without coupling them together.
 
 ## How It Works
 
 ```
-Your Plugin (consumer)  →  TeamsAPI (bridge)  →  Team Plugin (provider)
+Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 ```
 
 - **Providers** (e.g. faction, clan, guild plugins) implement `TeamsService` and
   register with TeamsAPI during `onEnable()`.
 - **Consumers** (any plugin that needs team data) call `TeamsAPI.getService()` and
-  use the returned `TeamsService` — without knowing which team plugin is installed.
+  use the returned `TeamsService` without knowing which team plugin is installed.
 - **Server owners** install `TeamsAPI.jar` alongside any single compatible team plugin.
-
----
 
 ## Download
 
 [GitHub Releases](https://github.com/ez-plugins/teams-api/releases) |
 [Modrinth](https://modrinth.com/plugin) | [Hangar](https://hangar.papermc.io/EzPlugins)
-
----
 
 ## For Developers
 
@@ -49,7 +43,7 @@ Your Plugin (consumer)  →  TeamsAPI (bridge)  →  Team Plugin (provider)
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.2</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -61,7 +55,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.1.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.2.2'
 }
 ```
 
@@ -70,7 +64,7 @@ dependencies {
 ```java
 // In onEnable() or lazily:
 if (!TeamsAPI.isAvailable()) {
-    getLogger().warning("No team plugin found — team features disabled.");
+    getLogger().warning("No team plugin found. Team features disabled.");
     return;
 }
 
@@ -99,7 +93,7 @@ public void onDisable() {
 
 ### Invite service (optional)
 
-If the active team plugin also supports invitations, a `TeamsInviteService` is available:
+If the active team plugin supports invitations, a `TeamsInviteService` is available:
 
 ```java
 if (TeamsAPI.isInviteAvailable()) {
@@ -124,9 +118,36 @@ public void onDisable() {
 }
 ```
 
+### Warp service (optional)
+
+If the active team plugin supports named warps, a `TeamsWarpService` is available:
+
+```java
+if (TeamsAPI.isWarpAvailable()) {
+    TeamsWarpService warps = TeamsAPI.getWarpService();
+    warps.getWarp(teamId, "home").ifPresent(w -> player.teleport(w.getLocation()));
+}
+```
+
+Providers that support warps register the service alongside `TeamsService`:
+
+```java
+@Override
+public void onEnable() {
+    TeamsAPI.registerProvider(this, teamsService);
+    TeamsAPI.registerWarpProvider(this, warpService);
+}
+
+@Override
+public void onDisable() {
+    TeamsAPI.unregisterProvider(teamsService);
+    TeamsAPI.unregisterWarpProvider(warpService);
+}
+```
+
 ### Events
 
-Provider events extend `TeamEvent`. Core events are cancellable; invite result events are informational:
+Provider events extend `TeamEvent`. Core events are cancellable:
 
 ```java
 @EventHandler
@@ -137,23 +158,21 @@ public void onTeamJoin(TeamJoinEvent event) {
 }
 
 @EventHandler
-public void onInviteAccepted(TeamInviteAcceptEvent event) {
-    // player has already joined — informational only
+public void onWarpSet(TeamWarpSetEvent event) {
+    // Cancel to prevent the warp from being saved
 }
 ```
 
-For the complete API reference, see [docs/api.md](docs/api.md).  
+For the complete API reference, see [docs/api.md](docs/api.md).
 For integration examples, see [docs/developer-guide.md](docs/developer-guide.md).
-
----
 
 ## Compatibility
 
-- **Java**: 21+
-- **Server software**: Bukkit, Paper, Spigot, Purpur
-- **Plugin API baseline**: 1.21+
-
----
+| Requirement | Version |
+|-------------|---------|
+| Java | 25+ |
+| Server software | Paper 26.1+ |
+| Build tool | Maven 3.8+ or Gradle 8+ |
 
 ## Build from Source
 
@@ -168,30 +187,22 @@ mvn -q -pl teams-api test
 mvn -q -DskipTests package
 ```
 
-Build requirements: Java 21+, Maven 3.8+.
-
----
-
 ## Project Modules
 
-| Module              | Description                                                 |
-|---------------------|-------------------------------------------------------------|
-| `teams-api/`        | Public API — interfaces, models, and events. Depend on this. |
-| `teams-api-plugin/` | Bukkit plugin packaging. Server owners install this JAR.     |
-
----
+| Module | Description |
+|--------|-------------|
+| `teams-api/` | Public API: interfaces, models, and events. Depend on this. |
+| `teams-api-plugin/` | Bukkit plugin packaging. Server owners install this JAR. |
 
 ## Contributing
 
-1. `mvn -q -DskipTests compile` — must succeed.
-2. `mvn -q -pl teams-api test` — all tests must pass.
-3. `mvn -q -pl teams-api checkstyle:check` — zero violations.
+1. `mvn -q -DskipTests compile` must succeed.
+2. `mvn -q -pl teams-api test` all tests must pass.
+3. `mvn -q -pl teams-api checkstyle:check` zero violations.
 4. Add tests for non-trivial logic changes.
 5. Update Javadoc whenever a public API changes.
 
 See [AGENTS.md](AGENTS.md) for full coding standards.
-
----
 
 ## License
 

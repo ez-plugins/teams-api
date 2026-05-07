@@ -8,14 +8,14 @@ TeamsAPI is a passive, server-side bridge plugin for Paper servers, inspired by 
 ## How it works
 
 ```
-Your Plugin (consumer)  →  TeamsAPI (bridge)  →  Team Plugin (provider)
+Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 ```
 
-- **Providers** — faction, clan, guild, or custom team plugins `implement TeamsService`
+- **Providers** -- faction, clan, guild, or custom team plugins `implement TeamsService`
   and register with TeamsAPI during `onEnable()`.
-- **Consumers** — scoreboard plugins, chat formatters, quest plugins, or any plugin that
+- **Consumers** -- scoreboard plugins, chat formatters, quest plugins, or any plugin that
   needs team data call `TeamsAPI.getService()` and use the returned interface.
-- **Server owners** — install `TeamsAPI.jar` and one compatible team plugin. Done.
+- **Server owners** -- install `TeamsAPI.jar` and one compatible team plugin. Done.
 
 No two plugins need to know about each other. When the team plugin changes, every
 consumer plugin keeps working without a recompile.
@@ -24,25 +24,23 @@ consumer plugin keeps working without a recompile.
 ## Features
 
 - **Provider-agnostic**: works with any team plugin that ships a `TeamsService` implementation.
-- **Graceful fallback**: if no provider is present, `TeamsAPI.isAvailable()` returns `false`;
-  consumers can disable their team features cleanly instead of crashing.
-- **Read-only snapshots**: `Team` and `TeamMember` are immutable interfaces; providers own
-  the backing data.
-- **Role hierarchy**: built-in `OWNER › ADMIN › MEMBER` with `outranks()` and
-  `canManage()` helpers.
-- **Cancellable events**: five Bukkit events that providers can fire so other plugins can
-  react to or cancel team operations.
+- **Graceful fallback**: if no provider is present, `TeamsAPI.isAvailable()` returns `false`; consumers can disable their team features cleanly instead of crashing.
+- **Read-only snapshots**: `Team` and `TeamMember` are immutable interfaces; providers own the backing data.
+- **Role hierarchy**: built-in `OWNER > ADMIN > MEMBER` with `outranks()` and `canManage()` helpers.
+- **Optional invite service**: providers can expose `TeamsInviteService` for invitation workflows.
+- **Optional warp service**: providers can expose `TeamsWarpService` for named team warps.
+- **Cancellable events**: ten Bukkit events that providers can fire so other plugins can react to or cancel team operations.
 - **Lightweight**: a single shaded JAR with no runtime dependencies beyond Paper.
 - **JitPack-ready**: depend on just the API module at compile time; no transitive dependencies leak into your plugin.
 
 
 ## Requirements
 
-| Requirement       | Value      |
-|-------------------|------------|
-| Server software   | Paper 26.1+ |
-| Java              | 25+        |
-| Plugin dependencies | None     |
+| Requirement | Value |
+|-------------|-------|
+| Server software | Paper 26.1+ |
+| Java | 25+ |
+| Plugin dependencies | None |
 
 
 ## Installation (server owners)
@@ -53,8 +51,7 @@ consumer plugin keeps working without a recompile.
 3. Install a compatible team plugin that provides a `TeamsService` implementation.
 4. Restart the server.
 
-TeamsAPI has no configuration files. The only command is `/teamsapi version` (requires
-`teamsapi.admin`).
+TeamsAPI has no configuration files.
 
 
 ## For developers
@@ -74,7 +71,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.0.1</version>
+    <version>1.2.2</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -86,7 +83,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.0.1'
+    compileOnly 'com.github.ez-plugins:teams-api:1.2.2'
 }
 ```
 
@@ -105,10 +102,10 @@ Then use the API at runtime:
 @Override
 public void onEnable() {
     if (!TeamsAPI.isAvailable()) {
-        getLogger().warning("No team plugin found — team features disabled.");
+        getLogger().warning("No team plugin found. Team features disabled.");
         return;
     }
-    getLogger().info("TeamsAPI found: team features enabled.");
+    getLogger().info("TeamsAPI found. Team features enabled.");
 }
 
 // In a command or listener:
@@ -164,18 +161,55 @@ public void onDisable() {
 | `setMemberRole(teamId, playerUUID, role)` | `boolean` | Changes a member's role |
 | `getMemberRole(teamId, playerUUID)` | `Optional<TeamRole>` | Returns the member's current role |
 
+### Invite service (optional)
+
+Register alongside `TeamsService` if your plugin supports invitations:
+
+```java
+TeamsAPI.registerInviteProvider(this, inviteService);
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `invitePlayer(teamId, inviterUUID, inviteeUUID)` | `boolean` | Sends an invitation |
+| `acceptInvite(teamId, playerUUID)` | `Optional<Team>` | Accepts the invitation and joins the team |
+| `declineInvite(teamId, playerUUID)` | `boolean` | Declines an invitation |
+
+Consumers check availability with `TeamsAPI.isInviteAvailable()` before calling `TeamsAPI.getInviteService()`.
+
+### Warp service (optional)
+
+Register alongside `TeamsService` if your plugin supports team warps:
+
+```java
+TeamsAPI.registerWarpProvider(this, warpService);
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `setWarp(teamId, name, location, creatorUUID)` | `boolean` | Creates or updates a named warp |
+| `removeWarp(teamId, name)` | `boolean` | Deletes a warp by name |
+| `getWarp(teamId, name)` | `Optional<TeamWarp>` | Looks up a warp by name |
+| `getWarps(teamId)` | `Collection<TeamWarp>` | Returns all warps for a team |
+
+Consumers check availability with `TeamsAPI.isWarpAvailable()` before calling `TeamsAPI.getWarpService()`.
+
 ### Events
 
-All events are cancellable and live in `com.skyblockexp.teamsapi.event`.
-Providers are encouraged (but not required) to fire them.
+All events live in `com.skyblockexp.teamsapi.event`. Providers are encouraged but not required to fire them.
 
-| Event | Fired when |
-|-------|-----------|
-| `TeamCreateEvent` | Before a team is created |
-| `TeamDeleteEvent` | Before a team is deleted |
-| `TeamJoinEvent` | Before a player joins a team |
-| `TeamLeaveEvent` | Before a player leaves a team |
-| `TeamRoleChangeEvent` | Before a member's role changes |
+| Event | Cancellable | Fired when |
+|-------|-------------|------------|
+| `TeamCreateEvent` | Yes | Before a team is created |
+| `TeamDeleteEvent` | Yes | Before a team is deleted |
+| `TeamJoinEvent` | Yes | Before a player joins a team |
+| `TeamLeaveEvent` | Yes | Before a player leaves a team |
+| `TeamRoleChangeEvent` | Yes | Before a member's role changes |
+| `TeamInviteEvent` | Yes | Before an invitation is sent |
+| `TeamInviteAcceptEvent` | No | After a player accepts an invitation |
+| `TeamInviteDeclineEvent` | No | After a player declines an invitation |
+| `TeamWarpSetEvent` | Yes | Before a warp is created or updated |
+| `TeamWarpDeleteEvent` | Yes | Before a warp is deleted |
 
 ### Roles
 
@@ -188,10 +222,10 @@ Providers are encouraged (but not required) to fire them.
 
 ## Links
 
-- [GitHub](https://github.com/ez-plugins/teams-api) — source code & issue tracker
-- [Developer Guide](https://ez-plugins.github.io/teams-api/developer-guide.html) — full integration walkthrough
-- [API Reference](https://ez-plugins.github.io/teams-api/api.html) — complete method tables
-- [JitPack](https://jitpack.io/#ez-plugins/teams-api) — Maven / Gradle dependency
+- [GitHub](https://github.com/ez-plugins/teams-api) -- source code & issue tracker
+- [Developer Guide](https://ez-plugins.github.io/teams-api/developer-guide.html) -- full integration walkthrough
+- [API Reference](https://ez-plugins.github.io/teams-api/api.html) -- complete method tables
+- [JitPack](https://jitpack.io/#ez-plugins/teams-api) -- Maven / Gradle dependency
 
 ---
 
