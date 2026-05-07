@@ -68,6 +68,7 @@ public void onEnable() {
 
 | Page | What it covers |
 |------|----------------|
+| [Server Guide](server-guide) | Installation, verification, and troubleshooting for server owners |
 | [Developer Guide](developer-guide) | Architecture, installation, and consumer usage |
 | [Team Provider](provider-teams) | Implementing `TeamsService` in your team plugin |
 | [Invite Provider](provider-invites) | Implementing `TeamsInviteService` for invitation support |

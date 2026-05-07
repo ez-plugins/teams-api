@@ -1,6 +1,6 @@
 ---
 title: Developer Guide
-nav_order: 2
+nav_order: 3
 has_children: true
 description: "Architecture overview, installation instructions, and consumer usage guide"
 ---
