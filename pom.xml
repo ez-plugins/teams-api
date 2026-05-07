@@ -25,7 +25,7 @@
         <!-- Allow CI to override Paper API version via -Dpaper.version -->
         <paper.version>26.1.2.build.57-stable</paper.version>
         <mockbukkit.groupId>org.mockbukkit.mockbukkit</mockbukkit.groupId>
-        <mockbukkit.artifactId>mockbukkit-v26.1</mockbukkit.artifactId>
+        <mockbukkit.artifactId>mockbukkit-v26.1.2</mockbukkit.artifactId>
         <mockbukkit.version>0.0.0-unset</mockbukkit.version>
         <junit.jupiter.version>6.0.3</junit.jupiter.version>
         <mockito.version>5.23.0</mockito.version>
