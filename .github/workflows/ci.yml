@@ -49,7 +49,7 @@ jobs:
           cd /tmp/MockBukkit
           VERSION="dev-$(git rev-parse --short HEAD)"
           echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
-          ./gradlew publishToMavenLocal -x test -x signMavenPublication
+          ./gradlew publishToMavenLocal -x test
 
       - name: Compile
         run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} compile
@@ -82,7 +82,7 @@ jobs:
           cd /tmp/MockBukkit
           VERSION="dev-$(git rev-parse --short HEAD)"
           echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
-          ./gradlew publishToMavenLocal -x test -x signMavenPublication
+          ./gradlew publishToMavenLocal -x test
 
       - name: Package
         run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} package
@@ -122,7 +122,7 @@ jobs:
           cd /tmp/MockBukkit
           VERSION="dev-$(git rev-parse --short HEAD)"
           echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
-          ./gradlew publishToMavenLocal -x test -x signMavenPublication
+          ./gradlew publishToMavenLocal -x test
 
       - name: Build plugin JAR
         run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} package
