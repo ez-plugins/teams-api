@@ -203,6 +203,14 @@ All concrete events implement `Cancellable`.
 
 ## Migration notes
 
+### 1.2.2
+
+Patch release. No API changes. Fixes JitPack build configuration.
+
+### 1.2.1
+
+Patch release. No API changes. Fixes JitPack build configuration.
+
 ### 1.2.0
 
 Non-breaking addition. No changes required for existing providers or consumers.

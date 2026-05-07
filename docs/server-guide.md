@@ -50,7 +50,7 @@ Copy `teams-api-plugin-VERSION.jar` into your server's `plugins/` directory.
 ```text
 your-server/
   plugins/
-    teams-api-plugin-1.2.0.jar   <-- add this
+    teams-api-plugin-1.2.2.jar   <-- add this
     YourTeamPlugin.jar
     ...
 ```
