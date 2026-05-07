@@ -43,19 +43,20 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Build and install MockBukkit dev/26.1.1
+      - name: Build and install MockBukkit minecraft/v26
         run: |
-          git clone --depth=1 --branch dev/26.1.1 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
-          cd /tmp/MockBukkit && git checkout 7fba375 && ./gradlew publishToMavenLocal -xtest -xjavadoc
+          git clone --depth=1 --branch minecraft/v26 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
+          cd /tmp/MockBukkit && ./gradlew publishToMavenLocal -xtest -xjavadoc
+          echo "MOCKBUKKIT_VERSION=dev-$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
 
       - name: Compile
-        run: mvn -B -ntp -DskipTests compile
+        run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} compile
 
       - name: Run unit tests
-        run: mvn -B -ntp -pl teams-api test
+        run: mvn -B -ntp -pl teams-api -Dmockbukkit.version=${MOCKBUKKIT_VERSION} test
 
       - name: Coverage report
-        run: mvn -B -ntp -pl teams-api jacoco:report
+        run: mvn -B -ntp -pl teams-api -Dmockbukkit.version=${MOCKBUKKIT_VERSION} jacoco:report
 
   package:
     name: Package Plugin
@@ -73,13 +74,14 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Build and install MockBukkit dev/26.1.1
+      - name: Build and install MockBukkit minecraft/v26
         run: |
-          git clone --depth=1 --branch dev/26.1.1 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
-          cd /tmp/MockBukkit && git checkout 7fba375 && ./gradlew publishToMavenLocal -xtest -xjavadoc
+          git clone --depth=1 --branch minecraft/v26 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
+          cd /tmp/MockBukkit && ./gradlew publishToMavenLocal -xtest -xjavadoc
+          echo "MOCKBUKKIT_VERSION=dev-$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
 
       - name: Package
-        run: mvn -B -ntp -DskipTests package
+        run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} package
 
       - name: Upload plugin JAR
         uses: actions/upload-artifact@v4
@@ -110,16 +112,17 @@ jobs:
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
 
-      - name: Build and install MockBukkit dev/26.1.1
+      - name: Build and install MockBukkit minecraft/v26
         run: |
-          git clone --depth=1 --branch dev/26.1.1 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
-          cd /tmp/MockBukkit && git checkout 7fba375 && ./gradlew publishToMavenLocal -xtest -xjavadoc
+          git clone --depth=1 --branch minecraft/v26 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
+          cd /tmp/MockBukkit && ./gradlew publishToMavenLocal -xtest -xjavadoc
+          echo "MOCKBUKKIT_VERSION=dev-$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
 
       - name: Build plugin JAR
-        run: mvn -B -ntp -DskipTests package
+        run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} package
 
       - name: Publish Maven artifacts
-        run: mvn -B -ntp -DskipTests -pl teams-api deploy
+        run: mvn -B -ntp -DskipTests -pl teams-api -Dmockbukkit.version=${MOCKBUKKIT_VERSION} deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
