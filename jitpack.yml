@@ -4,4 +4,4 @@ jdk:
 install:
   - git clone --depth=1 --branch minecraft/v26 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
   - cd /tmp/MockBukkit && git rev-parse --short HEAD > /tmp/mb-version.txt && ./gradlew publishToMavenLocal -x test
-  - ./mvnw --batch-mode --no-transfer-progress clean install -Dmaven.test.skip=true "-Dmockbukkit.version=dev-$(cat /tmp/mb-version.txt)"
+  - cd $HOME/build && ./mvnw --batch-mode --no-transfer-progress clean install -Dmaven.test.skip=true "-Dmockbukkit.version=dev-$(cat /tmp/mb-version.txt)"
