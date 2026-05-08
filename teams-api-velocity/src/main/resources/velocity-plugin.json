@@ -1,0 +1,9 @@
+{
+  "id": "teamsapi",
+  "name": "TeamsAPI",
+  "version": "${project.version}",
+  "description": "Universal Teams API bridge — queries team data from backend servers over plugin messaging.",
+  "authors": ["ez-plugins"],
+  "dependencies": [],
+  "main": "com.skyblockexp.teamsapi.velocity.TeamsApiVelocityPlugin"
+}

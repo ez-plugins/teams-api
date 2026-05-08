@@ -1,0 +1,45 @@
+# TeamsAPI BungeeCord Plugin - Configuration
+# Reload by restarting BungeeCord (hot reload is not supported).
+
+# Redis settings for multi-proxy coordination.
+# When enabled, team queries can be routed across multiple BungeeCord/Waterfall
+# instances so that any proxy can answer requests even if the relevant player is
+# on a different proxy in the network.
+redis:
+
+  # Set to true to enable Redis-backed multi-proxy support.
+  # When false, queries only work if the requested player (or any player) is
+  # connected to THIS proxy instance.
+  enabled: false
+
+  # Redis server address.
+  host: "127.0.0.1"
+
+  # Redis server port (default: 6379).
+  port: 6379
+
+  # Redis AUTH password. Leave empty if your Redis server has no password set.
+  password: ""
+
+  # Redis logical database index (0-15 on a default Redis installation).
+  database: 0
+
+  # Key and channel prefix used for all TeamsAPI messages in Redis.
+  # Change this if you run multiple independent networks on the same Redis instance.
+  prefix: "teamsapi:"
+
+  # Connection pool sizing.
+  pool:
+    max-total: 8
+    max-idle: 4
+    min-idle: 1
+
+  # Timeout in milliseconds for Redis socket operations.
+  timeout-ms: 3000
+
+# Query settings.
+query:
+
+  # How long (in seconds) to wait for a backend server response before the
+  # CompletableFuture completes exceptionally with TimeoutException.
+  timeout-seconds: 5
