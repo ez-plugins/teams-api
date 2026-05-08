@@ -24,7 +24,7 @@
         <!-- Base bytecode for MRJAR: Java 17 for maximum JVM compatibility -->
         <maven.compiler.release>17</maven.compiler.release>
         <!-- Allow CI to override the velocity API version via -Dvelocity.version -->
-        <velocity.version>3.3.0-SNAPSHOT</velocity.version>
+        <velocity.version>3.4.0</velocity.version>
         <!-- Allow CI to override the BungeeCord API version via -Dbungee.version -->
         <bungee.version>1.21-R0.4</bungee.version>
         <!-- Allow CI to override Paper API version via -Dpaper.version -->

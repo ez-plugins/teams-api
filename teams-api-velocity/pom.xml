@@ -20,12 +20,15 @@
     </description>
 
     <repositories>
+        <!-- Declare Central first so Maven Central artifacts are resolved directly,
+             bypassing the PaperMC Artifactory UI redirect for non-PaperMC artifacts. -->
         <repository>
-            <id>velocity-snapshots</id>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
         </repository>
     </repositories>
 
