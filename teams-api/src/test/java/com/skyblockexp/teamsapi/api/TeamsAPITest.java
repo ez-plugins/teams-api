@@ -160,4 +160,48 @@ class TeamsAPITest {
 
         assertFalse(TeamsAPI.isAvailable());
     }
+
+    /**
+     * registerProvider_withPriority_withNullPlugin_doesNotRegister verifies that the
+     * priority overload also silently ignores a {@code null} plugin.
+     */
+    @Test
+    void registerProvider_withPriority_withNullPlugin_doesNotRegister() {
+        final TeamsService mockService = mock(TeamsService.class);
+
+        TeamsAPI.registerProvider(null, mockService, org.bukkit.plugin.ServicePriority.Normal);
+
+        assertFalse(TeamsAPI.isAvailable());
+    }
+
+    /**
+     * registerProvider_withPriority_withNullProvider_doesNotRegister verifies that the
+     * priority overload also silently ignores a {@code null} provider.
+     */
+    @Test
+    void registerProvider_withPriority_withNullProvider_doesNotRegister() {
+        final PluginMock plugin = PluginMock.builder().withPluginName("TestPlugin").build();
+
+        TeamsAPI.registerProvider(plugin, null, org.bukkit.plugin.ServicePriority.Normal);
+
+        assertFalse(TeamsAPI.isAvailable());
+    }
+
+    /**
+     * multipleProviders_highestPriorityIsReturned verifies that when two providers are
+     * registered at different priorities, {@link TeamsAPI#getService()} returns the one
+     * with the higher {@link org.bukkit.plugin.ServicePriority}.
+     */
+    @Test
+    void multipleProviders_highestPriorityIsReturned() {
+        final PluginMock pluginA = PluginMock.builder().withPluginName("PluginA").build();
+        final PluginMock pluginB = PluginMock.builder().withPluginName("PluginB").build();
+        final TeamsService lowService = mock(TeamsService.class);
+        final TeamsService highService = mock(TeamsService.class);
+
+        TeamsAPI.registerProvider(pluginA, lowService, org.bukkit.plugin.ServicePriority.Low);
+        TeamsAPI.registerProvider(pluginB, highService, org.bukkit.plugin.ServicePriority.High);
+
+        assertEquals(highService, TeamsAPI.getService());
+    }
 }
