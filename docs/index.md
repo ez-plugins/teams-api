@@ -9,12 +9,16 @@ permalink: /
 # TeamsAPI
 
 [![JitPack](https://jitpack.io/v/ez-plugins/teams-api.svg)](https://jitpack.io/#ez-plugins/teams-api)
-[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-1.2.2-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
+[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-1.3.0-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
 
-**TeamsAPI** is a passive bridge plugin for Paper 26.1+ servers, modelled on
-[Vault](https://github.com/MilkBowl/VaultAPI). It defines a standard interface
-for team operations so any plugin needing team data can work with any compatible
-team plugin without coupling them together.
+**TeamsAPI** is a passive bridge plugin for Paper, Spigot, Purpur, and Folia
+servers running Minecraft 1.16+, modelled on [Vault](https://github.com/MilkBowl/VaultAPI).
+It defines a standard interface for team operations so any plugin needing team data can
+work with any compatible team plugin without coupling them together.
+
+A companion `teams-api-velocity` plugin bridges the same API over Velocity's plugin
+messaging channel, so proxy-side plugins can query team data without contacting each
+backend server directly.
 
 ## Features
 
@@ -29,6 +33,13 @@ team plugin without coupling them together.
   independently of the core team service
 - **Optional warp support**: register a `TeamsWarpService` to manage named team warps
   independently of the core team service
+- **Velocity bridge**: proxy-side async API (`VelocityTeamsService`) backed by a plugin
+  messaging channel — no direct backend connection required
+- **BungeeCord bridge**: proxy-side async API (`BungeeTeamsService`) for BungeeCord
+  and Waterfall — mirrors the Velocity bridge over the same protocol
+- **Multi-platform**: Paper, Spigot, Purpur, and Folia — MC 1.16 through latest
+- **Java Multi-Release JAR**: base bytecode targets Java 17; optimised class variants
+  are provided for Java 25
 
 ## Quick start
 
@@ -45,7 +56,7 @@ team plugin without coupling them together.
 <dependency>
   <groupId>com.github.ez-plugins</groupId>
   <artifactId>teams-api</artifactId>
-  <version>1.2.2</version>
+  <version>1.3.0</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -73,12 +84,14 @@ public void onEnable() {
 | [Team Provider](provider-teams) | Implementing `TeamsService` in your team plugin |
 | [Invite Provider](provider-invites) | Implementing `TeamsInviteService` for invitation support |
 | [Warp Provider](provider-warps) | Implementing `TeamsWarpService` for warp support |
-| [API Reference](api) | Full public-method tables for every class |
+| [Velocity Guide](velocity) | Setting up and using the Velocity bridge plugin |
+| [BungeeCord Guide](bungeecord) | Setting up and using the BungeeCord bridge plugin |
+| [API Reference](api) | Full public-method tables for every class and event |
 
 ## Requirements
 
 | Requirement | Version |
 |-------------|---------|
-| Java | **25** |
-| Minecraft | **Paper 26.1+** |
+| Java | **17** or newer (Java 25 recommended) |
+| Server software | Paper, Spigot, Purpur, or Folia **1.16+** |
 | Build tool | Maven **3.8+** or Gradle **8+** |

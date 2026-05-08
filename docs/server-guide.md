@@ -26,12 +26,21 @@ plugin you choose.
 
 | Requirement | Version |
 |-------------|---------|
-| Java | **25** or newer |
-| Server software | **Paper 26.1** or a fork compatible with Paper's plugin API |
+| Java | **17** or newer (Java 25 recommended) |
+| Server software | Paper, Spigot, Purpur, or Folia — **1.16 or newer** |
 | Team plugin | Any plugin that registers a `TeamsService` provider |
 
-TeamsAPI does **not** work on vanilla Spigot. Paper (or a Paper fork such as
-Purpur) is required.
+### Supported platforms
+
+| Platform | Minimum version | Notes |
+|----------|----------------|-------|
+| **Paper** | 1.16 | Primary supported platform |
+| **Spigot** | 1.16 | Fully compatible |
+| **Purpur** | 1.16 | Fully compatible (Paper fork) |
+| **Folia** | 1.16 | Fully compatible — no schedulers used |
+| Velocity | any | Use the separate `teams-api-velocity` plugin (see [Velocity Guide](velocity)) |
+| BungeeCord | any | Use the separate `teams-api-bungeecord` plugin (see [BungeeCord Guide](bungeecord)) |
+| Fabric / Forge | — | Not supported; Bukkit API required |
 
 ## Installation
 
@@ -50,7 +59,7 @@ Copy `teams-api-plugin-VERSION.jar` into your server's `plugins/` directory.
 ```text
 your-server/
   plugins/
-    teams-api-plugin-1.2.2.jar   <-- add this
+    teams-api-plugin-1.3.0.jar   <-- add this
     YourTeamPlugin.jar
     ...
 ```
@@ -174,3 +183,130 @@ file.
 **Where is the config file?**
 
 There is no config file. TeamsAPI requires no configuration.
+
+## Velocity setup
+
+TeamsAPI includes a separate Velocity plugin (`teams-api-velocity-VERSION.jar`) that
+bridges team queries from proxy-side plugins to backend servers over the
+`teamsapi:bridge` plugin-messaging channel.
+
+### How the bridge works
+
+```
+Velocity plugin (consumer)
+    └─ VelocityTeamsAPI.getService()
+         └─ sends plugin message on teamsapi:bridge
+              └─ backend Paper/Spigot server
+                   └─ TeamsAPI plugin receives it
+                        └─ calls TeamsAPI.getService()
+                             └─ sends response back
+```
+
+All queries go through a connected player's server connection. **At least one
+player must be online on the target backend server** for queries to route. For
+networks with multiple Velocity proxies, enable the Redis bridge (see below) so
+queries are automatically forwarded to whichever proxy can reach the target player.
+
+### Installation
+
+1. Download `teams-api-velocity-VERSION.jar` from the
+   [Releases page](https://github.com/ez-plugins/teams-api/releases).
+2. Drop it into the Velocity `plugins/` directory.
+3. Drop the standard `teams-api-plugin-VERSION.jar` into the `plugins/` directory
+   of every backend Paper/Spigot server.
+4. Restart both Velocity and the backend servers.
+
+No configuration is required for single-proxy setups.
+
+### Multi-proxy (Redis)
+
+If your network uses multiple Velocity instances, enable Redis in `config.yml`
+(created on first startup in `plugins/teamsapi/config.yml`):
+
+```yaml
+redis:
+  enabled: true
+  host: "your-redis-host"
+  port: 6379
+  password: ""           # leave empty if no auth
+  prefix: "teamsapi:"    # must match on all proxies
+```
+
+Every Velocity instance must point to the **same** Redis server and use the
+same `prefix`. See the [Velocity Guide](velocity#multi-proxy-setup-redis) for details.
+
+### Developer usage on Velocity
+
+```java
+if (!VelocityTeamsAPI.isAvailable()) {
+    logger.warn("TeamsAPI bridge not active.");
+    return;
+}
+VelocityTeamsService service = VelocityTeamsAPI.getService();
+service.getPlayerTeam(playerUUID).thenAccept(opt ->
+    opt.ifPresent(t -> logger.info("Team: " + t.getDisplayName())));
+```
+
+All service methods return `CompletableFuture<T>`. Futures complete exceptionally
+with `TimeoutException` (5-second default) when no response arrives, or with
+`IllegalStateException` when no online player is available to route the query.
+
+## BungeeCord setup
+
+TeamsAPI includes a separate BungeeCord plugin (`teams-api-bungeecord-VERSION.jar`) that
+bridges team queries from proxy-side plugins to backend servers over the same
+`teamsapi:bridge` plugin-messaging channel used by the Velocity bridge.
+
+### How the bridge works
+
+```
+BungeeCord plugin (consumer)
+    └─ BungeeTeamsAPI.getService()
+         └─ sends plugin message on teamsapi:bridge
+              └─ backend Paper/Spigot server
+                   └─ TeamsAPI plugin receives it
+                        └─ calls TeamsAPI.getService()
+                             └─ sends response back
+```
+
+### Installation
+
+1. Download `teams-api-bungeecord-VERSION.jar` from the
+   [Releases page](https://github.com/ez-plugins/teams-api/releases).
+2. Drop it into the BungeeCord / Waterfall `plugins/` directory.
+3. Drop the standard `teams-api-plugin-VERSION.jar` into the `plugins/` directory
+   of every backend server.
+4. Restart both BungeeCord and the backend servers.
+
+No configuration is required for single-proxy setups.
+
+### Multi-proxy (Redis)
+
+If your network uses multiple BungeeCord instances, enable Redis in `config.yml`
+(created on first startup in `plugins/teamsapi/config.yml`):
+
+```yaml
+redis:
+  enabled: true
+  host: "your-redis-host"
+  port: 6379
+  password: ""           # leave empty if no auth
+  prefix: "teamsapi:"    # must match on all proxies
+```
+
+Every BungeeCord instance must point to the **same** Redis server and use the
+same `prefix`. See the [BungeeCord Guide](bungeecord#multi-proxy-setup-redis) for details.
+
+### Developer usage on BungeeCord
+
+```java
+if (!BungeeTeamsAPI.isAvailable()) {
+    getLogger().warning("TeamsAPI bridge not active.");
+    return;
+}
+BungeeTeamsService service = BungeeTeamsAPI.getService();
+service.getPlayerTeam(playerUUID).thenAccept(opt ->
+    opt.ifPresent(t -> getLogger().info("Team: " + t.getDisplayName())));
+```
+
+For the full BungeeCord consumer guide, see the [BungeeCord Guide](bungeecord).
