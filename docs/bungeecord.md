@@ -35,7 +35,7 @@ asynchronously without connecting directly to each backend server.
 |  teams-api-plugin (Bukkit)   |  installed on each backend server
 |  PluginBootstrap             |  handles bridge requests, returns JSON
 +------------------------------+
-```
+```text
 
 Each query is sent to a backend server through the first available online player.
 Responses arrive asynchronously and resolve a `CompletableFuture`. Requests time
@@ -77,9 +77,9 @@ Restart your backend servers, then restart (or reload) your BungeeCord proxy.
 
 When the BungeeCord plugin initialises it will log:
 
-```
+```text
 [TeamsAPI] TeamsAPI BungeeCord bridge ready. Channel: teamsapi:bridge
-```
+```text
 
 ## For consumers (BungeeCord plugins)
 
@@ -101,7 +101,7 @@ When the BungeeCord plugin initialises it will log:
     <version>1.3.0</version>
     <scope>provided</scope>
 </dependency>
-```
+```text
 
 **Gradle**:
 
@@ -112,21 +112,21 @@ repositories {
 dependencies {
     compileOnly 'com.github.ez-plugins:teams-api-bungeecord:1.3.0'
 }
-```
+```text
 
 ### 2. Declare the dependency in `bungee.yml`
 
 ```yaml
 depends:
   - TeamsAPI
-```
+```text
 
 Or use `softDepends` if team support is optional:
 
 ```yaml
 softDepends:
   - TeamsAPI
-```
+```text
 
 ### 3. Check availability
 
@@ -136,7 +136,7 @@ if (!BungeeTeamsAPI.isAvailable()) {
     return;
 }
 BungeeTeamsService service = BungeeTeamsAPI.getService();
-```
+```text
 
 ### 4. Query team data
 
@@ -162,7 +162,7 @@ service.getPlayerTeam(player.getUniqueId())
 // Get the team count
 service.getTeamCount()
     .thenAccept(count -> getLogger().info("Total teams: " + count));
-```
+```text
 
 ### 5. Handle errors
 
@@ -177,7 +177,7 @@ service.getPlayerTeam(player.getUniqueId())
         getLogger().warning("Team query failed: " + ex.getMessage());
         return null;
     });
-```
+```text
 
 ## API reference
 
@@ -255,7 +255,7 @@ over a Pub/Sub channel so any proxy can fulfil a request for any player.
          +-- future resolved <─────────────────  |  (fulfils query via |
                                                   |   local player)     |
                                                   +---------------------+
-```
+```text
 
 1. Proxy A cannot find the target player locally; it publishes the query to
    `{prefix}request` on Redis.
@@ -287,7 +287,7 @@ redis:
 
 query:
   timeout-seconds: 5      # bridge query timeout (local + Redis)
-```
+```text
 
 Set `redis.enabled: true` and point `host` / `port` at your Redis instance,
 then restart the proxy. All BungeeCord proxies in the network must share the same

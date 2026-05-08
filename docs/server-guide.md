@@ -192,7 +192,7 @@ bridges team queries from proxy-side plugins to backend servers over the
 
 ### How the bridge works
 
-```
+```text
 Velocity plugin (consumer)
     └─ VelocityTeamsAPI.getService()
          └─ sends plugin message on teamsapi:bridge
@@ -259,7 +259,7 @@ bridges team queries from proxy-side plugins to backend servers over the same
 
 ### How the bridge works
 
-```
+```text
 BungeeCord plugin (consumer)
     └─ BungeeTeamsAPI.getService()
          └─ sends plugin message on teamsapi:bridge

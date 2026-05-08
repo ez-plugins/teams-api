@@ -35,7 +35,7 @@ connecting directly to each backend server.
 │  teams-api-plugin (Bukkit)   │  installed on each backend server
 │  PluginBootstrap             │  handles bridge requests, returns JSON
 └──────────────────────────────┘
-```
+```text
 
 Each query is sent to a backend server through the first available online player.
 Responses arrive asynchronously and resolve a `CompletableFuture`. Requests time
@@ -77,9 +77,9 @@ Restart your backend servers, then restart (or reload) your Velocity proxy.
 
 When the Velocity plugin initialises it will log:
 
-```
+```text
 [TeamsAPI] Velocity bridge ready. Channel: teamsapi:bridge
-```
+```text
 
 ## For consumers (Velocity plugins)
 
@@ -101,7 +101,7 @@ When the Velocity plugin initialises it will log:
     <version>1.3.0</version>
     <scope>provided</scope>
 </dependency>
-```
+```text
 
 **Gradle**:
 
@@ -112,7 +112,7 @@ repositories {
 dependencies {
     compileOnly 'com.github.ez-plugins:teams-api-velocity:1.3.0'
 }
-```
+```text
 
 ### 2. Declare the dependency in `velocity-plugin.json`
 
@@ -122,7 +122,7 @@ dependencies {
     { "id": "teams-api-velocity", "optional": true }
   ]
 }
-```
+```text
 
 Mark it `optional` if team support is not required for your plugin to function.
 
@@ -134,7 +134,7 @@ if (!VelocityTeamsAPI.isAvailable()) {
     return;
 }
 VelocityTeamsService service = VelocityTeamsAPI.getService();
-```
+```text
 
 ### 4. Query team data
 
@@ -160,7 +160,7 @@ service.getPlayerTeam(player.getUniqueId())
 // Get the team count
 service.getTeamCount()
     .thenAccept(count -> logger.info("Total teams: " + count));
-```
+```text
 
 ### 5. Handle errors
 
@@ -175,7 +175,7 @@ service.getPlayerTeam(player.getUniqueId())
         logger.warn("Team query failed: " + ex.getMessage());
         return null;
     });
-```
+```text
 
 ## API reference
 
@@ -253,7 +253,7 @@ Pub/Sub channel so any proxy can fulfil a request for any player.
          └── future resolved ◄─────────────────  │  (fulfils query via │
                                                   │   local player)     │
                                                   └─────────────────────┘
-```
+```text
 
 1. Proxy A cannot find the target player locally; it publishes the query to
    `{prefix}request` on Redis.
@@ -285,7 +285,7 @@ redis:
 
 query:
   timeout-seconds: 5      # bridge query timeout (local + Redis)
-```
+```text
 
 Set `redis.enabled: true` and point `host` / `port` at your Redis instance,
 then restart the proxy. All Velocity proxies in the network must share the same

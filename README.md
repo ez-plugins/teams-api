@@ -11,7 +11,7 @@ team plugin without coupling them together.
 
 ## How It Works
 
-```
+```text
 Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 ```
 

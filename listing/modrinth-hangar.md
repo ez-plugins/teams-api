@@ -4,10 +4,9 @@
 
 TeamsAPI is a passive, server-side bridge plugin for Paper, Spigot, Purpur, and Folia servers, inspired by Vault. It provides a single, stable interface for team operations, so any plugin that needs team data can work with any compatible team plugin, without either plugin knowing about the other.
 
-
 ## How it works
 
-```
+```text
 Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 ```
 
@@ -19,7 +18,6 @@ Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 
 No two plugins need to know about each other. When the team plugin changes, every
 consumer plugin keeps working without a recompile.
-
 
 ## Features
 
@@ -35,7 +33,6 @@ consumer plugin keeps working without a recompile.
 - **Velocity bridge**: optional `teams-api-velocity` plugin for querying team data from the Velocity proxy. Supports multi-proxy networks via Redis.
 - **BungeeCord bridge**: optional `teams-api-bungeecord` plugin for querying team data from BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
 
-
 ## Requirements
 
 | Requirement | Value |
@@ -43,7 +40,6 @@ consumer plugin keeps working without a recompile.
 | Server software | Paper / Spigot / Purpur / Folia 1.16+ |
 | Java | 17+ (25 recommended) |
 | Plugin dependencies | None |
-
 
 ## Installation (server owners)
 
@@ -54,7 +50,6 @@ consumer plugin keeps working without a recompile.
 4. Restart the server.
 
 TeamsAPI has no configuration files.
-
 
 ## For developers
 
@@ -139,7 +134,6 @@ public void onDisable() {
 }
 ```
 
-
 ## API surface
 
 ### Team lifecycle & lookup
@@ -220,7 +214,6 @@ All events live in `com.skyblockexp.teamsapi.event`. Providers are encouraged bu
 | `OWNER` | 100 | Full control; cannot be removed by others |
 | `ADMIN` | 50 | Can manage members with a lower priority |
 | `MEMBER` | 10 | Regular team member |
-
 
 ## Links
 
