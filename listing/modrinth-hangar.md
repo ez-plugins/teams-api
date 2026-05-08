@@ -2,7 +2,7 @@
 
 **The universal bridge between team plugins and everything else.**
 
-TeamsAPI is a passive, server-side bridge plugin for Paper servers, inspired by Vault. It provides a single, stable interface for team operations, so any plugin that needs team data can work with any compatible team plugin, without either plugin knowing about the other.
+TeamsAPI is a passive, server-side bridge plugin for Paper, Spigot, Purpur, and Folia servers, inspired by Vault. It provides a single, stable interface for team operations, so any plugin that needs team data can work with any compatible team plugin, without either plugin knowing about the other.
 
 
 ## How it works
@@ -30,16 +30,18 @@ consumer plugin keeps working without a recompile.
 - **Optional invite service**: providers can expose `TeamsInviteService` for invitation workflows.
 - **Optional warp service**: providers can expose `TeamsWarpService` for named team warps.
 - **Cancellable events**: ten Bukkit events that providers can fire so other plugins can react to or cancel team operations.
-- **Lightweight**: a single shaded JAR with no runtime dependencies beyond Paper.
+- **Lightweight**: a single shaded JAR with no runtime dependencies beyond the Bukkit API.
 - **JitPack-ready**: depend on just the API module at compile time; no transitive dependencies leak into your plugin.
+- **Velocity bridge**: optional `teams-api-velocity` plugin for querying team data from the Velocity proxy. Supports multi-proxy networks via Redis.
+- **BungeeCord bridge**: optional `teams-api-bungeecord` plugin for querying team data from BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
 
 
 ## Requirements
 
 | Requirement | Value |
 |-------------|-------|
-| Server software | Paper 26.1+ |
-| Java | 25+ |
+| Server software | Paper / Spigot / Purpur / Folia 1.16+ |
+| Java | 17+ (25 recommended) |
 | Plugin dependencies | None |
 
 
@@ -71,7 +73,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.2.2</version>
+    <version>1.3.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -83,7 +85,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.2.2'
+    compileOnly 'com.github.ez-plugins:teams-api:1.3.0'
 }
 ```
 
