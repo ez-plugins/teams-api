@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "docs/**/*.md"
+      - "listing/**/*.md"
+      - "README.md"
       - ".markdownlint.yml"
 
 jobs:
@@ -17,5 +19,8 @@ jobs:
       - name: Lint documentation Markdown
         uses: DavidAnson/markdownlint-cli2-action@v16
         with:
-          globs: "docs/**/*.md"
+          globs: |
+            docs/**/*.md
+            listing/**/*.md
+            README.md
           config: ".markdownlint.yml"

@@ -1,0 +1,232 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.3.0)'
+        required: true
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    env:
+      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+      MODRINTH_PROJECT_ID: 2NJKwgXC
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: temurin
+          cache: maven
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+
+      # ── Build ──────────────────────────────────────────────────────────────
+      - name: Build all JARs
+        run: mvn -B -ntp -DskipTests package
+
+      - name: Locate plugin JAR
+        id: plugin_jar
+        run: |
+          JAR=$(find teams-api-plugin/target -maxdepth 1 -name "*.jar" ! -name "*-original.jar" | head -1)
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$JAR")" >> "$GITHUB_OUTPUT"
+
+      - name: Locate velocity JAR
+        id: velocity_jar
+        run: |
+          JAR=$(find teams-api-velocity/target -maxdepth 1 -name "*.jar" ! -name "*-original.jar" | head -1)
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+
+      - name: Locate BungeeCord JAR
+        id: bungee_jar
+        run: |
+          JAR=$(find teams-api-bungeecord/target -maxdepth 1 -name "*.jar" ! -name "*-original.jar" | head -1)
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+
+      # ── Version / changelog ────────────────────────────────────────────────
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Extract changelog section
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BODY=$(awk "/^## \[$VERSION\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md)
+          echo "$BODY" > /tmp/release_notes.md
+          echo "file=/tmp/release_notes.md" >> "$GITHUB_OUTPUT"
+
+      # ── GitHub Packages (Maven) ────────────────────────────────────────────
+      - name: Check if version already published
+        id: pkg_check
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/orgs/ez-plugins/packages/maven/com.github.ez-plugins.teams-api/versions")
+          if [[ "$HTTP" == "200" ]]; then
+            EXISTS=$(curl -s \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/orgs/ez-plugins/packages/maven/com.github.ez-plugins.teams-api/versions" \
+              | jq -r --arg v "$VERSION" 'any(.[]; .name == $v)')
+            echo "exists=$EXISTS" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy API artifact to GitHub Packages
+        if: steps.pkg_check.outputs.exists != 'true'
+        run: mvn -B -ntp -DskipTests -pl teams-api deploy
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── GitHub Release ─────────────────────────────────────────────────────
+      - name: Append docs footer to release notes
+        run: |
+          printf '\n---\n[Documentation](https://ez-plugins.github.io/teams-api/) · [Modrinth](https://modrinth.com/plugin/teams-api)\n' \
+            >> /tmp/release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: TeamsAPI ${{ steps.version.outputs.version }}
+          body_path: /tmp/release_notes.md
+          files: |
+            ${{ steps.plugin_jar.outputs.path }}
+            ${{ steps.velocity_jar.outputs.path }}
+            ${{ steps.bungee_jar.outputs.path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Modrinth ───────────────────────────────────────────────────────────
+      - name: Write Modrinth upload script
+        if: env.MODRINTH_TOKEN != ''
+        run: |
+          cat > /tmp/modrinth_upload.py << 'PYEOF'
+          import json, os, re, subprocess, sys, tempfile
+
+          CONFIGS = {
+              'plugin': {
+                  'loaders':         ['paper', 'folia', 'purpur', 'spigot', 'bukkit'],
+                  'section':         'Plugin',
+                  'version_suffix':  '',
+                  'name_suffix':     '',
+                  'jar_env':         'JAR_PATH',
+              },
+              'velocity': {
+                  'loaders':         ['velocity'],
+                  'section':         'Velocity Bridge',
+                  'version_suffix':  '-velocity',
+                  'name_suffix':     ' (Velocity)',
+                  'jar_env':         'JAR_PATH',
+              },
+              'bungee': {
+                  'loaders':         ['bungeecord', 'waterfall'],
+                  'section':         'BungeeCord Bridge',
+                  'version_suffix':  '-bungee',
+                  'name_suffix':     ' (BungeeCord)',
+                  'jar_env':         'JAR_PATH',
+              },
+          }
+
+          component = sys.argv[1]
+          cfg       = CONFIGS[component]
+          version   = os.environ['VERSION']
+          token     = os.environ['MODRINTH_TOKEN']
+          project   = os.environ['MODRINTH_PROJECT_ID']
+          jar       = os.environ[cfg['jar_env']]
+
+          full    = open('CHANGELOG.md').read()
+          ver_sec = re.search(rf'## \[{re.escape(version)}\](.*?)(?=^## \[|\Z)', full, re.S | re.M)
+          changelog = ''
+          if ver_sec:
+              block = ver_sec.group(1)
+              sub   = re.search(rf'### {re.escape(cfg["section"])}\s*(.*?)(?=^### |\Z)', block, re.S | re.M)
+              changelog = sub.group(1).strip() if sub else block.strip()
+
+          game_versions = [
+              '1.16', '1.16.1', '1.16.2', '1.16.3', '1.16.4', '1.16.5',
+              '1.17', '1.17.1',
+              '1.18', '1.18.1', '1.18.2',
+              '1.19', '1.19.1', '1.19.2', '1.19.3', '1.19.4',
+              '1.20', '1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20.6',
+              '1.21', '1.21.1', '1.21.2', '1.21.3', '1.21.4', '1.21.5',
+              '1.21.6', '1.21.7', '1.21.8', "1.21.9", '1.21.10', '1.21.11',
+              '26.1', '26.1.1', '26.1.2',
+          ]
+
+          payload = {
+              'name':           'TeamsAPI ' + version + cfg['name_suffix'],
+              'version_number': version + cfg['version_suffix'],
+              'changelog':      changelog,
+              'dependencies':   [],
+              'game_versions':  game_versions,
+              'version_type':   'release',
+              'loaders':        cfg['loaders'],
+              'featured':       True,
+              'project_id':     project,
+              'file_parts':     ['file'],
+              'primary_file':   'file',
+          }
+
+          with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as f:
+              json.dump(payload, f)
+              payload_file = f.name
+
+          result = subprocess.run([
+              'curl', '--fail', '-s',
+              '-H', f'Authorization: {token}',
+              '-F', f'data=@{payload_file};type=application/json',
+              '-F', f'file=@{jar};type=application/java-archive',
+              'https://api.modrinth.com/v2/version',
+          ], capture_output=True, text=True)
+          print(result.stdout)
+          if result.returncode != 0:
+              print(result.stderr, file=sys.stderr)
+              sys.exit(result.returncode)
+          PYEOF
+
+      - name: Upload Plugin release to Modrinth
+        if: env.MODRINTH_TOKEN != ''
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          JAR_PATH: ${{ steps.plugin_jar.outputs.path }}
+        run: python3 /tmp/modrinth_upload.py plugin
+
+      - name: Upload Velocity release to Modrinth
+        if: env.MODRINTH_TOKEN != ''
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          JAR_PATH: ${{ steps.velocity_jar.outputs.path }}
+        run: python3 /tmp/modrinth_upload.py velocity
+
+      - name: Upload BungeeCord release to Modrinth
+        if: env.MODRINTH_TOKEN != ''
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          JAR_PATH: ${{ steps.bungee_jar.outputs.path }}
+        run: python3 /tmp/modrinth_upload.py bungee

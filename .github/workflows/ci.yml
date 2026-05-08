@@ -26,12 +26,23 @@ jobs:
           cache: maven
 
       - name: Run Checkstyle
-        run: mvn -B -ntp -pl teams-api checkstyle:check
+        run: mvn -B -ntp checkstyle:check
 
   build:
     name: Build & Test
     runs-on: ubuntu-latest
 
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,27 +54,16 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Build and install MockBukkit minecraft/v26
-        run: |
-          git clone --depth=1 --branch minecraft/v26 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
-          cd /tmp/MockBukkit
-          VERSION="dev-$(git rev-parse --short HEAD)"
-          echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
-          ./gradlew publishToMavenLocal -x test
-
-      - name: Compile
-        run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} compile
-
-      - name: Run unit tests
-        run: mvn -B -ntp -pl teams-api -Dmockbukkit.version=${MOCKBUKKIT_VERSION} test
-
-      - name: Coverage report
-        run: mvn -B -ntp -pl teams-api -Dmockbukkit.version=${MOCKBUKKIT_VERSION} jacoco:report
+      - name: Compile, test and coverage
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: mvn -B -ntp verify
 
   package:
     name: Package Plugin
     runs-on: ubuntu-latest
-    needs: build
+    needs: [lint, build]
 
     steps:
       - name: Checkout
@@ -76,16 +76,8 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Build and install MockBukkit minecraft/v26
-        run: |
-          git clone --depth=1 --branch minecraft/v26 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
-          cd /tmp/MockBukkit
-          VERSION="dev-$(git rev-parse --short HEAD)"
-          echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
-          ./gradlew publishToMavenLocal -x test
-
       - name: Package
-        run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} package
+        run: mvn -B -ntp -DskipTests package
 
       - name: Upload plugin JAR
         uses: actions/upload-artifact@v4
@@ -94,45 +86,16 @@ jobs:
           path: teams-api-plugin/target/teams-api-plugin-*.jar
           if-no-files-found: error
 
-  publish-github-packages:
-    name: Publish to GitHub Packages
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 25
-        uses: actions/setup-java@v4
+      - name: Upload velocity JAR
+        uses: actions/upload-artifact@v4
         with:
-          distribution: temurin
-          java-version: '25'
-          cache: maven
-          server-id: github
-          server-username: GITHUB_ACTOR
-          server-password: GITHUB_TOKEN
+          name: teams-api-velocity
+          path: teams-api-velocity/target/teams-api-velocity-*.jar
+          if-no-files-found: error
 
-      - name: Build and install MockBukkit minecraft/v26
-        run: |
-          git clone --depth=1 --branch minecraft/v26 https://github.com/MockBukkit/MockBukkit.git /tmp/MockBukkit
-          cd /tmp/MockBukkit
-          VERSION="dev-$(git rev-parse --short HEAD)"
-          echo "MOCKBUKKIT_VERSION=$VERSION" >> "$GITHUB_ENV"
-          ./gradlew publishToMavenLocal -x test
-
-      - name: Build plugin JAR
-        run: mvn -B -ntp -DskipTests -Dmockbukkit.version=${MOCKBUKKIT_VERSION} package
-
-      - name: Publish Maven artifacts
-        run: mvn -B -ntp -DskipTests -pl teams-api -Dmockbukkit.version=${MOCKBUKKIT_VERSION} deploy
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Attach plugin JAR to release
-        uses: softprops/action-gh-release@v2
+      - name: Upload BungeeCord JAR
+        uses: actions/upload-artifact@v4
         with:
-          files: teams-api-plugin/target/teams-api-plugin-*.jar
+          name: teams-api-bungeecord
+          path: teams-api-bungeecord/target/teams-api-bungeecord-*.jar
+          if-no-files-found: error
