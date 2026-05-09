@@ -5,7 +5,7 @@
 
 [SIZE=5][B][COLOR=#6cb4ff]What is TeamsAPI?[/COLOR][/B][/SIZE]
 
-TeamsAPI is a passive, server-side bridge plugin for Paper servers, inspired by [URL='https://github.com/MilkBowl/VaultAPI']Vault[/URL].
+TeamsAPI is a passive, server-side bridge plugin for Paper, Spigot, Purpur, and Folia servers, inspired by [URL='https://github.com/MilkBowl/VaultAPI']Vault[/URL].
 It defines a clean, stable interface for team operations so that any plugin needing team data can work with any compatible team plugin, without either plugin knowing about the other.
 
 [LEFT]
@@ -29,15 +29,17 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [*][B]Optional invite service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsInviteService[/COLOR] for invitation workflows.
 [*][B]Optional warp service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsWarpService[/COLOR] for named team warps.
 [*][B]Cancellable events[/B] -- ten Bukkit events that providers can fire so other plugins can react to or cancel team operations.
-[*][B]Lightweight[/B] -- a single shaded JAR with no runtime dependencies beyond Paper.
+[*][B]Lightweight[/B] -- a single shaded JAR with no runtime dependencies beyond the Bukkit API.
 [*][B]JitPack-ready[/B] -- depend on just the API module at compile time via Maven or Gradle.
+[*][B]Velocity bridge[/B] -- optional [COLOR=#6cb4ff]teams-api-velocity[/COLOR] plugin queries team data from the Velocity proxy. Supports multi-proxy networks via Redis.
+[*][B]BungeeCord bridge[/B] -- optional [COLOR=#6cb4ff]teams-api-bungeecord[/COLOR] plugin for BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
 [/LIST]
 
 [SIZE=5][B][COLOR=#6cb4ff]Requirements[/COLOR][/B][/SIZE]
 
 [LIST]
-[*][B]Server software:[/B] Paper [COLOR=#6cb4ff]26.1+[/COLOR]
-[*][B]Java:[/B] [COLOR=#6cb4ff]25+[/COLOR]
+[*][B]Server software:[/B] Paper, Spigot, Purpur, or Folia [COLOR=#6cb4ff]1.16+[/COLOR]
+[*][B]Java:[/B] [COLOR=#6cb4ff]17+[/COLOR] (25 recommended)
 [*][B]Plugin dependencies:[/B] None
 [/LIST]
 
@@ -70,7 +72,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.2.2</version>
+    <version>1.3.0</version>
     <scope>provided</scope>
 </dependency>
 [/CODE]
@@ -82,7 +84,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.2.2'
+    compileOnly 'com.github.ez-plugins:teams-api:1.3.0'
 }
 [/CODE]
 [/SPOILER]

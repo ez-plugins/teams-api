@@ -83,7 +83,7 @@ Consumers are plugins that read or react to team data. They depend on
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.2.2</version>
+    <version>1.3.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -98,7 +98,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.2.2'
+    compileOnly 'com.github.ez-plugins:teams-api:1.3.0'
 }
 ```
 
@@ -239,13 +239,48 @@ public void onWarpSet(TeamWarpSetEvent event) {
 }
 ```
 
+## Using TeamsAPI from a Velocity plugin
+
+If your plugin runs on a Velocity proxy rather than a Bukkit server, use the
+separate `teams-api-velocity` artifact. It exposes the same conceptual API but
+returns `CompletableFuture<T>` from every method because answers are delivered
+over a plugin messaging channel from a backend Bukkit server.
+
+### 1. Add the dependency
+
+```xml
+<dependency>
+    <groupId>com.github.ez-plugins</groupId>
+    <artifactId>teams-api-velocity</artifactId>
+    <version>1.3.0</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+### 2. Query team data
+
+```java
+VelocityTeamsService service = VelocityTeamsAPI.getService();
+if (service == null) {
+    logger.warn("No TeamsAPI backend available.");
+    return;
+}
+
+service.getPlayerTeam(player.getUniqueId())
+    .thenAccept(optional -> optional.ifPresent(team ->
+        player.sendMessage(Component.text("Your team: " + team.getName()))));
+```
+
+All methods time out after **5 seconds** if the backend does not respond.
+See the [Velocity Guide](velocity) for installation and full API details.
+
 ## API versioning
 
 Check `TeamsAPI.API_VERSION` at runtime if you need to guard against future
 breaking changes:
 
 ```java
-String version = TeamsAPI.API_VERSION; // e.g. "1.2.2"
+String version = TeamsAPI.API_VERSION; // e.g. "1.3.0"
 ```
 
 TeamsAPI follows Semantic Versioning. A major version bump signals breaking
@@ -257,6 +292,7 @@ backward-compatible features. Patch bumps are bug fixes only.
 - [Team Provider](provider-teams): implementing `TeamsService` in your team plugin
 - [Invite Provider](provider-invites): implementing `TeamsInviteService` for invitation support
 - [Warp Provider](provider-warps): implementing `TeamsWarpService` for warp support
+- [Velocity Guide](velocity): using `teams-api-velocity` on a Velocity proxy
 - [API Reference](api): interface and model overview
 - [GitHub repository](https://github.com/ez-plugins/teams-api)
 - [Jitpack page](https://jitpack.io/#ez-plugins/teams-api)

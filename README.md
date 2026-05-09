@@ -11,7 +11,7 @@ team plugin without coupling them together.
 
 ## How It Works
 
-```
+```text
 Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 ```
 
@@ -43,7 +43,7 @@ Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.2.2</version>
+    <version>1.3.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -55,7 +55,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.2.2'
+    compileOnly 'com.github.ez-plugins:teams-api:1.3.0'
 }
 ```
 
@@ -166,12 +166,43 @@ public void onWarpSet(TeamWarpSetEvent event) {
 For the complete API reference, see [docs/api.md](docs/api.md).
 For integration examples, see [docs/developer-guide.md](docs/developer-guide.md).
 
+## Proxy Support
+
+TeamsAPI includes bridge plugins for both major proxy platforms:
+
+| Proxy | Plugin | Guide |
+|-------|--------|-------|
+| Velocity | `teams-api-velocity` | [Velocity Guide](docs/velocity.md) |
+| BungeeCord / Waterfall | `teams-api-bungeecord` | [BungeeCord Guide](docs/bungeecord.md) |
+
+Both bridges expose an async API (`CompletableFuture<T>`) so proxy-side plugins can
+query team data from backend servers without direct coupling.
+
+### Multi-proxy (Redis)
+
+Both bridge plugins support **multi-proxy networks** via Redis Pub/Sub. When Redis is
+enabled in `config.yml`, queries that cannot be fulfilled by a local player are
+automatically forwarded to another proxy in the network. All proxies must share the
+same Redis instance.
+
+```yaml
+# plugins/teamsapi/config.yml
+redis:
+  enabled: true
+  host: "your-redis-host"
+  port: 6379
+  prefix: "teamsapi:"
+```
+
+See the [Velocity Guide](docs/velocity.md) or [BungeeCord Guide](docs/bungeecord.md)
+for the full configuration reference.
+
 ## Compatibility
 
 | Requirement | Version |
 |-------------|---------|
-| Java | 25+ |
-| Server software | Paper 26.1+ |
+| Java | 17+ (25 recommended) |
+| Server software | Paper / Spigot / Purpur / Folia 1.16+ |
 | Build tool | Maven 3.8+ or Gradle 8+ |
 
 ## Build from Source
@@ -193,6 +224,8 @@ mvn -q -DskipTests package
 |--------|-------------|
 | `teams-api/` | Public API: interfaces, models, and events. Depend on this. |
 | `teams-api-plugin/` | Bukkit plugin packaging. Server owners install this JAR. |
+| `teams-api-velocity/` | Velocity proxy plugin. Bridges team queries to backend servers. Supports Redis for multi-proxy setups. |
+| `teams-api-bungeecord/` | BungeeCord / Waterfall proxy plugin. Mirrors the Velocity bridge. Supports Redis for multi-proxy setups. |
 
 ## Contributing
 

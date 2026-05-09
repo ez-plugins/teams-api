@@ -203,6 +203,21 @@ All concrete events implement `Cancellable`.
 
 ## Migration notes
 
+### 1.3.0
+
+Non-breaking addition. No changes required for existing providers or consumers.
+
+- New `teams-api-velocity` module: Velocity proxy bridge for querying team data from
+  the proxy layer via `VelocityTeamsAPI`, `VelocityTeamsService`, `VelocityTeam`,
+  `VelocityTeamMember`, and `VelocityTeamRole`.
+- New `teams-api-bungeecord` module: BungeeCord / Waterfall proxy bridge mirroring
+  the Velocity bridge, via `BungeeTeamsAPI`, `BungeeTeamsService`, `BungeeTeam`,
+  `BungeeTeamMember`, and `BungeeTeamRole`.
+- Expanded platform support: Spigot / Purpur / Folia 1.16+ (in addition to Paper).
+- `plugin.yml` `api-version: '1.16'` and `folia-supported: true` declared.
+- Multi-Release JAR: base classes compiled at `--release 17`; versioned classes
+  at `--release 25`. Both `teams-api` and `teams-api-plugin` are MRJAR-compliant.
+
 ### 1.2.2
 
 Patch release. No API changes. Fixes JitPack build configuration.

@@ -1,0 +1,5 @@
+name: TeamsAPI
+version: '${project.version}'
+main: com.skyblockexp.teamsapi.bungee.TeamsApiBungeePlugin
+description: "BungeeCord bridge for TeamsAPI. Queries team data from backend servers via plugin messaging."
+author: ez-plugins
