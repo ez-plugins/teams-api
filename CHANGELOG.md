@@ -3,6 +3,16 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.1]
+
+### Fixed
+
+- Publish workflow was uploading `original-teams-api-plugin-*.jar` (the pre-shade
+  backup) to Modrinth instead of the shaded fat JAR. Servers loading this artifact
+  received a `NoClassDefFoundError` for `com.skyblockexp.teamsapi.api.TeamsAPI`.
+  The JAR-locate step now correctly excludes `original-*.jar` (prefix) rather than
+  `*-original.jar` (suffix).
+
 ## [1.4.0]
 
 ### Added
