@@ -1,6 +1,7 @@
 # TeamsAPI
 
 [![CI](https://github.com/ez-plugins/teams-api/actions/workflows/ci.yml/badge.svg)](https://github.com/ez-plugins/teams-api/actions)
+[![codecov](https://codecov.io/gh/ez-plugins/teams-api/branch/main/graph/badge.svg)](https://codecov.io/gh/ez-plugins/teams-api)
 [![License](https://img.shields.io/github/license/ez-plugins/teams-api)](LICENSE)
 [![Jitpack](https://jitpack.io/v/ez-plugins/teams-api.svg)](https://jitpack.io/#ez-plugins/teams-api)
 
@@ -43,7 +44,7 @@ Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -55,7 +56,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.3.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.4.0'
 }
 ```
 
@@ -145,6 +146,66 @@ public void onDisable() {
 }
 ```
 
+### Claim service (optional)
+
+If the active team plugin supports chunk claims, a `TeamsClaimService` is available:
+
+```java
+if (TeamsAPI.isClaimAvailable()) {
+    TeamsClaimService claims = TeamsAPI.getClaimService();
+    Chunk chunk = player.getLocation().getChunk();
+    boolean claimed = claims.claimChunk(
+        teamId, player.getUniqueId(),
+        chunk.getWorld().getName(), chunk.getX(), chunk.getZ()
+    );
+}
+```
+
+Providers that support claims register the service alongside `TeamsService`:
+
+```java
+@Override
+public void onEnable() {
+    TeamsAPI.registerProvider(this, teamsService);
+    TeamsAPI.registerClaimProvider(this, claimService);
+}
+
+@Override
+public void onDisable() {
+    TeamsAPI.unregisterProvider(teamsService);
+    TeamsAPI.unregisterClaimProvider(claimService);
+}
+```
+
+### Power service (optional)
+
+If the active team plugin exposes power values, a `TeamsPowerService` is available:
+
+```java
+if (TeamsAPI.isPowerAvailable()) {
+    TeamsPowerService power = TeamsAPI.getPowerService();
+    double current = power.getTeamPower(teamId);
+    double max = power.getTeamMaxPower(teamId);
+    player.sendMessage("Team power: " + current + " / " + max);
+}
+```
+
+Providers that expose power register the service alongside `TeamsService`:
+
+```java
+@Override
+public void onEnable() {
+    TeamsAPI.registerProvider(this, teamsService);
+    TeamsAPI.registerPowerProvider(this, powerService);
+}
+
+@Override
+public void onDisable() {
+    TeamsAPI.unregisterProvider(teamsService);
+    TeamsAPI.unregisterPowerProvider(powerService);
+}
+```
+
 ### Events
 
 Provider events extend `TeamEvent`. Core events are cancellable:
@@ -160,6 +221,11 @@ public void onTeamJoin(TeamJoinEvent event) {
 @EventHandler
 public void onWarpSet(TeamWarpSetEvent event) {
     // Cancel to prevent the warp from being saved
+}
+
+@EventHandler
+public void onClaim(TeamClaimEvent event) {
+    // Cancel to block the claim
 }
 ```
 
