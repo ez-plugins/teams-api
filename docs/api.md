@@ -50,6 +50,26 @@ Entry point for all API interactions. All methods are static.
 | `registerWarpProvider(plugin, service, priority)` | Registers a warp provider at the given priority. |
 | `unregisterWarpProvider(service)` | Unregisters a warp provider from Bukkit's ServicesManager. |
 
+**Claim service**
+
+| Method | Description |
+|--------|-------------|
+| `getClaimService()` | Returns the active `TeamsClaimService`, or `null` if none is registered. |
+| `isClaimAvailable()` | Returns `true` when a claim provider is registered. |
+| `registerClaimProvider(plugin, service)` | Registers a claim provider at `ServicePriority.Normal`. |
+| `registerClaimProvider(plugin, service, priority)` | Registers a claim provider at the given priority. |
+| `unregisterClaimProvider(service)` | Unregisters a claim provider from Bukkit's ServicesManager. |
+
+**Power service**
+
+| Method | Description |
+|--------|-------------|
+| `getPowerService()` | Returns the active `TeamsPowerService`, or `null` if none is registered. |
+| `isPowerAvailable()` | Returns `true` when a power provider is registered. |
+| `registerPowerProvider(plugin, service)` | Registers a power provider at `ServicePriority.Normal`. |
+| `registerPowerProvider(plugin, service, priority)` | Registers a power provider at the given priority. |
+| `unregisterPowerProvider(service)` | Unregisters a power provider from Bukkit's ServicesManager. |
+
 ## `TeamsService` (interface)
 
 Implemented by team plugins. Obtained via `TeamsAPI.getService()`.
@@ -114,6 +134,41 @@ Existing `TeamsService` implementations are not required to support it.
 | `getWarp(teamId, name)` | `Optional<TeamWarp>` | Returns the named warp, or empty if it does not exist. |
 | `getWarps(teamId)` | `Collection<TeamWarp>` | Returns all warps for the team. Never `null`; empty if the team has no warps. |
 
+## `TeamsClaimService` (interface)
+
+Optional extension service for team chunk-claim management. Providers that support
+land claiming register an implementation via `TeamsAPI.registerClaimProvider()`.
+Existing `TeamsService` implementations are not required to support it.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `claimChunk(teamId, playerUUID, worldName, chunkX, chunkZ)` | `boolean` | Claims the chunk for the team. Providers should fire `TeamClaimEvent` before persisting; return `false` if cancelled, already claimed, or the team lacks enough power. |
+| `unclaimChunk(teamId, playerUUID, worldName, chunkX, chunkZ)` | `boolean` | Removes the team's claim on the chunk. Providers should fire `TeamUnclaimEvent` before removing; return `false` if cancelled or no claim existed. |
+| `unclaimAll(teamId)` | `boolean` | Removes all claims owned by the team (e.g. on disband). Individual unclaim events are not required. Returns `false` if the team had no claims. |
+| `getClaimAt(worldName, chunkX, chunkZ)` | `Optional<TeamClaim>` | Returns the claim at the given chunk, or empty if unclaimed. |
+| `getTeamClaims(teamId)` | `Collection<TeamClaim>` | All chunks claimed by the team. Never `null`; empty if the team has no claims. |
+| `getClaimCount(teamId)` | `int` | Number of chunks currently claimed by the team. Always `>= 0`. |
+| `isClaimed(worldName, chunkX, chunkZ)` | `boolean` | Whether any team owns the chunk. |
+| `isClaimedBy(teamId, worldName, chunkX, chunkZ)` | `boolean` | Whether the specific team owns the chunk. |
+| `getTeamMaxClaims(teamId)` | `int` | Maximum chunks the team may claim. `-1` means no limit. |
+
+## `TeamsPowerService` (interface)
+
+Optional extension service for team power management. Providers that expose a
+power system register an implementation via `TeamsAPI.registerPowerProvider()`.
+Existing `TeamsService` implementations are not required to support it.
+
+Power is modelled as a `double` to accommodate fractional accumulation over time.
+How power is gained, lost, and used to gate land claims is entirely up to the provider.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getPlayerPower(playerUUID)` | `double` | The player's current power. `0.0` if the player is unknown. |
+| `getPlayerMaxPower(playerUUID)` | `double` | The player's maximum power. `0.0` if the player is unknown. |
+| `setPlayerPower(playerUUID, power)` | `boolean` | Overrides the player's current power (clamped by the provider). Returns `false` if the player is unknown. |
+| `getTeamPower(teamId)` | `double` | Total power for the team (typically sum of member power plus any boost). `0.0` if the team is unknown. |
+| `getTeamMaxPower(teamId)` | `double` | Theoretical maximum power for the team (typically `maxPowerPerPlayer * memberCount`). `0.0` if the team is unknown. |
+
 ## `Team` (interface)
 
 A read-only snapshot of a team. Obtain via `TeamsService` lookup methods.
@@ -154,6 +209,19 @@ methods.
 | `getLocation()` | `Location` | The Bukkit `Location` this warp points to. |
 | `getCreatorUUID()` | `UUID` | UUID of the player who created or last updated this warp. |
 | `getCreatedAt()` | `Instant` | When the warp was created or last updated; may be `Instant.EPOCH` if unsupported. |
+
+## `TeamClaim` (interface)
+
+A read-only snapshot of a claimed chunk. Obtain via `TeamsClaimService` lookup
+methods.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getTeamId()` | `UUID` | The UUID of the team that owns this claim. |
+| `getWorldName()` | `String` | The name of the world the chunk is in. |
+| `getChunkX()` | `int` | The X coordinate of the claimed chunk. |
+| `getChunkZ()` | `int` | The Z coordinate of the claimed chunk. |
+| `getClaimedAt()` | `Instant` | When the chunk was claimed; may be `Instant.EPOCH` if the provider does not track this. |
 
 ## `TeamRole` (enum)
 
@@ -201,7 +269,28 @@ All concrete events implement `Cancellable`.
 | `TeamWarpSetEvent` | Yes | `getTeam()`, `getName()`, `getLocation()`, `getCreatorUUID()` |
 | `TeamWarpDeleteEvent` | Yes | `getTeam()`, `getName()` |
 
+**Claim events**
+
+| Class | Cancellable | Key fields |
+|-------|-------------|------------|
+| `TeamClaimEvent` | Yes | `getTeam()`, `getPlayerUUID()`, `getWorldName()`, `getChunkX()`, `getChunkZ()` |
+| `TeamUnclaimEvent` | Yes | `getTeam()`, `getPlayerUUID()`, `getWorldName()`, `getChunkX()`, `getChunkZ()` |
+
 ## Migration notes
+
+### 1.4.0
+
+Non-breaking addition. No changes required for existing providers or consumers.
+
+- New optional `TeamsClaimService` interface for chunk-claim management.
+- New optional `TeamsPowerService` interface for player and team power.
+- New `TeamClaim` model interface.
+- New `TeamsAPI` static methods: `getClaimService()`, `isClaimAvailable()`,
+  `registerClaimProvider(...)`, `unregisterClaimProvider(...)`,
+  `getPowerService()`, `isPowerAvailable()`, `registerPowerProvider(...)`,
+  `unregisterPowerProvider(...)`.
+- New events: `TeamClaimEvent` (cancellable), `TeamUnclaimEvent` (cancellable).
+- `TeamsAPI.API_VERSION` bumped from `1.3.0` to `1.4.0`.
 
 ### 1.3.0
 
