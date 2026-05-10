@@ -60,6 +60,14 @@ jobs:
           REDIS_PORT: 6379
         run: mvn -B -ntp verify
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: teams-api/target/site/jacoco/jacoco.xml
+          flags: unittests
+          fail_ci_if_error: true
+
   package:
     name: Package Plugin
     runs-on: ubuntu-latest
