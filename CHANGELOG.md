@@ -3,6 +3,26 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.0]
+
+### Added
+
+- `TeamClaim` model interface: read-only representation of a claimed chunk
+  (`teamId`, `worldName`, `chunkX`, `chunkZ`, `claimedAt`).
+- `TeamsClaimService` interface: optional extension service for chunk-claim
+  management. Methods: `claimChunk`, `unclaimChunk`, `unclaimAll`,
+  `getClaimAt`, `getTeamClaims`, `getClaimCount`, `isClaimed`, `isClaimedBy`,
+  `getTeamMaxClaims` (-1 means unlimited).
+- `TeamsPowerService` interface: optional extension service for player and team
+  power. Methods: `getPlayerPower`, `getPlayerMaxPower`, `setPlayerPower`,
+  `getTeamPower`, `getTeamMaxPower`.
+- `TeamClaimEvent` (cancellable): fired before a chunk is claimed.
+- `TeamUnclaimEvent` (cancellable): fired before a chunk is unclaimed.
+- `TeamsAPI` facade methods: `registerClaimProvider`, `unregisterClaimProvider`,
+  `getClaimService`, `isClaimAvailable`, `registerPowerProvider`,
+  `unregisterPowerProvider`, `getPowerService`, `isPowerAvailable`.
+- `TeamsAPI.API_VERSION` bumped to `1.4.0`.
+
 ## [1.3.0]
 
 ### Plugin

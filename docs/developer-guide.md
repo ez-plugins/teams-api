@@ -43,9 +43,9 @@ Consumers depend only on the `teams-api` artifact and never import classes from
 the team plugin directly. Providers register and unregister themselves through
 `TeamsAPI.registerProvider(...)`.
 
-The optional services (`TeamsInviteService` and `TeamsWarpService`) follow the
-same pattern: each is registered and looked up independently from the core
-service. A provider plugin can implement any combination of the three.
+The optional services (`TeamsInviteService`, `TeamsWarpService`, `TeamsClaimService`,
+and `TeamsPowerService`) follow the same pattern: each is registered and looked up
+independently from the core service. A provider plugin can implement any combination.
 
 ## Installation (server owners)
 
@@ -98,7 +98,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.3.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.4.0'
 }
 ```
 
@@ -181,6 +181,51 @@ private void handleWarpCommand(Player player, UUID teamId, String warpName) {
 }
 ```
 
+### 6. Use the claim service (optional)
+
+The claim service is registered separately from the core service. Always check
+`TeamsAPI.isClaimAvailable()` before using it.
+
+```java
+private void handleClaimCommand(Player player, UUID teamId) {
+    if (!TeamsAPI.isClaimAvailable()) {
+        player.sendMessage("The active team plugin does not support claims.");
+        return;
+    }
+    TeamsClaimService claims = TeamsAPI.getClaimService();
+    Chunk chunk = player.getLocation().getChunk();
+    int max = claims.getTeamMaxClaims(teamId);
+    int current = claims.getClaimCount(teamId);
+    if (max != -1 && current >= max) {
+        player.sendMessage("Your team has reached its claim limit (" + max + ").");
+        return;
+    }
+    boolean ok = claims.claimChunk(
+        teamId, player.getUniqueId(),
+        chunk.getWorld().getName(), chunk.getX(), chunk.getZ()
+    );
+    player.sendMessage(ok ? "Chunk claimed!" : "That chunk is already claimed.");
+}
+```
+
+### 7. Use the power service (optional)
+
+The power service is registered separately from the core service. Always check
+`TeamsAPI.isPowerAvailable()` before using it.
+
+```java
+private void handlePowerCommand(Player player, UUID teamId) {
+    if (!TeamsAPI.isPowerAvailable()) {
+        player.sendMessage("The active team plugin does not expose power values.");
+        return;
+    }
+    TeamsPowerService power = TeamsAPI.getPowerService();
+    double current = power.getTeamPower(teamId);
+    double max = power.getTeamMaxPower(teamId);
+    player.sendMessage("Team power: " + current + " / " + max);
+}
+```
+
 ## Events
 
 Providers are encouraged to fire events before performing state changes. Whether
@@ -218,6 +263,15 @@ Fired by providers that implement `TeamsWarpService`.
 | `TeamWarpSetEvent` | Yes | Before a warp is created or updated |
 | `TeamWarpDeleteEvent` | Yes | Before a warp is removed |
 
+### Claim events
+
+Fired by providers that implement `TeamsClaimService`.
+
+| Event | Cancellable | When fired |
+|-------|-------------|------------|
+| `TeamClaimEvent` | Yes | Before a chunk is claimed |
+| `TeamUnclaimEvent` | Yes | Before a chunk is unclaimed |
+
 ### Example listeners
 
 ```java
@@ -237,6 +291,11 @@ public void onInvite(TeamInviteEvent event) {
 public void onWarpSet(TeamWarpSetEvent event) {
     // Cancel to prevent the warp from being saved
 }
+
+@EventHandler
+public void onClaim(TeamClaimEvent event) {
+    // Cancel to block the claim
+}
 ```
 
 ## Using TeamsAPI from a Velocity plugin
@@ -252,7 +311,7 @@ over a plugin messaging channel from a backend Bukkit server.
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api-velocity</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <scope>provided</scope>
 </dependency>
 ```

@@ -28,11 +28,13 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [*][B]Role hierarchy[/B] -- built-in [COLOR=#ffd700]OWNER[/COLOR] > [COLOR=#ffd700]ADMIN[/COLOR] > [COLOR=#ffd700]MEMBER[/COLOR] with [COLOR=#6cb4ff]outranks()[/COLOR] and [COLOR=#6cb4ff]canManage()[/COLOR] helpers.
 [*][B]Optional invite service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsInviteService[/COLOR] for invitation workflows.
 [*][B]Optional warp service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsWarpService[/COLOR] for named team warps.
-[*][B]Cancellable events[/B] -- ten Bukkit events that providers can fire so other plugins can react to or cancel team operations.
+[*][B]Optional claim service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsClaimService[/COLOR] for chunk-claim management.
+[*][B]Optional power service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerService[/COLOR] for player and team power values.
+[*][B]Cancellable events[/B] -- twelve Bukkit events that providers can fire so other plugins can react to or cancel team operations.
 [*][B]Lightweight[/B] -- a single shaded JAR with no runtime dependencies beyond the Bukkit API.
 [*][B]JitPack-ready[/B] -- depend on just the API module at compile time via Maven or Gradle.
-[*][B]Velocity bridge[/B] -- optional [COLOR=#6cb4ff]teams-api-velocity[/COLOR] plugin queries team data from the Velocity proxy. Supports multi-proxy networks via Redis.
-[*][B]BungeeCord bridge[/B] -- optional [COLOR=#6cb4ff]teams-api-bungeecord[/COLOR] plugin for BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
+[*][B]Velocity bridge[/B] [COLOR=#f08080](experimental)[/COLOR] -- optional [COLOR=#6cb4ff]teams-api-velocity[/COLOR] plugin queries team data from the Velocity proxy. Supports multi-proxy networks via Redis.
+[*][B]BungeeCord bridge[/B] [COLOR=#f08080](experimental)[/COLOR] -- optional [COLOR=#6cb4ff]teams-api-bungeecord[/COLOR] plugin for BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
 [/LIST]
 
 [SIZE=5][B][COLOR=#6cb4ff]Requirements[/COLOR][/B][/SIZE]
@@ -72,7 +74,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <scope>provided</scope>
 </dependency>
 [/CODE]
@@ -84,7 +86,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.3.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.4.0'
 }
 [/CODE]
 [/SPOILER]
@@ -181,6 +183,34 @@ public void onDisable() {
 [*][COLOR=#6cb4ff]getWarps(teamId)[/COLOR] -> [COLOR=#ffd700]Collection<TeamWarp>[/COLOR] -- Returns all warps for a team
 [/LIST]
 
+[SIZE=4][B]Claim service (optional)[/B][/SIZE]
+
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isClaimAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getClaimService()[/COLOR].[/COLOR]
+
+[LIST]
+[*][COLOR=#6cb4ff]claimChunk(teamId, playerUUID, world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Claims a chunk for the team
+[*][COLOR=#6cb4ff]unclaimChunk(teamId, playerUUID, world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes the claim
+[*][COLOR=#6cb4ff]unclaimAll(teamId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes all claims for the team
+[*][COLOR=#6cb4ff]getClaimAt(world, x, z)[/COLOR] -> [COLOR=#ffd700]Optional<TeamClaim>[/COLOR] -- Returns the claim at a chunk, if any
+[*][COLOR=#6cb4ff]getTeamClaims(teamId)[/COLOR] -> [COLOR=#ffd700]Collection<TeamClaim>[/COLOR] -- All claims for the team
+[*][COLOR=#6cb4ff]getClaimCount(teamId)[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Number of claimed chunks
+[*][COLOR=#6cb4ff]isClaimed(world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether the chunk is claimed by anyone
+[*][COLOR=#6cb4ff]isClaimedBy(teamId, world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether the chunk is claimed by this team
+[*][COLOR=#6cb4ff]getTeamMaxClaims(teamId)[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Claim limit (-1 means unlimited)
+[/LIST]
+
+[SIZE=4][B]Power service (optional)[/B][/SIZE]
+
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isPowerAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getPowerService()[/COLOR].[/COLOR]
+
+[LIST]
+[*][COLOR=#6cb4ff]getPlayerPower(playerUUID)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Current power of the player
+[*][COLOR=#6cb4ff]getPlayerMaxPower(playerUUID)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Maximum power the player can hold
+[*][COLOR=#6cb4ff]setPlayerPower(playerUUID, power)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Sets the player's power
+[*][COLOR=#6cb4ff]getTeamPower(teamId)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Combined power of all team members
+[*][COLOR=#6cb4ff]getTeamMaxPower(teamId)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Maximum combined power the team can hold
+[/LIST]
+
 [SIZE=4][B]Events[/B][/SIZE]
 
 [COLOR=#aaaaaa]All events live in [COLOR=#6cb4ff]com.skyblockexp.teamsapi.event[/COLOR].[/COLOR]
@@ -197,6 +227,8 @@ public void onDisable() {
 [*][COLOR=#6cb4ff]TeamInviteDeclineEvent[/COLOR] [COLOR=#aaaaaa](informational)[/COLOR] -- fired after a player declines an invitation
 [*][COLOR=#6cb4ff]TeamWarpSetEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a warp is created or updated
 [*][COLOR=#6cb4ff]TeamWarpDeleteEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a warp is deleted
+[*][COLOR=#6cb4ff]TeamClaimEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a chunk is claimed
+[*][COLOR=#6cb4ff]TeamUnclaimEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a chunk is unclaimed
 [/LIST]
 
 [SIZE=4][B]Roles[/B][/SIZE]

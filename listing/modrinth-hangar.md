@@ -27,11 +27,13 @@ consumer plugin keeps working without a recompile.
 - **Role hierarchy**: built-in `OWNER > ADMIN > MEMBER` with `outranks()` and `canManage()` helpers.
 - **Optional invite service**: providers can expose `TeamsInviteService` for invitation workflows.
 - **Optional warp service**: providers can expose `TeamsWarpService` for named team warps.
-- **Cancellable events**: ten Bukkit events that providers can fire so other plugins can react to or cancel team operations.
+- **Optional claim service**: providers can expose `TeamsClaimService` for chunk-claim management.
+- **Optional power service**: providers can expose `TeamsPowerService` for player and team power values.
+- **Cancellable events**: twelve Bukkit events that providers can fire so other plugins can react to or cancel team operations.
 - **Lightweight**: a single shaded JAR with no runtime dependencies beyond the Bukkit API.
 - **JitPack-ready**: depend on just the API module at compile time; no transitive dependencies leak into your plugin.
-- **Velocity bridge**: optional `teams-api-velocity` plugin for querying team data from the Velocity proxy. Supports multi-proxy networks via Redis.
-- **BungeeCord bridge**: optional `teams-api-bungeecord` plugin for querying team data from BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
+- **Velocity bridge** *(experimental)*: optional `teams-api-velocity` plugin for querying team data from the Velocity proxy. Supports multi-proxy networks via Redis.
+- **BungeeCord bridge** *(experimental)*: optional `teams-api-bungeecord` plugin for querying team data from BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
 
 ## Requirements
 
@@ -68,7 +70,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -80,7 +82,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.3.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.4.0'
 }
 ```
 
@@ -190,6 +192,46 @@ TeamsAPI.registerWarpProvider(this, warpService);
 
 Consumers check availability with `TeamsAPI.isWarpAvailable()` before calling `TeamsAPI.getWarpService()`.
 
+### Claim service (optional)
+
+Register alongside `TeamsService` if your plugin supports chunk claims:
+
+```java
+TeamsAPI.registerClaimProvider(this, claimService);
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `claimChunk(teamId, playerUUID, world, x, z)` | `boolean` | Claims a chunk for the team |
+| `unclaimChunk(teamId, playerUUID, world, x, z)` | `boolean` | Removes the claim |
+| `unclaimAll(teamId)` | `boolean` | Removes all claims for the team |
+| `getClaimAt(world, x, z)` | `Optional<TeamClaim>` | Returns the claim at a chunk, if any |
+| `getTeamClaims(teamId)` | `Collection<TeamClaim>` | All claims for the team |
+| `getClaimCount(teamId)` | `int` | Number of claimed chunks |
+| `isClaimed(world, x, z)` | `boolean` | Whether the chunk is claimed by anyone |
+| `isClaimedBy(teamId, world, x, z)` | `boolean` | Whether the chunk is claimed by this team |
+| `getTeamMaxClaims(teamId)` | `int` | Claim limit (-1 means unlimited) |
+
+Consumers check availability with `TeamsAPI.isClaimAvailable()` before calling `TeamsAPI.getClaimService()`.
+
+### Power service (optional)
+
+Register alongside `TeamsService` if your plugin exposes power values:
+
+```java
+TeamsAPI.registerPowerProvider(this, powerService);
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getPlayerPower(playerUUID)` | `double` | Current power of the player |
+| `getPlayerMaxPower(playerUUID)` | `double` | Maximum power the player can hold |
+| `setPlayerPower(playerUUID, power)` | `boolean` | Sets the player's power |
+| `getTeamPower(teamId)` | `double` | Combined power of all team members |
+| `getTeamMaxPower(teamId)` | `double` | Maximum combined power the team can hold |
+
+Consumers check availability with `TeamsAPI.isPowerAvailable()` before calling `TeamsAPI.getPowerService()`.
+
 ### Events
 
 All events live in `com.skyblockexp.teamsapi.event`. Providers are encouraged but not required to fire them.
@@ -206,6 +248,8 @@ All events live in `com.skyblockexp.teamsapi.event`. Providers are encouraged bu
 | `TeamInviteDeclineEvent` | No | After a player declines an invitation |
 | `TeamWarpSetEvent` | Yes | Before a warp is created or updated |
 | `TeamWarpDeleteEvent` | Yes | Before a warp is deleted |
+| `TeamClaimEvent` | Yes | Before a chunk is claimed |
+| `TeamUnclaimEvent` | Yes | Before a chunk is unclaimed |
 
 ### Roles
 
