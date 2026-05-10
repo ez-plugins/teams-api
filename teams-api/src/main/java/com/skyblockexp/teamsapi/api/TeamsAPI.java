@@ -45,7 +45,7 @@ public final class TeamsAPI {
      * compatibility when the API introduces breaking changes. The version follows
      * Semantic Versioning ({@code MAJOR.MINOR.PATCH}).</p>
      */
-    public static final String API_VERSION = "1.3.0";
+    public static final String API_VERSION = "1.4.0";
 
     /** Suppresses default constructor, ensuring non-instantiability. */
     private TeamsAPI() { }
@@ -337,5 +337,195 @@ public final class TeamsAPI {
         }
 
         Bukkit.getServicesManager().unregister(TeamsWarpService.class, provider);
+    }
+
+    // -------------------------------------------------------------------------
+    // Claim provider registration and lookup
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the currently registered {@link TeamsClaimService} provider, or {@code null}
+     * if no claim provider has been registered.
+     *
+     * <p>Consumers should check {@link #isClaimAvailable()} before calling this method
+     * to handle gracefully the case where no team plugin supports chunk claiming.</p>
+     *
+     * @return the active {@link TeamsClaimService}, or {@code null} if unavailable
+     */
+    public static TeamsClaimService getClaimService() {
+        try {
+            final RegisteredServiceProvider<TeamsClaimService> reg =
+                Bukkit.getServicesManager().getRegistration(TeamsClaimService.class);
+
+            return reg != null ? reg.getProvider() : null;
+        }
+        catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns {@code true} if at least one {@link TeamsClaimService} provider is
+     * currently registered.
+     *
+     * @return {@code true} if a claim provider is available, {@code false} otherwise
+     */
+    public static boolean isClaimAvailable() {
+        return getClaimService() != null;
+    }
+
+    /**
+     * Registers a {@link TeamsClaimService} provider with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at {@link ServicePriority#Normal}.
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin   the plugin registering the provider; must not be {@code null}
+     * @param provider the {@link TeamsClaimService} implementation; must not be {@code null}
+     */
+    public static void registerClaimProvider(final Plugin plugin,
+            final TeamsClaimService provider) {
+        if (plugin == null || provider == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsClaimService.class, provider, plugin, ServicePriority.Normal);
+    }
+
+    /**
+     * Registers a {@link TeamsClaimService} provider with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at the specified priority.
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin   the plugin registering the provider; must not be {@code null}
+     * @param provider the {@link TeamsClaimService} implementation; must not be {@code null}
+     * @param priority the {@link ServicePriority} to register at; must not be {@code null}
+     */
+    public static void registerClaimProvider(
+            final Plugin plugin,
+            final TeamsClaimService provider,
+            final ServicePriority priority) {
+        if (plugin == null || provider == null || priority == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsClaimService.class, provider, plugin, priority);
+    }
+
+    /**
+     * Unregisters a {@link TeamsClaimService} provider from Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager}.
+     *
+     * <p>Providers should call this in their plugin's {@code onDisable()} alongside
+     * {@link #unregisterProvider(TeamsService)}.</p>
+     *
+     * <p>This method silently ignores a {@code null} argument.</p>
+     *
+     * @param provider the {@link TeamsClaimService} provider to unregister; may be {@code null}
+     */
+    public static void unregisterClaimProvider(final TeamsClaimService provider) {
+        if (provider == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager().unregister(TeamsClaimService.class, provider);
+    }
+
+    // -------------------------------------------------------------------------
+    // Power provider registration and lookup
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the currently registered {@link TeamsPowerService} provider, or {@code null}
+     * if no power provider has been registered.
+     *
+     * <p>Consumers should check {@link #isPowerAvailable()} before calling this method
+     * to handle gracefully the case where no team plugin exposes a power system.</p>
+     *
+     * @return the active {@link TeamsPowerService}, or {@code null} if unavailable
+     */
+    public static TeamsPowerService getPowerService() {
+        try {
+            final RegisteredServiceProvider<TeamsPowerService> reg =
+                Bukkit.getServicesManager().getRegistration(TeamsPowerService.class);
+
+            return reg != null ? reg.getProvider() : null;
+        }
+        catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns {@code true} if at least one {@link TeamsPowerService} provider is
+     * currently registered.
+     *
+     * @return {@code true} if a power provider is available, {@code false} otherwise
+     */
+    public static boolean isPowerAvailable() {
+        return getPowerService() != null;
+    }
+
+    /**
+     * Registers a {@link TeamsPowerService} provider with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at {@link ServicePriority#Normal}.
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin   the plugin registering the provider; must not be {@code null}
+     * @param provider the {@link TeamsPowerService} implementation; must not be {@code null}
+     */
+    public static void registerPowerProvider(final Plugin plugin,
+            final TeamsPowerService provider) {
+        if (plugin == null || provider == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsPowerService.class, provider, plugin, ServicePriority.Normal);
+    }
+
+    /**
+     * Registers a {@link TeamsPowerService} provider with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at the specified priority.
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin   the plugin registering the provider; must not be {@code null}
+     * @param provider the {@link TeamsPowerService} implementation; must not be {@code null}
+     * @param priority the {@link ServicePriority} to register at; must not be {@code null}
+     */
+    public static void registerPowerProvider(
+            final Plugin plugin,
+            final TeamsPowerService provider,
+            final ServicePriority priority) {
+        if (plugin == null || provider == null || priority == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsPowerService.class, provider, plugin, priority);
+    }
+
+    /**
+     * Unregisters a {@link TeamsPowerService} provider from Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager}.
+     *
+     * <p>Providers should call this in their plugin's {@code onDisable()} alongside
+     * {@link #unregisterProvider(TeamsService)}.</p>
+     *
+     * <p>This method silently ignores a {@code null} argument.</p>
+     *
+     * @param provider the {@link TeamsPowerService} provider to unregister; may be {@code null}
+     */
+    public static void unregisterPowerProvider(final TeamsPowerService provider) {
+        if (provider == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager().unregister(TeamsPowerService.class, provider);
     }
 }
