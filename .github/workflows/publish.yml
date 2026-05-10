@@ -43,20 +43,20 @@ jobs:
       - name: Locate plugin JAR
         id: plugin_jar
         run: |
-          JAR=$(find teams-api-plugin/target -maxdepth 1 -name "*.jar" ! -name "*-original.jar" | head -1)
+          JAR=$(find teams-api-plugin/target -maxdepth 1 -name "*.jar" ! -name "original-*.jar" | head -1)
           echo "path=$JAR" >> "$GITHUB_OUTPUT"
           echo "name=$(basename "$JAR")" >> "$GITHUB_OUTPUT"
 
       - name: Locate velocity JAR
         id: velocity_jar
         run: |
-          JAR=$(find teams-api-velocity/target -maxdepth 1 -name "*.jar" ! -name "*-original.jar" | head -1)
+          JAR=$(find teams-api-velocity/target -maxdepth 1 -name "*.jar" ! -name "original-*.jar" | head -1)
           echo "path=$JAR" >> "$GITHUB_OUTPUT"
 
       - name: Locate BungeeCord JAR
         id: bungee_jar
         run: |
-          JAR=$(find teams-api-bungeecord/target -maxdepth 1 -name "*.jar" ! -name "*-original.jar" | head -1)
+          JAR=$(find teams-api-bungeecord/target -maxdepth 1 -name "*.jar" ! -name "original-*.jar" | head -1)
           echo "path=$JAR" >> "$GITHUB_OUTPUT"
 
       # ── Version / changelog ────────────────────────────────────────────────
