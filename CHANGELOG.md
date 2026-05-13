@@ -3,6 +3,32 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.5.0]
+
+### Added
+
+- `PowerGainSource` enum (`PASSIVE`, `PURCHASE`, `GAMEPLAY`, `ADMIN`) — identifies
+  the origin of a power gain for use in events and listeners.
+- `PowerLossCause` enum (`DEATH`, `DECAY`, `ADMIN`) — identifies the reason for a
+  power loss.
+- `TeamPowerGainEvent` (cancellable): fired before a player's power is increased.
+  Listeners can modify the gain amount or cancel the event entirely.
+- `TeamPowerLossEvent` (cancellable): fired before a player's power is decreased.
+  Listeners can modify the loss amount or cancel the event entirely.
+- `TeamsPowerService#addPlayerPower(UUID, double)` default method: adds power to a
+  player clamped to their maximum; built on `getPlayerPower`/`setPlayerPower`.
+- `TeamsClaimService#isOverClaimed(UUID)` default method: returns `true` when a
+  team's claim count exceeds its power-gated maximum (power-negative state).
+- `config.yml` in the plugin: opt-in `passive-regen` (periodic power gain for
+  online players) and `power-shop` (buy power via `/teamsapi power buy <n>`).
+- `/teamsapi power status` — shows the sender's current and max power.
+- `/teamsapi power buy <amount>` — purchases power units with Vault economy
+  (requires Vault and `power-shop.enabled: true` in config).
+- `teamsapi.power` and `teamsapi.power.buy` permission nodes (default: `op`).
+- Passive regen scheduler: when `passive-regen.enabled: true`, grants configurable
+  power to every online team member on a configurable interval. Fires
+  `TeamPowerGainEvent`; skips if cancelled. Not Folia-compatible.
+
 ## [1.4.1]
 
 ### Fixed
