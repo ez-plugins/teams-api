@@ -27,7 +27,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `teamsapi.power` and `teamsapi.power.buy` permission nodes (default: `op`).
 - Passive regen scheduler: when `passive-regen.enabled: true`, grants configurable
   power to every online team member on a configurable interval. Fires
-  `TeamPowerGainEvent`; skips if cancelled. Not Folia-compatible.
+  `TeamPowerGainEvent`; skips if cancelled. Folia-compatible via
+  `GlobalRegionScheduler`.
+- Passive regen and power shop are both Folia-compatible. Folia is detected at
+  runtime; `GlobalRegionScheduler` is used on Folia and `BukkitScheduler`
+  on Paper / Spigot.
 
 ## [1.4.1]
 

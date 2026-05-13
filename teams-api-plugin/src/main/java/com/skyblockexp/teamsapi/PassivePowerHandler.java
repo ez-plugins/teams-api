@@ -24,17 +24,26 @@ import org.bukkit.scheduler.BukkitTask;
  * <p>Call {@link #start} from {@link PluginBootstrap#start} and {@link #stop} from
  * {@link PluginBootstrap#stop}.</p>
  *
- * <p><strong>Note:</strong> this class uses {@link org.bukkit.scheduler.BukkitScheduler}
- * and is not compatible with Folia's region scheduler. On Folia, passive regen should be
- * disabled in the configuration.</p>
+ * <p>On Folia, the task is scheduled via {@code GlobalRegionScheduler} rather than
+ * {@code BukkitScheduler}. Both paths are selected at runtime via {@link #FOLIA}.</p>
  */
 final class PassivePowerHandler {
+
+    /**
+     * {@code true} when the server is running Folia (threaded-region scheduler).
+     * Detected once at class-load time via a marker class that only Folia ships.
+     */
+    private static final boolean FOLIA = detectFolia();
 
     /** Amount of power granted per interval tick. */
     private final double amountPerInterval;
 
-    /** The running scheduler task; {@code null} when not active. */
-    private BukkitTask task;
+    /**
+     * Cancels the running task; {@code null} when no task is active.
+     * Stored as a {@link Runnable} so both {@link BukkitTask#cancel()} and
+     * {@code ScheduledTask#cancel()} can be held without a shared type.
+     */
+    private Runnable taskCanceller;
 
     /**
      * Creates a new {@link PassivePowerHandler}.
@@ -46,22 +55,50 @@ final class PassivePowerHandler {
     }
 
     /**
-     * Starts the repeating regen task on the Bukkit scheduler.
+     * Returns {@code true} when the server runtime is Folia.
+     *
+     * @return {@code true} if Folia is detected
+     */
+    private static boolean detectFolia() {
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            return true;
+        }
+        catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Starts the repeating regen task using the appropriate scheduler.
+     *
+     * <p>On Folia the task is registered with {@code GlobalRegionScheduler};
+     * on Paper / Spigot the legacy {@link org.bukkit.scheduler.BukkitScheduler} is used.</p>
      *
      * @param plugin        the owning plugin; must not be {@code null}
      * @param intervalTicks the tick interval between regen pulses; typically seconds * 20
      */
     void start(final TeamsApiPlugin plugin, final long intervalTicks) {
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, intervalTicks, intervalTicks);
+        if (FOLIA) {
+            final io.papermc.paper.threadedregions.scheduler.ScheduledTask t =
+                plugin.getServer().getGlobalRegionScheduler()
+                    .runAtFixedRate(plugin, ignored -> tick(), intervalTicks, intervalTicks);
+            taskCanceller = t::cancel;
+        }
+        else {
+            final BukkitTask t = Bukkit.getScheduler()
+                .runTaskTimer(plugin, this::tick, intervalTicks, intervalTicks);
+            taskCanceller = t::cancel;
+        }
     }
 
     /**
      * Cancels the repeating regen task if it is running.
      */
     void stop() {
-        if (task != null) {
-            task.cancel();
-            task = null;
+        if (taskCanceller != null) {
+            taskCanceller.run();
+            taskCanceller = null;
         }
     }
 
