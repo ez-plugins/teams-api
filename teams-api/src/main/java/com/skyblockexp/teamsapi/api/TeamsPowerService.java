@@ -93,4 +93,28 @@ public interface TeamsPowerService {
      * @return the team's maximum possible power; {@code 0.0} if the team is unknown
      */
     double getTeamMaxPower(UUID teamId);
+
+    /**
+     * Increases the given player's power by {@code amount}, clamped to their maximum.
+     *
+     * <p>The default implementation reads the current value via {@link #getPlayerPower},
+     * computes {@code min(current + amount, max)}, and writes it back via
+     * {@link #setPlayerPower}. Providers may override this for more efficient
+     * single-call persistence.</p>
+     *
+     * <p>This method does <em>not</em> fire
+     * {@link com.skyblockexp.teamsapi.event.TeamPowerGainEvent}. Callers that need to
+     * honour cancellation must fire the event themselves before calling this method.</p>
+     *
+     * @param playerUUID the UUID of the player; must not be {@code null}
+     * @param amount     the amount of power to add; may be negative to reduce power
+     * @return {@code true} if the power was updated, {@code false} if the player is
+     *         unknown to the provider
+     */
+    default boolean addPlayerPower(final UUID playerUUID, final double amount) {
+        final double current = getPlayerPower(playerUUID);
+        final double max = getPlayerMaxPower(playerUUID);
+        return setPlayerPower(playerUUID, Math.min(current + amount, max));
+    }
+
 }

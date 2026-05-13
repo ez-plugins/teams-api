@@ -12,10 +12,16 @@ website: https://github.com/ez-plugins/teams-api
 commands:
   teamsapi:
     description: TeamsAPI admin command.
-    usage: /teamsapi [version|info]
+    usage: /teamsapi [version|info|power [status|buy <amount>]]
     permission: teamsapi.admin
 
 permissions:
   teamsapi.admin:
     description: Access to TeamsAPI admin commands.
+    default: op
+  teamsapi.power:
+    description: Access to /teamsapi power subcommands (status and buy).
+    default: op
+  teamsapi.power.buy:
+    description: Access to /teamsapi power buy — purchase power with Vault economy.
     default: op

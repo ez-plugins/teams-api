@@ -1,0 +1,21 @@
+# TeamsAPI Plugin Configuration
+# ---------------------------------
+# Power shop: allow players to purchase additional power using Vault economy.
+# Requires a Vault-compatible economy plugin (e.g. EssentialsX, CMI).
+power-shop:
+  # Set to true to enable the /teamsapi power buy <amount> command.
+  enabled: false
+  # Cost (in economy units) per 1.0 unit of power.
+  price-per-unit: 100.0
+  # Maximum power a player may purchase in a single command invocation.
+  max-per-purchase: 10.0
+
+# Passive regen: automatically grant power to online players at a fixed interval.
+# Players must be in a team to receive passive power.
+passive-regen:
+  # Set to true to enable automatic passive power gain.
+  enabled: false
+  # How often (in seconds) to grant power to each online player in a team.
+  interval-seconds: 60
+  # How much power each eligible player receives per interval.
+  amount-per-interval: 1.0

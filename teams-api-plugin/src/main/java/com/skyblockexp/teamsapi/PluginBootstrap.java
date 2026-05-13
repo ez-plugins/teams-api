@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,6 +32,12 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
  * {@link #stop} from {@link TeamsApiPlugin#onDisable}.</p>
  */
 final class PluginBootstrap implements Listener, PluginMessageListener {
+
+    /** Handler for passive power regen; {@code null} when disabled in config. */
+    private PassivePowerHandler passiveHandler;
+
+    /** Handler for the power shop; {@code null} when disabled or Vault is absent. */
+    private PowerShopHandler shopHandler;
 
     /**
      * Creates a new bootstrap instance.
@@ -67,12 +74,58 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
                 "TeamsService provider registered: "
                 + TeamsAPI.getService().getClass().getName());
         }
+
+        plugin.saveDefaultConfig();
+        startOptionalFeatures(plugin);
+    }
+
+    /**
+     * Reads the plugin configuration and starts optional features (passive regen, power shop).
+     *
+     * @param plugin the owning plugin instance
+     */
+    private void startOptionalFeatures(final TeamsApiPlugin plugin) {
+        final FileConfiguration cfg = plugin.getConfig();
+
+        if (cfg.getBoolean("passive-regen.enabled", false)) {
+            final double amount = cfg.getDouble("passive-regen.amount-per-interval", 1.0);
+            final long intervalSecs = cfg.getLong("passive-regen.interval-seconds", 60);
+            passiveHandler = new PassivePowerHandler(amount);
+            passiveHandler.start(plugin, intervalSecs * 20L);
+            PluginRegistry.getLogger().info(
+                "Passive power regen enabled (every " + intervalSecs + "s, +" + amount + " per tick).");
+        }
+
+        if (cfg.getBoolean("power-shop.enabled", false)) {
+            final double price = cfg.getDouble("power-shop.price-per-unit", 100.0);
+            final double maxBuy = cfg.getDouble("power-shop.max-per-purchase", 10.0);
+            try {
+                shopHandler = new PowerShopHandler(price, maxBuy);
+                if (!shopHandler.init()) {
+                    PluginRegistry.getLogger().warning(
+                        "Power shop enabled but no Vault economy provider was found.");
+                    shopHandler = null;
+                }
+                else {
+                    PluginRegistry.getLogger().info(
+                        "Power shop enabled (" + price + " per unit, max " + maxBuy + " per purchase).");
+                }
+            }
+            catch (NoClassDefFoundError ignored) {
+                PluginRegistry.getLogger().warning(
+                    "Power shop enabled but Vault is not installed. Install Vault to use this feature.");
+                shopHandler = null;
+            }
+        }
     }
 
     /**
      * Shuts down the plugin: logs provider status and clears the registry.
      */
     void stop() {
+        if (passiveHandler != null) {
+            passiveHandler.stop();
+        }
         if (!TeamsAPI.isAvailable()) {
             PluginRegistry.getLogger().warning(
                 "TeamsAPI is shutting down with no provider registered. "
@@ -168,6 +221,11 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("power")) {
+            handlePowerCommand(sender, args);
+            return true;
+        }
+
         sendHelp(sender);
         return true;
     }
@@ -179,8 +237,91 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
      */
     private static void sendHelp(final CommandSender sender) {
         sender.sendMessage("[TeamsAPI] Commands:");
-        sender.sendMessage("  /teamsapi version  - Show version info");
-        sender.sendMessage("  /teamsapi info     - Show active provider info");
+        sender.sendMessage("  /teamsapi version        - Show version info");
+        sender.sendMessage("  /teamsapi info           - Show active provider info");
+        sender.sendMessage("  /teamsapi power status   - Show your current power");
+        sender.sendMessage("  /teamsapi power buy <n>  - Purchase power (requires Vault)");
+    }
+
+    /**
+     * Handles the {@code /teamsapi power} subcommand tree.
+     *
+     * @param sender the command sender
+     * @param args   the full argument array from the parent command (args[0] is "power")
+     */
+    private void handlePowerCommand(final CommandSender sender, final String[] args) {
+        if (!sender.hasPermission("teamsapi.power")) {
+            sender.sendMessage("[TeamsAPI] You do not have permission to use this command.");
+            return;
+        }
+        if (args.length < 2 || args[1].equalsIgnoreCase("status")) {
+            handlePowerStatus(sender);
+            return;
+        }
+        if (args[1].equalsIgnoreCase("buy")) {
+            handlePowerBuy(sender, args);
+            return;
+        }
+        sender.sendMessage("[TeamsAPI] Usage: /teamsapi power [status|buy <amount>]");
+    }
+
+    /**
+     * Handles {@code /teamsapi power status}: shows the sender's current and max power.
+     *
+     * @param sender the command sender; must be a {@link Player}
+     */
+    private static void handlePowerStatus(final CommandSender sender) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("[TeamsAPI] This command can only be used by players.");
+            return;
+        }
+        if (!TeamsAPI.isPowerAvailable()) {
+            sender.sendMessage("[TeamsAPI] The power system is currently unavailable.");
+            return;
+        }
+        final Player player = (Player) sender;
+        final double current = TeamsAPI.getPowerService().getPlayerPower(player.getUniqueId());
+        final double max = TeamsAPI.getPowerService().getPlayerMaxPower(player.getUniqueId());
+        sender.sendMessage("[TeamsAPI] Your power: " + current + " / " + max);
+    }
+
+    /**
+     * Handles {@code /teamsapi power buy <amount>}: purchases power via Vault economy.
+     *
+     * @param sender the command sender; must be a {@link Player}
+     * @param args   the full argument array (args[2] is the amount string)
+     */
+    private void handlePowerBuy(final CommandSender sender, final String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("[TeamsAPI] This command can only be used by players.");
+            return;
+        }
+        if (!sender.hasPermission("teamsapi.power.buy")) {
+            sender.sendMessage("[TeamsAPI] You do not have permission to buy power.");
+            return;
+        }
+        if (shopHandler == null) {
+            sender.sendMessage("[TeamsAPI] The power shop is not enabled on this server.");
+            return;
+        }
+        if (args.length < 3) {
+            sender.sendMessage("[TeamsAPI] Usage: /teamsapi power buy <amount>");
+            return;
+        }
+        final double amount;
+        try {
+            amount = Double.parseDouble(args[2]);
+        }
+        catch (NumberFormatException e) {
+            sender.sendMessage("[TeamsAPI] Invalid amount: " + args[2]);
+            return;
+        }
+        final String error = shopHandler.buy((Player) sender, amount);
+        if (error != null) {
+            sender.sendMessage("[TeamsAPI] " + error);
+            return;
+        }
+        sender.sendMessage("[TeamsAPI] Successfully purchased " + amount + " power.");
     }
 
     /**
