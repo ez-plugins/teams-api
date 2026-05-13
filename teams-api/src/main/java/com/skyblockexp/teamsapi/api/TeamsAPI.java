@@ -1,5 +1,9 @@
 package com.skyblockexp.teamsapi.api;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -45,7 +49,7 @@ public final class TeamsAPI {
      * compatibility when the API introduces breaking changes. The version follows
      * Semantic Versioning ({@code MAJOR.MINOR.PATCH}).</p>
      */
-    public static final String API_VERSION = "1.5.0";
+    public static final String API_VERSION = "1.6.0";
 
     /** Suppresses default constructor, ensuring non-instantiability. */
     private TeamsAPI() { }
@@ -528,4 +532,74 @@ public final class TeamsAPI {
 
         Bukkit.getServicesManager().unregister(TeamsPowerService.class, provider);
     }
+
+    // -------------------------------------------------------------------------
+    // Custom subcommand registration and dispatch
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns all {@link TeamsSubcommand} instances currently registered by providers.
+     *
+     * <p>The returned collection is a mutable snapshot ordered by Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} priority. Modifying the returned
+     * collection has no effect on the registry.</p>
+     *
+     * @return a collection of registered subcommands; never {@code null}, may be empty
+     */
+    public static Collection<TeamsSubcommand> getSubcommands() {
+        try {
+            final Collection<RegisteredServiceProvider<TeamsSubcommand>> registrations =
+                Bukkit.getServicesManager().getRegistrations(TeamsSubcommand.class);
+            final Collection<TeamsSubcommand> result = new ArrayList<>(registrations.size());
+            for (final RegisteredServiceProvider<TeamsSubcommand> rsp : registrations) {
+                result.add(rsp.getProvider());
+            }
+            return result;
+        }
+        catch (Throwable ignored) {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Registers a {@link TeamsSubcommand} with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at {@link ServicePriority#Normal}.
+     *
+     * <p>Once registered, the subcommand is available as
+     * {@code /teamsapi <name> [args...]} and will appear in
+     * {@code /teamsapi help}.</p>
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin     the plugin registering the subcommand; must not be {@code null}
+     * @param subcommand the subcommand implementation; must not be {@code null}
+     */
+    public static void registerSubcommand(final Plugin plugin,
+            final TeamsSubcommand subcommand) {
+        if (plugin == null || subcommand == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsSubcommand.class, subcommand, plugin, ServicePriority.Normal);
+    }
+
+    /**
+     * Unregisters a {@link TeamsSubcommand} from Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager}.
+     *
+     * <p>Providers should call this in their plugin's {@code onDisable()}.</p>
+     *
+     * <p>This method silently ignores a {@code null} argument.</p>
+     *
+     * @param subcommand the subcommand to unregister; may be {@code null}
+     */
+    public static void unregisterSubcommand(final TeamsSubcommand subcommand) {
+        if (subcommand == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager().unregister(TeamsSubcommand.class, subcommand);
+    }
+
 }

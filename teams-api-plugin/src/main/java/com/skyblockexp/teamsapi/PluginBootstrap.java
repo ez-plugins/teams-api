@@ -2,6 +2,7 @@ package com.skyblockexp.teamsapi;
 
 import com.skyblockexp.teamsapi.api.TeamsAPI;
 import com.skyblockexp.teamsapi.api.TeamsService;
+import com.skyblockexp.teamsapi.api.TeamsSubcommand;
 import com.skyblockexp.teamsapi.model.Team;
 import com.skyblockexp.teamsapi.model.TeamMember;
 import com.skyblockexp.teamsapi.model.TeamRole;
@@ -216,6 +217,11 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("status")) {
+            sendStatus(sender);
+            return true;
+        }
+
         if (args[0].equalsIgnoreCase("info")) {
             sendInfo(sender);
             return true;
@@ -224,6 +230,18 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
         if (args[0].equalsIgnoreCase("power")) {
             handlePowerCommand(sender, args);
             return true;
+        }
+
+        for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
+            if (sub.getName().equalsIgnoreCase(args[0])) {
+                final String perm = sub.getPermission();
+                if (perm != null && !sender.hasPermission(perm)) {
+                    sender.sendMessage("[TeamsAPI] You do not have permission to use this command.");
+                    return true;
+                }
+                sub.execute(sender, args);
+                return true;
+            }
         }
 
         sendHelp(sender);
@@ -237,10 +255,14 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
      */
     private static void sendHelp(final CommandSender sender) {
         sender.sendMessage("[TeamsAPI] Commands:");
-        sender.sendMessage("  /teamsapi version        - Show version info");
-        sender.sendMessage("  /teamsapi info           - Show active provider info");
-        sender.sendMessage("  /teamsapi power status   - Show your current power");
-        sender.sendMessage("  /teamsapi power buy <n>  - Purchase power (requires Vault)");
+        sender.sendMessage("  /teamsapi version          - Show version info");
+        sender.sendMessage("  /teamsapi status           - Show TeamsAPI status");
+        sender.sendMessage("  /teamsapi info             - Show detailed provider info (op)");
+        sender.sendMessage("  /teamsapi power status     - Show your current power");
+        sender.sendMessage("  /teamsapi power buy <n>    - Purchase power (requires Vault)");
+        for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
+            sender.sendMessage("  /teamsapi " + sub.getName() + " - " + sub.getDescription());
+        }
     }
 
     /**
@@ -325,20 +347,69 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
     }
 
     /**
+     * Sends a brief, player-friendly status summary to the given sender.
+     *
+     * <p>Shows the active provider, team count, and which optional services
+     * are currently registered. No admin permission is required.</p>
+     *
+     * @param sender the command sender to message
+     */
+    private static void sendStatus(final CommandSender sender) {
+        if (!TeamsAPI.isAvailable()) {
+            sender.sendMessage("[TeamsAPI] No team plugin is currently active.");
+            return;
+        }
+        final TeamsService service = TeamsAPI.getService();
+        sender.sendMessage("[TeamsAPI] Status: active");
+        sender.sendMessage("[TeamsAPI] Provider: " + service.getClass().getSimpleName());
+        sender.sendMessage("[TeamsAPI] Teams: " + service.getTeamCount());
+        final StringBuilder services = new StringBuilder("teams");
+        if (TeamsAPI.isInviteAvailable()) {
+            services.append(", invites");
+        }
+        if (TeamsAPI.isWarpAvailable()) {
+            services.append(", warps");
+        }
+        if (TeamsAPI.isClaimAvailable()) {
+            services.append(", claims");
+        }
+        if (TeamsAPI.isPowerAvailable()) {
+            services.append(", power");
+        }
+        sender.sendMessage("[TeamsAPI] Services: " + services);
+    }
+
+    /**
      * Sends provider information to the given sender.
      *
      * @param sender the command sender to message
      */
     private static void sendInfo(final CommandSender sender) {
-        if (!TeamsAPI.isAvailable()) {
-            sender.sendMessage("[TeamsAPI] No TeamsService provider is currently registered.");
-            return;
-        }
-
-        final TeamsService service = TeamsAPI.getService();
         sender.sendMessage("[TeamsAPI] API Version: " + TeamsAPI.API_VERSION);
-        sender.sendMessage("[TeamsAPI] Provider: " + service.getClass().getName());
-        sender.sendMessage("[TeamsAPI] Teams loaded: " + service.getTeamCount());
+        if (!TeamsAPI.isAvailable()) {
+            sender.sendMessage("[TeamsAPI] TeamsService:  none");
+        }
+        else {
+            final TeamsService service = TeamsAPI.getService();
+            sender.sendMessage("[TeamsAPI] TeamsService:  " + service.getClass().getName());
+            sender.sendMessage("[TeamsAPI] Teams loaded: " + service.getTeamCount());
+        }
+        final String inviteInfo = TeamsAPI.isInviteAvailable()
+            ? TeamsAPI.getInviteService().getClass().getName() : "none";
+        sender.sendMessage("[TeamsAPI] InviteService: " + inviteInfo);
+        final String warpInfo = TeamsAPI.isWarpAvailable()
+            ? TeamsAPI.getWarpService().getClass().getName() : "none";
+        sender.sendMessage("[TeamsAPI] WarpService:   " + warpInfo);
+        final String claimInfo = TeamsAPI.isClaimAvailable()
+            ? TeamsAPI.getClaimService().getClass().getName() : "none";
+        sender.sendMessage("[TeamsAPI] ClaimService:  " + claimInfo);
+        final String powerInfo = TeamsAPI.isPowerAvailable()
+            ? TeamsAPI.getPowerService().getClass().getName() : "none";
+        sender.sendMessage("[TeamsAPI] PowerService:  " + powerInfo);
+        final Collection<TeamsSubcommand> subs = TeamsAPI.getSubcommands();
+        if (!subs.isEmpty()) {
+            sender.sendMessage("[TeamsAPI] Subcommands: " + subs.size() + " registered");
+        }
     }
 
     // -------------------------------------------------------------------------

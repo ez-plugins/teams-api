@@ -70,6 +70,26 @@ Entry point for all API interactions. All methods are static.
 | `registerPowerProvider(plugin, service, priority)` | Registers a power provider at the given priority. |
 | `unregisterPowerProvider(service)` | Unregisters a power provider from Bukkit's ServicesManager. |
 
+**Custom subcommands**
+
+| Method | Description |
+|--------|-------------|
+| `getSubcommands()` | Returns all currently registered `TeamsSubcommand` implementations. Never `null`; empty if none are registered. |
+| `registerSubcommand(plugin, subcommand)` | Registers a custom subcommand under `/teamsapi` via Bukkit's ServicesManager. Silently ignored if either argument is `null`. |
+| `unregisterSubcommand(subcommand)` | Unregisters a custom subcommand. Call from your plugin's `onDisable`. Silently ignored if `null`. |
+
+## `TeamsSubcommand` (interface)
+
+Providers implement this interface to inject custom subcommands into the `/teamsapi`
+command tree. Register via `TeamsAPI.registerSubcommand(plugin, subcommand)`.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getName()` | `String` | The subcommand name matched case-insensitively against the first argument of `/teamsapi`. Must be unique among all registered subcommands. |
+| `getDescription()` | `String` | Short description shown in `/teamsapi help`. |
+| `getPermission()` | `String` | Permission node required to use this subcommand, or `null` if no permission check is performed. |
+| `execute(sender, args)` | `boolean` | Called when a sender runs `/teamsapi <name> [args...]`. `args[0]` is the subcommand name. Returns `true` if the command was handled, `false` to print usage. |
+
 ## `TeamsService` (interface)
 
 Implemented by team plugins. Obtained via `TeamsAPI.getService()`.

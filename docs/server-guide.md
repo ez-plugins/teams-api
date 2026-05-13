@@ -177,8 +177,18 @@ their team-related features.
 
 **Does TeamsAPI add any commands or permissions?**
 
-No. TeamsAPI has no player-facing commands, no permissions, and no configuration
-file.
+Yes. TeamsAPI provides the `/teamsapi` command for diagnostic and status checks.
+
+| Subcommand | Permission | Default | Description |
+|------------|-----------|---------|-------------|
+| `/teamsapi` or `/teamsapi version` | `teamsapi.use` | everyone | Prints the installed API version. |
+| `/teamsapi status` | `teamsapi.status` | everyone | Shows the active provider, team count, and which optional services are registered. |
+| `/teamsapi info` | `teamsapi.admin` | op | Detailed internal diagnostic: all five service types, registered subcommands, plugin version. |
+| `/teamsapi power status` | `teamsapi.power` | op | Shows the sender's current and maximum power. |
+| `/teamsapi power buy <amount>` | `teamsapi.power.buy` | op | Purchases power units (requires Vault and `power-shop.enabled: true` in config). |
+
+Provider plugins may also register additional subcommands that appear in this list
+and can be run as `/teamsapi <name>`.
 
 **Where is the config file?**
 
