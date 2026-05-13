@@ -146,4 +146,24 @@ public interface TeamsClaimService {
      * @return the maximum number of claimable chunks, or {@code -1} for unlimited
      */
     int getTeamMaxClaims(UUID teamId);
+
+    /**
+     * Returns {@code true} if the team currently holds more claims than their power allows.
+     *
+     * <p>A team is over-claimed when {@link #getClaimCount} exceeds
+     * {@link #getTeamMaxClaims}. This is referred to as being <em>power-negative</em>
+     * in faction-style gameplay: the team cannot acquire new claims and their existing
+     * ones may be raidable depending on the provider's rules.</p>
+     *
+     * <p>Always returns {@code false} when {@link #getTeamMaxClaims} returns {@code -1}
+     * (unlimited claims).</p>
+     *
+     * @param teamId the UUID of the team; must not be {@code null}
+     * @return {@code true} if the team's claim count exceeds their power-gated maximum
+     */
+    default boolean isOverClaimed(final UUID teamId) {
+        final int max = getTeamMaxClaims(teamId);
+        return max >= 0 && getClaimCount(teamId) > max;
+    }
+
 }
