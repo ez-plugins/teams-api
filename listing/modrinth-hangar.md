@@ -29,6 +29,7 @@ consumer plugin keeps working without a recompile.
 - **Optional warp service**: providers can expose `TeamsWarpService` for named team warps.
 - **Optional claim service**: providers can expose `TeamsClaimService` for chunk-claim management.
 - **Optional power service**: providers can expose `TeamsPowerService` for player and team power values.
+- **Custom subcommands**: providers can inject additional `/teamsapi <name>` subcommands via `TeamsAPI.registerSubcommand()`, complete with per-subcommand permission nodes and help-text.
 - **Cancellable events**: twelve Bukkit events that providers can fire so other plugins can react to or cancel team operations.
 - **Lightweight**: a single shaded JAR with no runtime dependencies beyond the Bukkit API.
 - **JitPack-ready**: depend on just the API module at compile time; no transitive dependencies leak into your plugin.
@@ -70,7 +71,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.4.0</version>
+    <version>1.6.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -82,7 +83,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.4.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.6.0'
 }
 ```
 
@@ -231,6 +232,43 @@ TeamsAPI.registerPowerProvider(this, powerService);
 | `getTeamMaxPower(teamId)` | `double` | Maximum combined power the team can hold |
 
 Consumers check availability with `TeamsAPI.isPowerAvailable()` before calling `TeamsAPI.getPowerService()`.
+
+### Custom subcommands
+
+Providers can inject additional subcommands into `/teamsapi` without shipping a
+separate Bukkit command. Implement `TeamsSubcommand` and register it in `onEnable`:
+
+```java
+TeamsAPI.registerSubcommand(this, new MySubcommand());
+```
+
+Unregister in `onDisable` (Bukkit's ServicesManager also handles this automatically
+on plugin unload):
+
+```java
+TeamsAPI.unregisterSubcommand(mySubcommand);
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getName()` | `String` | Matched case-insensitively against `args[0]` of `/teamsapi` |
+| `getDescription()` | `String` | Shown in `/teamsapi help` |
+| `getPermission()` | `String` | Permission required, or `null` for no check |
+| `execute(sender, args)` | `boolean` | Called when the subcommand is dispatched |
+
+All registered subcommands appear in `/teamsapi help` for senders who have the
+required permission.
+
+### Commands & permissions
+
+| Subcommand | Permission | Default | Description |
+|------------|-----------|---------|-------------|
+| `/teamsapi` / `/teamsapi help` | `teamsapi.use` | everyone | Lists commands the sender can use |
+| `/teamsapi version` | `teamsapi.use` | everyone | Prints plugin and API version |
+| `/teamsapi status` | `teamsapi.status` | everyone | Active provider, team count, registered services |
+| `/teamsapi info` | `teamsapi.admin` | op | Full internal diagnostic |
+| `/teamsapi power status` | `teamsapi.power` | op | Sender's current and max power |
+| `/teamsapi power buy <n>` | `teamsapi.power.buy` | op | Purchase power via Vault economy |
 
 ### Events
 

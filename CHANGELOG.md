@@ -23,6 +23,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `teamsapi.use` permission (default: `true`) — basic access to `/teamsapi`.
 - `teamsapi.status` permission (default: `true`) — access to `/teamsapi status`.
 
+### Changed
+
+- `/teamsapi` now requires `teamsapi.use`; senders without it receive a permission
+  error instead of the help message.
+- `/teamsapi status` now requires `teamsapi.status`.
+- `/teamsapi info` now requires `teamsapi.admin`.
+- `/teamsapi help` (and the bare `/teamsapi`) only lists subcommands that the
+  sender has permission to execute.
+
 ## [1.5.0]
 
 ### Added
