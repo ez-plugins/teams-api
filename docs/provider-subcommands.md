@@ -19,9 +19,10 @@ description: "How to inject custom subcommands into /teamsapi using TeamsSubcomm
 subcommand appears in `/teamsapi help` and is dispatched automatically by the
 TeamsAPI plugin when a player runs `/teamsapi <name>`.
 
-This is useful when a provider wants to expose plugin-specific operations (for
-example `/teamsapi factions stats` or `/teamsapi clans invite`) through a single
-shared command rather than registering its own top-level command.
+This is useful when a provider wants to expose commands that players already know.
+For example, a Factions plugin that normally uses `/f` can register `f` as a
+subcommand so players run `/teamsapi f [args...]` — one familiar short alias,
+no extra top-level command registration required.
 
 ## 1. Implement `TeamsSubcommand`
 
@@ -31,38 +32,53 @@ import com.skyblockexp.teamsapi.api.TeamsSubcommand;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class StatsSubcommand implements TeamsSubcommand {
+public class FactionsSubcommand implements TeamsSubcommand {
 
     @Override
     public String getName() {
+        // Players type /teamsapi f [args...]
         // Matched case-insensitively against args[0] of /teamsapi.
-        // Must be unique among all registered subcommands.
-        return "stats";
+        return "f";
     }
 
     @Override
     public String getDescription() {
         // Shown next to the subcommand name in /teamsapi help.
-        return "Show your faction statistics.";
+        return "Factions commands (alias: /f).";
     }
 
     @Override
     public String getPermission() {
         // Return null for no permission check.
         // Return a permission node string to restrict access.
-        return "myfactions.stats";
+        return "myfactions.use";
+    }
+
+    @Override
+    public String getUsage() {
+        // Shown to the sender when execute() returns false.
+        return "/teamsapi f <subcommand> [args...]";
     }
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
-        // args[0] is the subcommand name ("stats").
-        // args[1], args[2], ... are additional arguments, if any.
+        // args[0] is "f".
+        // args[1], args[2], ... are the subcommand and its arguments.
+        if (args.length < 2) {
+            sender.sendMessage("Usage: " + getUsage());
+            return false; // TeamsAPI will also print the usage hint
+        }
         if (!(sender instanceof Player)) {
             sender.sendMessage("This command can only be used by players.");
             return true;
         }
-        // ... your logic here ...
-        sender.sendMessage("Stats for " + sender.getName() + ": ...");
+        // Delegate to your own subcommand dispatcher here.
+        return handleSubcommand((Player) sender, args);
+    }
+
+    private boolean handleSubcommand(Player player, String[] args) {
+        // args[1] is the Factions sub-action.
+        player.sendMessage("Factions: " + args[1]);
         return true;
     }
 }
@@ -72,10 +88,12 @@ public class StatsSubcommand implements TeamsSubcommand {
 
 | Method | Returns | Contract |
 |--------|---------|----------|
-| `getName()` | `String` | Case-insensitive match against `args[0]`. Must be stable across reloads. |
+| `getName()` | `String` | Case-insensitive match against `args[0]`. Must be stable across reloads. Use your plugin's familiar short name (e.g. `"f"` for a Factions plugin). |
 | `getDescription()` | `String` | Short, single-line description for help output. |
 | `getPermission()` | `String` | Permission node, or `null` if anyone with `teamsapi.use` may run it. |
-| `execute(sender, args)` | `boolean` | Return `true` if the command was handled (even on error). Return `false` to print usage to the sender. `args[0]` is always the subcommand name. |
+| `getUsage()` | `String` | Usage string sent to the sender when `execute()` returns `false`. Default: `"/teamsapi <name>"`. Override to include expected arguments. |
+| `execute(sender, args)` | `boolean` | Return `true` if the command was handled (even on error). Return `false` to let TeamsAPI print the `getUsage()` hint. `args[0]` is always the subcommand name. |
+| `tabComplete(sender, args)` | `List<String>` | Tab-completion suggestions. Default returns an empty list. |
 
 ### Permission behaviour
 
@@ -94,18 +112,21 @@ also unregisters all services for a plugin automatically when it unloads, but
 explicit cleanup is best practice.
 
 ```java
-private final StatsSubcommand statsSubcommand = new StatsSubcommand();
+private final FactionsSubcommand factionsSubcommand = new FactionsSubcommand();
 
 @Override
 public void onEnable() {
-    TeamsAPI.registerSubcommand(this, statsSubcommand);
+    TeamsAPI.registerSubcommand(this, factionsSubcommand);
 }
 
 @Override
 public void onDisable() {
-    TeamsAPI.unregisterSubcommand(statsSubcommand);
+    TeamsAPI.unregisterSubcommand(factionsSubcommand);
 }
 ```
+
+Players can then run `/teamsapi f <subcommand>` and the call is routed to your
+implementation.
 
 `registerSubcommand` uses `ServicePriority.Normal`. If two plugins register a
 subcommand with the same name, both are registered; TeamsAPI dispatches to the
@@ -115,19 +136,19 @@ by ServicesManager ordering). Prefer unique names to avoid conflicts.
 ### Registering multiple subcommands
 
 ```java
-private final StatsSubcommand statsSubcommand = new StatsSubcommand();
-private final LeaderboardSubcommand lbSubcommand = new LeaderboardSubcommand();
+private final FactionsSubcommand factionsSubcommand = new FactionsSubcommand();
+private final ClansSubcommand clansSubcommand = new ClansSubcommand();
 
 @Override
 public void onEnable() {
-    TeamsAPI.registerSubcommand(this, statsSubcommand);
-    TeamsAPI.registerSubcommand(this, lbSubcommand);
+    TeamsAPI.registerSubcommand(this, factionsSubcommand); // /teamsapi f
+    TeamsAPI.registerSubcommand(this, clansSubcommand);   // /teamsapi clans
 }
 
 @Override
 public void onDisable() {
-    TeamsAPI.unregisterSubcommand(statsSubcommand);
-    TeamsAPI.unregisterSubcommand(lbSubcommand);
+    TeamsAPI.unregisterSubcommand(factionsSubcommand);
+    TeamsAPI.unregisterSubcommand(clansSubcommand);
 }
 ```
 
@@ -146,16 +167,19 @@ a `isAvailable` guard if TeamsAPI is optional:
 @Override
 public void onEnable() {
     if (getServer().getPluginManager().getPlugin("TeamsAPI") != null) {
-        TeamsAPI.registerSubcommand(this, statsSubcommand);
+        TeamsAPI.registerSubcommand(this, factionsSubcommand);
     }
 }
 ```
 
 ## 4. Full working example
 
+A Factions plugin that registers `/teamsapi f` so players can type `/teamsapi f
+<subcommand>` using the same short alias they already know:
+
 ```java
+import com.skyblockexp.teamsapi.api.AbstractTeamsSubcommand;
 import com.skyblockexp.teamsapi.api.TeamsAPI;
-import com.skyblockexp.teamsapi.api.TeamsSubcommand;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -163,38 +187,52 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class MyFactionsPlugin extends JavaPlugin {
 
-    private final TeamsSubcommand statsSubcommand = new TeamsSubcommand() {
+    private final AbstractTeamsSubcommand fSubcommand =
+        new AbstractTeamsSubcommand("f", "Factions commands.", "myfactions.use") {
 
-        @Override
-        public String getName() { return "fstats"; }
-
-        @Override
-        public String getDescription() { return "Show your faction stats."; }
-
-        @Override
-        public String getPermission() { return null; }
-
-        @Override
-        public boolean execute(final CommandSender sender, final String[] args) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage("Players only.");
-                return true;
+            @Override
+            public String getUsage() {
+                return "/teamsapi f <help|stats|top> [args...]";
             }
-            sender.sendMessage("Faction stats for " + sender.getName() + ": ...");
-            return true;
-        }
-    };
+
+            @Override
+            public boolean execute(final CommandSender sender, final String[] args) {
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage("Players only.");
+                    return true;
+                }
+                if (args.length < 2) {
+                    return false; // TeamsAPI prints getUsage()
+                }
+                // Dispatch to your own subcommand handler.
+                return MyFactionsPlugin.this.dispatch((Player) sender, args);
+            }
+
+            @Override
+            public java.util.List<String> tabComplete(
+                    final CommandSender sender, final String[] args) {
+                if (args.length == 2) {
+                    return java.util.List.of("help", "stats", "top");
+                }
+                return java.util.Collections.emptyList();
+            }
+        };
 
     @Override
     public void onEnable() {
         if (getServer().getPluginManager().getPlugin("TeamsAPI") != null) {
-            TeamsAPI.registerSubcommand(this, statsSubcommand);
+            TeamsAPI.registerSubcommand(this, fSubcommand);
         }
     }
 
     @Override
     public void onDisable() {
-        TeamsAPI.unregisterSubcommand(statsSubcommand);
+        TeamsAPI.unregisterSubcommand(fSubcommand);
+    }
+
+    private boolean dispatch(final Player player, final String[] args) {
+        player.sendMessage("Factions " + args[1] + ": ...");
+        return true;
     }
 }
 ```
