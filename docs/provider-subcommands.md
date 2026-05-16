@@ -26,6 +26,55 @@ no extra top-level command registration required.
 
 ## 1. Implement `TeamsSubcommand`
 
+### Option A — extend `AbstractTeamsSubcommand` (recommended)
+
+`AbstractTeamsSubcommand` handles the boilerplate for you. Pass name, description,
+and (optionally) permission to the constructor; override only what you need.
+
+```java
+import com.skyblockexp.teamsapi.api.AbstractTeamsSubcommand;
+
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+public class FactionsSubcommand extends AbstractTeamsSubcommand {
+
+    public FactionsSubcommand() {
+        super("f", "Factions commands (alias: /f).", "myfactions.use");
+    }
+
+    @Override
+    public String getUsage() {
+        return "/teamsapi f <help|stats|top> [args...]";
+    }
+
+    @Override
+    public boolean execute(final CommandSender sender, final String[] args) {
+        if (args.length < 2) {
+            return false; // TeamsAPI prints getUsage()
+        }
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("This command can only be used by players.");
+            return true;
+        }
+        return handleSubcommand((Player) sender, args);
+    }
+
+    private boolean handleSubcommand(final Player player, final String[] args) {
+        player.sendMessage("Factions: " + args[1]);
+        return true;
+    }
+}
+```
+
+`getName()`, `getDescription()`, and `getPermission()` are already implemented.
+`getUsage()` and `tabComplete()` have sensible defaults — override either as needed.
+
+### Option B — implement `TeamsSubcommand` directly
+
+Use this when you need full control (e.g. dynamic name resolution or a
+permission that changes at runtime).
+
 ```java
 import com.skyblockexp.teamsapi.api.TeamsSubcommand;
 
@@ -35,50 +84,27 @@ import org.bukkit.entity.Player;
 public class FactionsSubcommand implements TeamsSubcommand {
 
     @Override
-    public String getName() {
-        // Players type /teamsapi f [args...]
-        // Matched case-insensitively against args[0] of /teamsapi.
-        return "f";
-    }
+    public String getName() { return "f"; }
 
     @Override
-    public String getDescription() {
-        // Shown next to the subcommand name in /teamsapi help.
-        return "Factions commands (alias: /f).";
-    }
+    public String getDescription() { return "Factions commands (alias: /f)."; }
 
     @Override
-    public String getPermission() {
-        // Return null for no permission check.
-        // Return a permission node string to restrict access.
-        return "myfactions.use";
-    }
+    public String getPermission() { return "myfactions.use"; }
 
     @Override
-    public String getUsage() {
-        // Shown to the sender when execute() returns false.
-        return "/teamsapi f <subcommand> [args...]";
-    }
+    public String getUsage() { return "/teamsapi f <help|stats|top> [args...]"; }
 
     @Override
-    public boolean execute(CommandSender sender, String[] args) {
-        // args[0] is "f".
-        // args[1], args[2], ... are the subcommand and its arguments.
+    public boolean execute(final CommandSender sender, final String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("Usage: " + getUsage());
-            return false; // TeamsAPI will also print the usage hint
+            return false; // TeamsAPI prints getUsage()
         }
         if (!(sender instanceof Player)) {
             sender.sendMessage("This command can only be used by players.");
             return true;
         }
-        // Delegate to your own subcommand dispatcher here.
-        return handleSubcommand((Player) sender, args);
-    }
-
-    private boolean handleSubcommand(Player player, String[] args) {
-        // args[1] is the Factions sub-action.
-        player.sendMessage("Factions: " + args[1]);
+        sender.sendMessage("Factions: " + args[1]);
         return true;
     }
 }
