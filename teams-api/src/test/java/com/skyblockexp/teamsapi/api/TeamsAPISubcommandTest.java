@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -162,8 +163,58 @@ class TeamsAPISubcommandTest {
             public boolean execute(final CommandSender sender, final String[] args) { return true; }
         };
 
-        assertTrue(sub.getPermission() == null || sub.getPermission().isEmpty()
-            || !sub.getPermission().isEmpty());
+        assertNull(sub.getPermission());
+    }
+
+    /**
+     * teamsSubcommand_getUsage_defaultIncludesName verifies that the default
+     * {@link TeamsSubcommand#getUsage()} implementation includes the subcommand name.
+     */
+    @Test
+    void teamsSubcommand_getUsage_defaultIncludesName() {
+        final TeamsSubcommand sub = new TeamsSubcommand() {
+            public String getName() { return "mystats"; }
+            public String getDescription() { return "Show stats."; }
+            public String getPermission() { return null; }
+            public boolean execute(final CommandSender sender, final String[] args) { return true; }
+        };
+
+        final String usage = sub.getUsage();
+
+        assertNotNull(usage);
+        assertTrue(usage.contains("mystats"));
+    }
+
+    /**
+     * abstractTeamsSubcommand_constructor_throwsOnNullName verifies that passing
+     * {@code null} as the name to {@link AbstractTeamsSubcommand} throws
+     * {@link NullPointerException}.
+     */
+    @Test
+    void abstractTeamsSubcommand_constructor_throwsOnNullName() {
+        assertThrows(NullPointerException.class, () ->
+            new AbstractTeamsSubcommand(null, "description") {
+                public boolean execute(final CommandSender sender, final String[] args) {
+                    return true;
+                }
+            }
+        );
+    }
+
+    /**
+     * abstractTeamsSubcommand_constructor_throwsOnNullDescription verifies that passing
+     * {@code null} as the description to {@link AbstractTeamsSubcommand} throws
+     * {@link NullPointerException}.
+     */
+    @Test
+    void abstractTeamsSubcommand_constructor_throwsOnNullDescription() {
+        assertThrows(NullPointerException.class, () ->
+            new AbstractTeamsSubcommand("name", null) {
+                public boolean execute(final CommandSender sender, final String[] args) {
+                    return true;
+                }
+            }
+        );
     }
 
     /**

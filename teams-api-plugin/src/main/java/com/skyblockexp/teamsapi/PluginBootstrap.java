@@ -255,7 +255,9 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
                     sender.sendMessage("[TeamsAPI] You do not have permission to use this command.");
                     return true;
                 }
-                sub.execute(sender, args);
+                if (!sub.execute(sender, args)) {
+                    sender.sendMessage("[TeamsAPI] Usage: " + sub.getUsage());
+                }
                 return true;
             }
         }
@@ -297,7 +299,8 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
                 if (perm != null && !sender.hasPermission(perm)) {
                     return Collections.emptyList();
                 }
-                return sub.tabComplete(sender, args);
+                final List<String> completions = sub.tabComplete(sender, args);
+                return completions != null ? completions : Collections.emptyList();
             }
         }
         return Collections.emptyList();

@@ -2,6 +2,7 @@ package com.skyblockexp.teamsapi.api;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.bukkit.command.CommandSender;
 
@@ -59,8 +60,8 @@ public abstract class AbstractTeamsSubcommand implements TeamsSubcommand {
      */
     protected AbstractTeamsSubcommand(final String name, final String description,
             final String permission) {
-        this.name = name;
-        this.description = description;
+        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.description = Objects.requireNonNull(description, "description must not be null");
         this.permission = permission;
     }
 

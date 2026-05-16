@@ -76,6 +76,19 @@ public interface TeamsSubcommand {
     boolean execute(CommandSender sender, String[] args);
 
     /**
+     * Returns a usage string shown to the sender when {@link #execute} returns
+     * {@code false}.
+     *
+     * <p>The default implementation returns {@code "/teamsapi <name>"}. Override
+     * to include expected arguments, e.g. {@code "/teamsapi stats <player>"}.</p>
+     *
+     * @return the usage string; never {@code null}
+     */
+    default String getUsage() {
+        return "/teamsapi " + getName();
+    }
+
+    /**
      * Returns tab-completion suggestions for this subcommand.
      *
      * <p>Called by TeamsAPI when a player presses Tab after typing
