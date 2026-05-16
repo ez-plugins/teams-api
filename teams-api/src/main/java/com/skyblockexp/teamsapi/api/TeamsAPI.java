@@ -1,6 +1,13 @@
 package com.skyblockexp.teamsapi.api;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
@@ -45,7 +52,7 @@ public final class TeamsAPI {
      * compatibility when the API introduces breaking changes. The version follows
      * Semantic Versioning ({@code MAJOR.MINOR.PATCH}).</p>
      */
-    public static final String API_VERSION = "1.5.0";
+    public static final String API_VERSION = "1.6.0";
 
     /** Suppresses default constructor, ensuring non-instantiability. */
     private TeamsAPI() { }
@@ -528,4 +535,168 @@ public final class TeamsAPI {
 
         Bukkit.getServicesManager().unregister(TeamsPowerService.class, provider);
     }
+
+    // -------------------------------------------------------------------------
+    // Custom subcommand registration and dispatch
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns all {@link TeamsSubcommand} instances currently registered by providers.
+     *
+     * <p>The returned collection is a mutable snapshot ordered by Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} priority. Modifying the returned
+     * collection has no effect on the registry.</p>
+     *
+     * @return a collection of registered subcommands; never {@code null}, may be empty
+     */
+    public static Collection<TeamsSubcommand> getSubcommands() {
+        try {
+            final Collection<RegisteredServiceProvider<TeamsSubcommand>> registrations =
+                Bukkit.getServicesManager().getRegistrations(TeamsSubcommand.class);
+            final Collection<TeamsSubcommand> result = new ArrayList<>(registrations.size());
+            for (final RegisteredServiceProvider<TeamsSubcommand> rsp : registrations) {
+                result.add(rsp.getProvider());
+            }
+            return result;
+        }
+        catch (Throwable ignored) {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Registers a {@link TeamsSubcommand} with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at {@link ServicePriority#Normal}.
+     *
+     * <p>Once registered, the subcommand is available to any provider plugin
+     * that calls {@link #dispatchSubcommand} or iterates {@link #getSubcommands}
+     * inside its own command handler.</p>
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin     the plugin registering the subcommand; must not be {@code null}
+     * @param subcommand the subcommand implementation; must not be {@code null}
+     */
+    public static void registerSubcommand(final Plugin plugin,
+            final TeamsSubcommand subcommand) {
+        if (plugin == null || subcommand == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsSubcommand.class, subcommand, plugin, ServicePriority.Normal);
+    }
+
+    /**
+     * Unregisters a {@link TeamsSubcommand} from Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager}.
+     *
+     * <p>Providers should call this in their plugin's {@code onDisable()}.</p>
+     *
+     * <p>This method silently ignores a {@code null} argument.</p>
+     *
+     * @param subcommand the subcommand to unregister; may be {@code null}
+     */
+    public static void unregisterSubcommand(final TeamsSubcommand subcommand) {
+        if (subcommand == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager().unregister(TeamsSubcommand.class, subcommand);
+    }
+
+    /**
+     * Dispatches the first matching registered {@link TeamsSubcommand} for the
+     * given arguments.
+     *
+     * <p>Provider plugins call this at the end of their own
+     * {@code CommandExecutor.onCommand()} after handling their built-in
+     * subcommands. If a registered subcommand whose
+     * {@link TeamsSubcommand#getName()} matches {@code args[0]}
+     * (case-insensitive) is found, this method:
+     * <ol>
+     *   <li>Checks the subcommand's permission (if non-null); sends a denial
+     *       message and returns {@code true} if the sender lacks it.</li>
+     *   <li>Calls {@link TeamsSubcommand#execute(CommandSender, String[])}.</li>
+     *   <li>Sends the usage hint if {@code execute} returns {@code false}.</li>
+     * </ol>
+     * </p>
+     *
+     * @param sender the command sender; must not be {@code null}
+     * @param args   the full argument array from {@code onCommand};
+     *               {@code args[0]} is matched against registered names
+     * @return {@code true} if a matching subcommand was found and dispatched;
+     *         {@code false} if no match was found
+     */
+    public static boolean dispatchSubcommand(final CommandSender sender,
+            final String[] args) {
+        if (sender == null || args == null || args.length == 0) {
+            return false;
+        }
+
+        for (final TeamsSubcommand sub : getSubcommands()) {
+            if (sub.getName().equalsIgnoreCase(args[0])) {
+                final String perm = sub.getPermission();
+                if (perm != null && !sender.hasPermission(perm)) {
+                    sender.sendMessage("You do not have permission to use this command.");
+                    return true;
+                }
+                if (!sub.execute(sender, args)) {
+                    sender.sendMessage("Usage: " + sub.getUsage());
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns tab-completion suggestions from registered {@link TeamsSubcommand}
+     * instances.
+     *
+     * <p>Provider plugins call this from their {@code TabCompleter.onTabComplete()}
+     * to delegate completion to registered subcommands. The return value can be
+     * merged with the provider's own suggestions or returned directly.</p>
+     *
+     * <p>When {@code args.length == 1}, returns the names of all subcommands the
+     * sender is permitted to use, filtered to those starting with {@code args[0]}.
+     * When {@code args.length > 1}, delegates to the matching subcommand's
+     * {@link TeamsSubcommand#tabComplete}.</p>
+     *
+     * @param sender the command sender; must not be {@code null}
+     * @param args   the argument array from {@code onTabComplete}
+     * @return a list of suggestions; never {@code null}, may be empty
+     */
+    public static List<String> tabCompleteSubcommands(final CommandSender sender,
+            final String[] args) {
+        if (sender == null || args == null || args.length == 0) {
+            return Collections.emptyList();
+        }
+
+        if (args.length == 1) {
+            final String prefix = args[0].toLowerCase(Locale.ROOT);
+            final List<String> result = new ArrayList<>();
+            for (final TeamsSubcommand sub : getSubcommands()) {
+                final String perm = sub.getPermission();
+                if ((perm == null || sender.hasPermission(perm))
+                        && sub.getName().toLowerCase(Locale.ROOT).startsWith(prefix)) {
+                    result.add(sub.getName());
+                }
+            }
+            return result;
+        }
+
+        for (final TeamsSubcommand sub : getSubcommands()) {
+            if (sub.getName().equalsIgnoreCase(args[0])) {
+                final String perm = sub.getPermission();
+                if (perm != null && !sender.hasPermission(perm)) {
+                    return Collections.emptyList();
+                }
+                final List<String> completions = sub.tabComplete(sender, args);
+                return completions != null ? completions : Collections.emptyList();
+            }
+        }
+        return Collections.emptyList();
+    }
+
 }

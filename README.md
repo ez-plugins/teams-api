@@ -44,7 +44,7 @@ Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.4.0</version>
+    <version>1.5.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -56,7 +56,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.4.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.5.0'
 }
 ```
 
@@ -206,6 +206,62 @@ public void onDisable() {
 }
 ```
 
+### Custom subcommands
+
+Any plugin can register a `TeamsSubcommand` via `TeamsAPI.registerSubcommand()`. Team
+plugins call `TeamsAPI.getSubcommands()` in their own command executor to dispatch them,
+allowing third-party plugins to extend the team plugin's command tree without any direct
+coupling between plugins.
+
+Extend `AbstractTeamsSubcommand` (recommended) or implement `TeamsSubcommand` directly:
+
+```java
+public class StatsSubcommand extends AbstractTeamsSubcommand {
+    public StatsSubcommand() {
+        super("stats", "Show faction statistics.", "myfactions.stats");
+    }
+
+    @Override
+    public boolean execute(CommandSender sender, String[] args) {
+        // handle the command
+        return true; // return false to trigger the usage hint
+    }
+}
+
+// In onEnable:
+TeamsAPI.registerSubcommand(this, new StatsSubcommand());
+
+// In onDisable:
+TeamsAPI.unregisterSubcommand(statsSubcommand);
+```
+
+Team plugins dispatch registered subcommands inside their own command executor:
+
+```java
+for (TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
+    if (sub.getName().equalsIgnoreCase(args[0])) {
+        String perm = sub.getPermission();
+        if (perm != null && !sender.hasPermission(perm)) {
+            sender.sendMessage("You do not have permission.");
+            return true;
+        }
+        if (!sub.execute(sender, args)) {
+            sender.sendMessage("Usage: " + sub.getUsage());
+        }
+        return true;
+    }
+}
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getName()` | `String` | Matched case-insensitively against `args[0]` |
+| `getDescription()` | `String` | Optional description for help output |
+| `getPermission()` | `String` | Required permission, or `null` for no check |
+| `execute(sender, args)` | `boolean` | Called when dispatched; return `false` to show usage |
+| `getUsage()` | `String` | Usage hint sent when `execute` returns `false` |
+| `tabComplete(sender, args)` | `List<String>` | Tab-completion suggestions; default: empty list |
+
 ### Events
 
 Provider events extend `TeamEvent`. Core events are cancellable:
@@ -226,6 +282,11 @@ public void onWarpSet(TeamWarpSetEvent event) {
 @EventHandler
 public void onClaim(TeamClaimEvent event) {
     // Cancel to block the claim
+}
+
+@EventHandler
+public void onUnclaim(TeamUnclaimEvent event) {
+    // Cancel to block the unclaim
 }
 ```
 

@@ -144,4 +144,5 @@ softdepend:
 
 - [Team Provider](../provider-teams): implementing the core `TeamsService`
 - [Invite Provider](../provider-invites): adding optional invitation support
+- [Custom Subcommands](../provider-subcommands): injecting subcommands into `/teamsapi`
 - [API Reference](../api): full interface and model documentation

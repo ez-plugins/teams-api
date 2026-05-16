@@ -226,6 +226,27 @@ private void handlePowerCommand(Player player, UUID teamId) {
 }
 ```
 
+### 8. Register a custom subcommand (providers)
+
+Providers can expose additional commands under `/teamsapi <name>` without
+shipping a separate Bukkit command. See the dedicated
+[Custom Subcommands](provider-subcommands) guide for the full walkthrough,
+permission behaviour, and a complete working example.
+
+Quick-start:
+
+```java
+@Override
+public void onEnable() {
+    TeamsAPI.registerSubcommand(this, new StatsSubcommand());
+}
+
+@Override
+public void onDisable() {
+    TeamsAPI.unregisterSubcommand(statsSubcommand);
+}
+```
+
 ## Events
 
 Providers are encouraged to fire events before performing state changes. Whether

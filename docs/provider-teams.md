@@ -174,4 +174,5 @@ exist before registration is attempted.
 
 - [Invite Provider](../provider-invites): adding optional invitation support
 - [Warp Provider](../provider-warps): adding optional warp support
+- [Custom Subcommands](../provider-subcommands): injecting subcommands into `/teamsapi`
 - [API Reference](../api): full interface and model documentation

@@ -3,6 +3,35 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.6.0]
+
+### Added
+
+- `TeamsSubcommand` interface: providers can register custom subcommands under
+  `/teamsapi <name>` via `TeamsAPI.registerSubcommand(plugin, subcommand)`. Each
+  subcommand declares a `getName()`, `getDescription()`, optional `getPermission()`,
+  and `execute(CommandSender, String[])`.
+- `TeamsAPI.registerSubcommand(plugin, subcommand)` — registers via Bukkit ServicesManager.
+- `TeamsAPI.unregisterSubcommand(subcommand)` — unregisters; call from `onDisable`.
+- `TeamsAPI.getSubcommands()` — returns all registered subcommands as a snapshot.
+- `/teamsapi status` — player-accessible (no admin permission required); shows the
+  active provider, team count, and which optional services (invites, warps, claims,
+  power) are registered.
+- `/teamsapi info` now shows all five registered service types (TeamsService,
+  InviteService, WarpService, ClaimService, PowerService) and the registered
+  subcommand count.
+- `teamsapi.use` permission (default: `true`) — basic access to `/teamsapi`.
+- `teamsapi.status` permission (default: `true`) — access to `/teamsapi status`.
+
+### Changed
+
+- `/teamsapi` now requires `teamsapi.use`; senders without it receive a permission
+  error instead of the help message.
+- `/teamsapi status` now requires `teamsapi.status`.
+- `/teamsapi info` now requires `teamsapi.admin`.
+- `/teamsapi help` (and the bare `/teamsapi`) only lists subcommands that the
+  sender has permission to execute.
+
 ## [1.5.0]
 
 ### Added

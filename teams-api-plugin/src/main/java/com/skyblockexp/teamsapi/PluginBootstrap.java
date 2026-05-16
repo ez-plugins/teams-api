@@ -2,12 +2,16 @@ package com.skyblockexp.teamsapi;
 
 import com.skyblockexp.teamsapi.api.TeamsAPI;
 import com.skyblockexp.teamsapi.api.TeamsService;
+import com.skyblockexp.teamsapi.api.TeamsSubcommand;
 import com.skyblockexp.teamsapi.model.Team;
 import com.skyblockexp.teamsapi.model.TeamMember;
 import com.skyblockexp.teamsapi.model.TeamRole;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -204,6 +208,11 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
             return false;
         }
 
+        if (!sender.hasPermission("teamsapi.use")) {
+            sender.sendMessage("[TeamsAPI] You do not have permission to use this command.");
+            return true;
+        }
+
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
             sendHelp(sender);
             return true;
@@ -216,7 +225,20 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("status")) {
+            if (!sender.hasPermission("teamsapi.status")) {
+                sender.sendMessage("[TeamsAPI] You do not have permission to use this command.");
+                return true;
+            }
+            sendStatus(sender);
+            return true;
+        }
+
         if (args[0].equalsIgnoreCase("info")) {
+            if (!sender.hasPermission("teamsapi.admin")) {
+                sender.sendMessage("[TeamsAPI] You do not have permission to use this command.");
+                return true;
+            }
             sendInfo(sender);
             return true;
         }
@@ -226,8 +248,125 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
             return true;
         }
 
+        for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
+            if (sub.getName().equalsIgnoreCase(args[0])) {
+                final String perm = sub.getPermission();
+                if (perm != null && !sender.hasPermission(perm)) {
+                    sender.sendMessage("[TeamsAPI] You do not have permission to use this command.");
+                    return true;
+                }
+                if (!sub.execute(sender, args)) {
+                    sender.sendMessage("[TeamsAPI] Usage: " + sub.getUsage());
+                }
+                return true;
+            }
+        }
+
         sendHelp(sender);
         return true;
+    }
+
+    /**
+     * Handles tab-completion for the {@code /teamsapi} command.
+     *
+     * <p>Returns the matching built-in subcommand names when completing the
+     * first argument. Delegates to {@link TeamsSubcommand#tabComplete} for
+     * registered custom subcommands when completing further arguments.</p>
+     *
+     * @param sender  the command sender requesting completions
+     * @param command the dispatched command
+     * @param label   the alias used
+     * @param args    the arguments typed so far
+     * @return a list of completion strings; never {@code null}
+     */
+    List<String> handleTabComplete(final CommandSender sender, final Command command,
+            final String label, final String[] args) {
+        if (!command.getName().equalsIgnoreCase("teamsapi")) {
+            return Collections.emptyList();
+        }
+        if (!sender.hasPermission("teamsapi.use")) {
+            return Collections.emptyList();
+        }
+        if (args.length == 1) {
+            return filterByPrefix(buildTopLevelCompletions(sender), args[0]);
+        }
+        if (args[0].equalsIgnoreCase("power") && args.length == 2) {
+            return filterByPrefix(buildPowerCompletions(sender), args[1]);
+        }
+        for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
+            if (sub.getName().equalsIgnoreCase(args[0])) {
+                final String perm = sub.getPermission();
+                if (perm != null && !sender.hasPermission(perm)) {
+                    return Collections.emptyList();
+                }
+                final List<String> completions = sub.tabComplete(sender, args);
+                return completions != null ? completions : Collections.emptyList();
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Builds the list of top-level subcommand names visible to the given sender.
+     *
+     * @param sender the command sender
+     * @return a mutable list of completion candidates
+     */
+    private static List<String> buildTopLevelCompletions(final CommandSender sender) {
+        final List<String> completions = new ArrayList<>();
+        completions.add("version");
+        completions.add("help");
+        if (sender.hasPermission("teamsapi.status")) {
+            completions.add("status");
+        }
+        if (sender.hasPermission("teamsapi.admin")) {
+            completions.add("info");
+        }
+        if (sender.hasPermission("teamsapi.power")) {
+            completions.add("power");
+        }
+        for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
+            final String perm = sub.getPermission();
+            if (perm == null || sender.hasPermission(perm)) {
+                completions.add(sub.getName());
+            }
+        }
+        return completions;
+    }
+
+    /**
+     * Builds the list of {@code /teamsapi power} sub-argument completions visible
+     * to the given sender.
+     *
+     * @param sender the command sender
+     * @return a mutable list of completion candidates
+     */
+    private static List<String> buildPowerCompletions(final CommandSender sender) {
+        final List<String> completions = new ArrayList<>();
+        completions.add("status");
+        if (sender.hasPermission("teamsapi.power.buy")) {
+            completions.add("buy");
+        }
+        return completions;
+    }
+
+    /**
+     * Filters a list of completion candidates by a case-insensitive prefix.
+     *
+     * @param candidates the full candidate list
+     * @param prefix     the partial input to filter by
+     * @return a new list containing only candidates that start with the prefix
+     */
+    private static List<String> filterByPrefix(final List<String> candidates,
+            final String prefix) {
+        final String lower = prefix.toLowerCase();
+        final List<String> result = new ArrayList<>();
+        for (final String candidate : candidates) {
+            if (candidate.toLowerCase().startsWith(lower)) {
+                result.add(candidate);
+            }
+        }
+        return result;
     }
 
     /**
@@ -237,10 +376,25 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
      */
     private static void sendHelp(final CommandSender sender) {
         sender.sendMessage("[TeamsAPI] Commands:");
-        sender.sendMessage("  /teamsapi version        - Show version info");
-        sender.sendMessage("  /teamsapi info           - Show active provider info");
-        sender.sendMessage("  /teamsapi power status   - Show your current power");
-        sender.sendMessage("  /teamsapi power buy <n>  - Purchase power (requires Vault)");
+        sender.sendMessage("  /teamsapi version          - Show version info");
+        if (sender.hasPermission("teamsapi.status")) {
+            sender.sendMessage("  /teamsapi status           - Show TeamsAPI status");
+        }
+        if (sender.hasPermission("teamsapi.admin")) {
+            sender.sendMessage("  /teamsapi info             - Show detailed provider info (op)");
+        }
+        if (sender.hasPermission("teamsapi.power")) {
+            sender.sendMessage("  /teamsapi power status     - Show your current power");
+        }
+        if (sender.hasPermission("teamsapi.power.buy")) {
+            sender.sendMessage("  /teamsapi power buy <n>    - Purchase power (requires Vault)");
+        }
+        for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
+            final String perm = sub.getPermission();
+            if (perm == null || sender.hasPermission(perm)) {
+                sender.sendMessage("  /teamsapi " + sub.getName() + " - " + sub.getDescription());
+            }
+        }
     }
 
     /**
@@ -325,20 +479,69 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
     }
 
     /**
+     * Sends a brief, player-friendly status summary to the given sender.
+     *
+     * <p>Shows the active provider, team count, and which optional services
+     * are currently registered. No admin permission is required.</p>
+     *
+     * @param sender the command sender to message
+     */
+    private static void sendStatus(final CommandSender sender) {
+        if (!TeamsAPI.isAvailable()) {
+            sender.sendMessage("[TeamsAPI] No team plugin is currently active.");
+            return;
+        }
+        final TeamsService service = TeamsAPI.getService();
+        sender.sendMessage("[TeamsAPI] Status: active");
+        sender.sendMessage("[TeamsAPI] Provider: " + service.getClass().getSimpleName());
+        sender.sendMessage("[TeamsAPI] Teams: " + service.getTeamCount());
+        final StringBuilder services = new StringBuilder("teams");
+        if (TeamsAPI.isInviteAvailable()) {
+            services.append(", invites");
+        }
+        if (TeamsAPI.isWarpAvailable()) {
+            services.append(", warps");
+        }
+        if (TeamsAPI.isClaimAvailable()) {
+            services.append(", claims");
+        }
+        if (TeamsAPI.isPowerAvailable()) {
+            services.append(", power");
+        }
+        sender.sendMessage("[TeamsAPI] Services: " + services);
+    }
+
+    /**
      * Sends provider information to the given sender.
      *
      * @param sender the command sender to message
      */
     private static void sendInfo(final CommandSender sender) {
-        if (!TeamsAPI.isAvailable()) {
-            sender.sendMessage("[TeamsAPI] No TeamsService provider is currently registered.");
-            return;
-        }
-
-        final TeamsService service = TeamsAPI.getService();
         sender.sendMessage("[TeamsAPI] API Version: " + TeamsAPI.API_VERSION);
-        sender.sendMessage("[TeamsAPI] Provider: " + service.getClass().getName());
-        sender.sendMessage("[TeamsAPI] Teams loaded: " + service.getTeamCount());
+        if (!TeamsAPI.isAvailable()) {
+            sender.sendMessage("[TeamsAPI] TeamsService:  none");
+        }
+        else {
+            final TeamsService service = TeamsAPI.getService();
+            sender.sendMessage("[TeamsAPI] TeamsService:  " + service.getClass().getName());
+            sender.sendMessage("[TeamsAPI] Teams loaded: " + service.getTeamCount());
+        }
+        final String inviteInfo = TeamsAPI.isInviteAvailable()
+            ? TeamsAPI.getInviteService().getClass().getName() : "none";
+        sender.sendMessage("[TeamsAPI] InviteService: " + inviteInfo);
+        final String warpInfo = TeamsAPI.isWarpAvailable()
+            ? TeamsAPI.getWarpService().getClass().getName() : "none";
+        sender.sendMessage("[TeamsAPI] WarpService:   " + warpInfo);
+        final String claimInfo = TeamsAPI.isClaimAvailable()
+            ? TeamsAPI.getClaimService().getClass().getName() : "none";
+        sender.sendMessage("[TeamsAPI] ClaimService:  " + claimInfo);
+        final String powerInfo = TeamsAPI.isPowerAvailable()
+            ? TeamsAPI.getPowerService().getClass().getName() : "none";
+        sender.sendMessage("[TeamsAPI] PowerService:  " + powerInfo);
+        final Collection<TeamsSubcommand> subs = TeamsAPI.getSubcommands();
+        if (!subs.isEmpty()) {
+            sender.sendMessage("[TeamsAPI] Subcommands: " + subs.size() + " registered");
+        }
     }
 
     // -------------------------------------------------------------------------
