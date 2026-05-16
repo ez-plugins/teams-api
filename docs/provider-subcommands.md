@@ -200,6 +200,24 @@ those plugins.
 | `getUsage()` | `String` | Usage string sent to the sender when `execute()` returns `false`. |
 | `tabComplete(sender, args)` | `List<String>` | Completion suggestions; default returns an empty list. |
 
+### Guard against duplicate registration
+
+If your plugin can be reloaded (e.g. via PlugMan), `onEnable()` may run again
+while the previous registration is still active. Check before registering:
+
+```java
+@Override
+public void onEnable() {
+    if (getServer().getPluginManager().getPlugin("TeamsAPI") != null) {
+        final boolean alreadyRegistered = TeamsAPI.getSubcommands().stream()
+                .anyMatch(s -> s.getName().equalsIgnoreCase(statsSubcommand.getName()));
+        if (!alreadyRegistered) {
+            TeamsAPI.registerSubcommand(this, statsSubcommand);
+        }
+    }
+}
+```
+
 ### Priority and name conflicts
 
 `registerSubcommand` uses `ServicePriority.Normal`. If two plugins register a
