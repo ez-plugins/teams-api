@@ -29,7 +29,7 @@ consumer plugin keeps working without a recompile.
 - **Optional warp service**: providers can expose `TeamsWarpService` for named team warps.
 - **Optional claim service**: providers can expose `TeamsClaimService` for chunk-claim management.
 - **Optional power service**: providers can expose `TeamsPowerService` for player and team power values.
-- **Custom subcommands**: providers can inject additional `/teamsapi <name>` subcommands via `TeamsAPI.registerSubcommand()`, complete with per-subcommand permission nodes and help-text.
+- **Custom subcommands**: any plugin registers a `TeamsSubcommand` via `TeamsAPI.registerSubcommand()`; team plugins call `TeamsAPI.getSubcommands()` in their own command handler to dispatch them, extending the command tree without coupling.
 - **Cancellable events**: twelve Bukkit events that providers can fire so other plugins can react to or cancel team operations.
 - **Lightweight**: a single shaded JAR with no runtime dependencies beyond the Bukkit API.
 - **JitPack-ready**: depend on just the API module at compile time; no transitive dependencies leak into your plugin.
@@ -235,8 +235,11 @@ Consumers check availability with `TeamsAPI.isPowerAvailable()` before calling `
 
 ### Custom subcommands
 
-Providers can inject additional subcommands into `/teamsapi` without shipping a
-separate Bukkit command. Implement `TeamsSubcommand` and register it in `onEnable`:
+Any plugin can register a `TeamsSubcommand` via `TeamsAPI.registerSubcommand()`. Team
+plugins call `TeamsAPI.getSubcommands()` in their own command executor to dispatch them,
+extending the command tree without any direct coupling between plugins.
+
+Register in `onEnable`:
 
 ```java
 TeamsAPI.registerSubcommand(this, new MySubcommand());
@@ -251,13 +254,12 @@ TeamsAPI.unregisterSubcommand(mySubcommand);
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `getName()` | `String` | Matched case-insensitively against `args[0]` of `/teamsapi` |
-| `getDescription()` | `String` | Shown in `/teamsapi help` |
+| `getName()` | `String` | Matched case-insensitively against `args[0]` |
+| `getDescription()` | `String` | Optional description for help output |
 | `getPermission()` | `String` | Permission required, or `null` for no check |
-| `execute(sender, args)` | `boolean` | Called when the subcommand is dispatched |
-
-All registered subcommands appear in `/teamsapi help` for senders who have the
-required permission.
+| `execute(sender, args)` | `boolean` | Called when the subcommand is dispatched; return `false` to show usage |
+| `getUsage()` | `String` | Usage hint sent when `execute` returns `false` |
+| `tabComplete(sender, args)` | `List<String>` | Tab-completion suggestions; default: empty list |
 
 ### Commands & permissions
 

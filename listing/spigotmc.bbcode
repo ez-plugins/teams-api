@@ -30,7 +30,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [*][B]Optional warp service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsWarpService[/COLOR] for named team warps.
 [*][B]Optional claim service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsClaimService[/COLOR] for chunk-claim management.
 [*][B]Optional power service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerService[/COLOR] for player and team power values.
-[*][B]Custom subcommands[/B] -- providers can inject additional [COLOR=#6cb4ff]/teamsapi <name>[/COLOR] subcommands via [COLOR=#6cb4ff]TeamsAPI.registerSubcommand()[/COLOR], each with its own permission node and help text.
+[*][B]Custom subcommands[/B] -- any plugin registers a [COLOR=#6cb4ff]TeamsSubcommand[/COLOR] via [COLOR=#6cb4ff]TeamsAPI.registerSubcommand()[/COLOR]; team plugins call [COLOR=#6cb4ff]TeamsAPI.getSubcommands()[/COLOR] in their own command handler to dispatch them without coupling.
 [*][B]Cancellable events[/B] -- twelve Bukkit events that providers can fire so other plugins can react to or cancel team operations.
 [*][B]Lightweight[/B] -- a single shaded JAR with no runtime dependencies beyond the Bukkit API.
 [*][B]JitPack-ready[/B] -- depend on just the API module at compile time via Maven or Gradle.
@@ -214,7 +214,7 @@ public void onDisable() {
 
 [SIZE=4][B]Custom subcommands[/B][/SIZE]
 
-[COLOR=#aaaaaa]Providers can inject subcommands into [COLOR=#6cb4ff]/teamsapi[/COLOR] without shipping a separate Bukkit command.[/COLOR]
+[COLOR=#aaaaaa]Any plugin registers a [COLOR=#6cb4ff]TeamsSubcommand[/COLOR] and team plugins call [COLOR=#6cb4ff]TeamsAPI.getSubcommands()[/COLOR] in their own command executor to dispatch them. This extends the team plugin's command tree without any coupling between plugins.[/COLOR]
 
 [CODE=java]
 // onEnable
@@ -225,10 +225,12 @@ TeamsAPI.unregisterSubcommand(mySubcommand);
 [/CODE]
 
 [LIST]
-[*][COLOR=#6cb4ff]getName()[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- Matched case-insensitively against the first argument of [COLOR=#6cb4ff]/teamsapi[/COLOR]
-[*][COLOR=#6cb4ff]getDescription()[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- Shown in [COLOR=#6cb4ff]/teamsapi help[/COLOR]
+[*][COLOR=#6cb4ff]getName()[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- Matched case-insensitively against the first argument
+[*][COLOR=#6cb4ff]getDescription()[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- Optional description for help output
 [*][COLOR=#6cb4ff]getPermission()[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- Permission required, or [COLOR=#f08080]null[/COLOR] for no check
-[*][COLOR=#6cb4ff]execute(sender, args)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Called when the subcommand is dispatched
+[*][COLOR=#6cb4ff]execute(sender, args)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Called when the subcommand is dispatched; return [COLOR=#f08080]false[/COLOR] to show usage
+[*][COLOR=#6cb4ff]getUsage()[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- Usage hint sent when [COLOR=#6cb4ff]execute[/COLOR] returns [COLOR=#f08080]false[/COLOR]
+[*][COLOR=#6cb4ff]tabComplete(sender, args)[/COLOR] -> [COLOR=#ffd700]List<String>[/COLOR] -- Tab-completion suggestions; default: empty list
 [/LIST]
 
 [SIZE=4][B]Commands & permissions[/B][/SIZE]
