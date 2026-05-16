@@ -6,23 +6,25 @@ import java.util.List;
 import org.bukkit.command.CommandSender;
 
 /**
- * Contract for a custom subcommand that can be injected into the
- * {@code /teamsapi} command tree by a provider plugin.
+ * Contract for a custom subcommand that consumer plugins can register with TeamsAPI
+ * so that team plugins (providers) can dispatch it inside their own command handler.
  *
  * <p>Register an implementation via {@link TeamsAPI#registerSubcommand} in your
  * plugin's {@code onEnable} and unregister it in {@code onDisable}. Once
- * registered, the command is dispatched as
- * {@code /teamsapi <name> [args...]} and listed in {@code /teamsapi help}.</p>
+ * registered, any provider that calls {@link TeamsAPI#dispatchSubcommand} (or
+ * iterates {@link TeamsAPI#getSubcommands}) will include this subcommand in its
+ * own command tree — for example as {@code /factions stats} or
+ * {@code /clans stats}.</p>
  *
- * <p><strong>Provider registration example:</strong></p>
+ * <p><strong>Consumer registration example:</strong></p>
  * <pre>{@code
  * // onEnable
  * TeamsAPI.registerSubcommand(this, new TeamsSubcommand() {
- *     public String getName()        { return "factions"; }
- *     public String getDescription() { return "Show faction info."; }
- *     public String getPermission()  { return "myplugin.factions"; }
+ *     public String getName()        { return "stats"; }
+ *     public String getDescription() { return "Show team statistics."; }
+ *     public String getPermission()  { return "myplugin.stats"; }
  *     public boolean execute(CommandSender sender, String[] args) {
- *         sender.sendMessage("Your faction: ...");
+ *         sender.sendMessage("Stats: ...");
  *         return true;
  *     }
  * });
@@ -79,21 +81,21 @@ public interface TeamsSubcommand {
      * Returns a usage string shown to the sender when {@link #execute} returns
      * {@code false}.
      *
-     * <p>The default implementation returns {@code "/teamsapi <name>"}. Override
-     * to include expected arguments, e.g. {@code "/teamsapi stats <player>"}.</p>
+     * <p>The default implementation returns the subcommand name. Override to
+     * include expected arguments, e.g. {@code "stats [player]"}.</p>
      *
      * @return the usage string; never {@code null}
      */
     default String getUsage() {
-        return "/teamsapi " + getName();
+        return getName();
     }
 
     /**
      * Returns tab-completion suggestions for this subcommand.
      *
-     * <p>Called by TeamsAPI when a player presses Tab after typing
-     * {@code /teamsapi <name> ...}. {@code args[0]} is always this subcommand's
-     * name; additional partial input follows from {@code args[1]} onward.</p>
+     * <p>Called by the provider's tab-completer when the first argument matches
+     * this subcommand's name. {@code args[0]} is always this subcommand's name;
+     * additional partial input follows from {@code args[1]} onward.</p>
      *
      * <p>The default implementation returns an empty list (no completions).
      * Override to provide context-aware suggestions.</p>

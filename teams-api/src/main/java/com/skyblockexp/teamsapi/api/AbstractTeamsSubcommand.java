@@ -10,7 +10,7 @@ import org.bukkit.command.CommandSender;
  * Convenience base class for implementing {@link TeamsSubcommand}.
  *
  * <p>Stores name, description, and permission as constructor arguments so
- * providers only need to implement {@link #execute}. Tab-completion returns an
+ * consumers only need to implement {@link #execute}. Tab-completion returns an
  * empty list by default; override {@link #tabComplete} to add suggestions.</p>
  *
  * <p><strong>Example:</strong></p>

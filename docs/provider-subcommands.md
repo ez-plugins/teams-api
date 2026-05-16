@@ -16,12 +16,16 @@ description: "How to dispatch TeamsSubcommand registrations inside your team plu
 
 The custom subcommand system lets any third-party plugin extend your team plugin's
 command tree without you knowing about it at compile time. Your team plugin adds a
-dispatch loop inside its own `CommandExecutor` that checks `TeamsAPI.getSubcommands()`
+dispatch call inside its own `CommandExecutor` that checks `TeamsAPI.getSubcommands()`
 after handling its own built-in subcommands. When a match is found the registered
 `TeamsSubcommand` is called directly — in your command, under your permission system.
 
 This is the same Vault-style decoupling that makes `TeamsService` work: your plugin
 dispatches, other plugins register. Neither needs to know about the other.
+
+See [Registering Subcommands](consumer-subcommands) for the consumer side — how
+other plugins implement and register a `TeamsSubcommand` that your command will
+dispatch.
 
 ## 1. Declare the soft-dependency
 
@@ -36,14 +40,14 @@ loop is a no-op when `getSubcommands()` returns an empty collection, but you sti
 need to guard the `TeamsAPI` class reference itself (see
 [section 4](#4-guard-when-teamsapi-is-absent)).
 
-## 2. Add the dispatch loop to your `CommandExecutor`
+## 2. Add the dispatch call to your `CommandExecutor`
 
-After handling your plugin's own subcommands, fall through to
-`TeamsAPI.getSubcommands()`:
+After handling your plugin's own subcommands, call
+`TeamsAPI.dispatchSubcommand(sender, args)`. It returns `true` if a registered
+subcommand matched (handled or denied), so you only need one line:
 
 ```java
 import com.skyblockexp.teamsapi.api.TeamsAPI;
-import com.skyblockexp.teamsapi.api.TeamsSubcommand;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -71,18 +75,8 @@ public class FactionsCommandExecutor implements CommandExecutor {
         }
 
         // Fall through to any registered TeamsSubcommand
-        for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
-            if (sub.getName().equalsIgnoreCase(args[0])) {
-                final String perm = sub.getPermission();
-                if (perm != null && !sender.hasPermission(perm)) {
-                    sender.sendMessage("You do not have permission to use this command.");
-                    return true;
-                }
-                if (!sub.execute(sender, args)) {
-                    sender.sendMessage("Usage: " + sub.getUsage());
-                }
-                return true;
-            }
+        if (TeamsAPI.dispatchSubcommand(sender, args)) {
+            return true;
         }
 
         sender.sendMessage("Unknown subcommand. Use /" + label + " help.");
@@ -91,16 +85,17 @@ public class FactionsCommandExecutor implements CommandExecutor {
 }
 ```
 
-`args` is passed to `execute()` unchanged. The registered subcommand receives
-`args[0]` as its own name and its arguments starting at `args[1]`.
+`dispatchSubcommand` checks permissions, calls `execute()`, and sends the usage hint
+if `execute()` returns `false` — all in one call.
 
 ## 3. Add tab-complete dispatch
 
-Wire the same lookup into your `TabCompleter`:
+Merge your own subcommand names with those from
+`TeamsAPI.tabCompleteSubcommands(sender, args)`, which handles prefix filtering
+and permission gating automatically:
 
 ```java
 import com.skyblockexp.teamsapi.api.TeamsAPI;
-import com.skyblockexp.teamsapi.api.TeamsSubcommand;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -116,30 +111,15 @@ public class FactionsTabCompleter implements TabCompleter {
     public List<String> onTabComplete(final CommandSender sender, final Command command,
             final String label, final String[] args) {
         if (args.length == 1) {
-            // Merge your own subcommand names with registered TeamsSubcommand names
+            // Merge your own names with registered TeamsSubcommand names
             final List<String> suggestions = new ArrayList<>(List.of("create", "disband"));
-            for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
-                final String perm = sub.getPermission();
-                if (perm == null || sender.hasPermission(perm)) {
-                    suggestions.add(sub.getName());
-                }
-            }
+            suggestions.addAll(TeamsAPI.tabCompleteSubcommands(sender, args));
             final String prefix = args[0].toLowerCase();
             suggestions.removeIf(s -> !s.toLowerCase().startsWith(prefix));
             return suggestions;
         }
         if (args.length > 1) {
-            // Delegate to the matched subcommand's tab-complete
-            for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
-                if (sub.getName().equalsIgnoreCase(args[0])) {
-                    final String perm = sub.getPermission();
-                    if (perm != null && !sender.hasPermission(perm)) {
-                        return Collections.emptyList();
-                    }
-                    final List<String> completions = sub.tabComplete(sender, args);
-                    return completions != null ? completions : Collections.emptyList();
-                }
-            }
+            return TeamsAPI.tabCompleteSubcommands(sender, args);
         }
         return Collections.emptyList();
     }
