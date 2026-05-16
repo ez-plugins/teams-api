@@ -2,11 +2,14 @@ package com.skyblockexp.teamsapi.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
@@ -161,6 +164,125 @@ class TeamsAPISubcommandTest {
 
         assertTrue(sub.getPermission() == null || sub.getPermission().isEmpty()
             || !sub.getPermission().isEmpty());
+    }
+
+    /**
+     * teamsSubcommand_tabComplete_defaultReturnsEmptyList verifies that the default
+     * {@link TeamsSubcommand#tabComplete} implementation returns an empty, non-null list.
+     */
+    @Test
+    void teamsSubcommand_tabComplete_defaultReturnsEmptyList() {
+        final TeamsSubcommand sub = new TeamsSubcommand() {
+            public String getName() { return "tab"; }
+            public String getDescription() { return "Tab test."; }
+            public String getPermission() { return null; }
+            public boolean execute(final CommandSender sender, final String[] args) { return true; }
+        };
+        final CommandSender sender = mock(CommandSender.class);
+
+        final List<String> result = sub.tabComplete(sender, new String[]{"tab"});
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    /**
+     * abstractTeamsSubcommand_getName_returnsConstructorValue verifies that
+     * {@link AbstractTeamsSubcommand#getName()} returns the value passed to the constructor.
+     */
+    @Test
+    void abstractTeamsSubcommand_getName_returnsConstructorValue() {
+        final AbstractTeamsSubcommand sub = new AbstractTeamsSubcommand("mystats", "Show stats.") {
+            public boolean execute(final CommandSender sender, final String[] args) { return true; }
+        };
+
+        assertEquals("mystats", sub.getName());
+    }
+
+    /**
+     * abstractTeamsSubcommand_getDescription_returnsConstructorValue verifies that
+     * {@link AbstractTeamsSubcommand#getDescription()} returns the value passed to the
+     * constructor.
+     */
+    @Test
+    void abstractTeamsSubcommand_getDescription_returnsConstructorValue() {
+        final AbstractTeamsSubcommand sub = new AbstractTeamsSubcommand("mystats", "Show stats.") {
+            public boolean execute(final CommandSender sender, final String[] args) { return true; }
+        };
+
+        assertEquals("Show stats.", sub.getDescription());
+    }
+
+    /**
+     * abstractTeamsSubcommand_getPermission_returnsNullWhenNotProvided verifies that
+     * the two-argument constructor sets permission to {@code null}.
+     */
+    @Test
+    void abstractTeamsSubcommand_getPermission_returnsNullWhenNotProvided() {
+        final AbstractTeamsSubcommand sub = new AbstractTeamsSubcommand("mystats", "Show stats.") {
+            public boolean execute(final CommandSender sender, final String[] args) { return true; }
+        };
+
+        assertNull(sub.getPermission());
+    }
+
+    /**
+     * abstractTeamsSubcommand_getPermission_returnsPermissionWhenProvided verifies that
+     * the three-argument constructor exposes the permission node via
+     * {@link AbstractTeamsSubcommand#getPermission()}.
+     */
+    @Test
+    void abstractTeamsSubcommand_getPermission_returnsPermissionWhenProvided() {
+        final AbstractTeamsSubcommand sub =
+            new AbstractTeamsSubcommand("mystats", "Show stats.", "myplugin.stats") {
+                public boolean execute(final CommandSender sender, final String[] args) {
+                    return true;
+                }
+            };
+
+        assertEquals("myplugin.stats", sub.getPermission());
+    }
+
+    /**
+     * abstractTeamsSubcommand_tabComplete_defaultReturnsEmptyList verifies that
+     * {@link AbstractTeamsSubcommand#tabComplete} returns an empty, non-null list when
+     * not overridden.
+     */
+    @Test
+    void abstractTeamsSubcommand_tabComplete_defaultReturnsEmptyList() {
+        final AbstractTeamsSubcommand sub = new AbstractTeamsSubcommand("mystats", "Show stats.") {
+            public boolean execute(final CommandSender sender, final String[] args) { return true; }
+        };
+        final CommandSender sender = mock(CommandSender.class);
+
+        final List<String> result = sub.tabComplete(sender, new String[]{"mystats"});
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    /**
+     * abstractTeamsSubcommand_tabComplete_customOverrideIsUsed verifies that a subclass
+     * can override {@link AbstractTeamsSubcommand#tabComplete} and the overridden value
+     * is returned.
+     */
+    @Test
+    void abstractTeamsSubcommand_tabComplete_customOverrideIsUsed() {
+        final AbstractTeamsSubcommand sub = new AbstractTeamsSubcommand("mystats", "Show stats.") {
+            public boolean execute(final CommandSender sender, final String[] args) { return true; }
+
+            @Override
+            public List<String> tabComplete(final CommandSender sender, final String[] args) {
+                return List.of("player1", "player2");
+            }
+        };
+        final CommandSender sender = mock(CommandSender.class);
+
+        final List<String> result = sub.tabComplete(sender, new String[]{"mystats"});
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains("player1"));
+        assertTrue(result.contains("player2"));
     }
 
 }

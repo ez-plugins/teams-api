@@ -8,7 +8,10 @@ import com.skyblockexp.teamsapi.model.TeamMember;
 import com.skyblockexp.teamsapi.model.TeamRole;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -259,6 +262,108 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
 
         sendHelp(sender);
         return true;
+    }
+
+    /**
+     * Handles tab-completion for the {@code /teamsapi} command.
+     *
+     * <p>Returns the matching built-in subcommand names when completing the
+     * first argument. Delegates to {@link TeamsSubcommand#tabComplete} for
+     * registered custom subcommands when completing further arguments.</p>
+     *
+     * @param sender  the command sender requesting completions
+     * @param command the dispatched command
+     * @param label   the alias used
+     * @param args    the arguments typed so far
+     * @return a list of completion strings; never {@code null}
+     */
+    List<String> handleTabComplete(final CommandSender sender, final Command command,
+            final String label, final String[] args) {
+        if (!command.getName().equalsIgnoreCase("teamsapi")) {
+            return Collections.emptyList();
+        }
+        if (!sender.hasPermission("teamsapi.use")) {
+            return Collections.emptyList();
+        }
+        if (args.length == 1) {
+            return filterByPrefix(buildTopLevelCompletions(sender), args[0]);
+        }
+        if (args[0].equalsIgnoreCase("power") && args.length == 2) {
+            return filterByPrefix(buildPowerCompletions(sender), args[1]);
+        }
+        for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
+            if (sub.getName().equalsIgnoreCase(args[0])) {
+                final String perm = sub.getPermission();
+                if (perm != null && !sender.hasPermission(perm)) {
+                    return Collections.emptyList();
+                }
+                return sub.tabComplete(sender, args);
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Builds the list of top-level subcommand names visible to the given sender.
+     *
+     * @param sender the command sender
+     * @return a mutable list of completion candidates
+     */
+    private static List<String> buildTopLevelCompletions(final CommandSender sender) {
+        final List<String> completions = new ArrayList<>();
+        completions.add("version");
+        completions.add("help");
+        if (sender.hasPermission("teamsapi.status")) {
+            completions.add("status");
+        }
+        if (sender.hasPermission("teamsapi.admin")) {
+            completions.add("info");
+        }
+        if (sender.hasPermission("teamsapi.power")) {
+            completions.add("power");
+        }
+        for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
+            final String perm = sub.getPermission();
+            if (perm == null || sender.hasPermission(perm)) {
+                completions.add(sub.getName());
+            }
+        }
+        return completions;
+    }
+
+    /**
+     * Builds the list of {@code /teamsapi power} sub-argument completions visible
+     * to the given sender.
+     *
+     * @param sender the command sender
+     * @return a mutable list of completion candidates
+     */
+    private static List<String> buildPowerCompletions(final CommandSender sender) {
+        final List<String> completions = new ArrayList<>();
+        completions.add("status");
+        if (sender.hasPermission("teamsapi.power.buy")) {
+            completions.add("buy");
+        }
+        return completions;
+    }
+
+    /**
+     * Filters a list of completion candidates by a case-insensitive prefix.
+     *
+     * @param candidates the full candidate list
+     * @param prefix     the partial input to filter by
+     * @return a new list containing only candidates that start with the prefix
+     */
+    private static List<String> filterByPrefix(final List<String> candidates,
+            final String prefix) {
+        final String lower = prefix.toLowerCase();
+        final List<String> result = new ArrayList<>();
+        for (final String candidate : candidates) {
+            if (candidate.toLowerCase().startsWith(lower)) {
+                result.add(candidate);
+            }
+        }
+        return result;
     }
 
     /**

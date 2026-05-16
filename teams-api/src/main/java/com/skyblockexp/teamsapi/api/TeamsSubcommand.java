@@ -1,5 +1,8 @@
 package com.skyblockexp.teamsapi.api;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.bukkit.command.CommandSender;
 
 /**
@@ -71,5 +74,24 @@ public interface TeamsSubcommand {
      *         TeamsAPI print the default usage hint
      */
     boolean execute(CommandSender sender, String[] args);
+
+    /**
+     * Returns tab-completion suggestions for this subcommand.
+     *
+     * <p>Called by TeamsAPI when a player presses Tab after typing
+     * {@code /teamsapi <name> ...}. {@code args[0]} is always this subcommand's
+     * name; additional partial input follows from {@code args[1]} onward.</p>
+     *
+     * <p>The default implementation returns an empty list (no completions).
+     * Override to provide context-aware suggestions.</p>
+     *
+     * @param sender the command sender requesting completions; never {@code null}
+     * @param args   the arguments typed so far; {@code args[0]} is this
+     *               subcommand's name
+     * @return a list of completion strings; never {@code null}
+     */
+    default List<String> tabComplete(CommandSender sender, String[] args) {
+        return Collections.emptyList();
+    }
 
 }

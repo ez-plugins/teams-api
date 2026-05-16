@@ -1,5 +1,7 @@
 package com.skyblockexp.teamsapi;
 
+import java.util.List;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,6 +52,15 @@ public final class TeamsApiPlugin extends JavaPlugin {
     public boolean onCommand(final CommandSender sender, final Command command,
             final String label, final String[] args) {
         return bootstrap.handleCommand(sender, command, label, args);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<String> onTabComplete(final CommandSender sender,
+            final Command command, final String label, final String[] args) {
+        return bootstrap.handleTabComplete(sender, command, label, args);
     }
 
 }
