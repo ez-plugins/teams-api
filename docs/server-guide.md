@@ -185,14 +185,15 @@ Yes. TeamsAPI provides the `/teamsapi` command for diagnostic and status checks.
 | `/teamsapi status` | `teamsapi.status` | everyone | Shows the active provider, team count, and which optional services are registered. |
 | `/teamsapi info` | `teamsapi.admin` | op | Detailed internal diagnostic: all five service types, registered subcommands, plugin version. |
 | `/teamsapi power status` | `teamsapi.power` | op | Shows the sender's current and maximum power. |
-| `/teamsapi power buy <amount>` | `teamsapi.power.buy` | op | Purchases power units (requires Vault and `power-shop.enabled: true` in config). |
+| `/teamsapi power buy <amount>` | `teamsapi.power.buy` | disabled | Disabled by default. Enable with `power-shop.enabled: true` in `config.yml`. Requires Vault. |
 
 Provider plugins may also register additional subcommands that appear in this list
 and can be run as `/teamsapi <name>`.
 
 **Where is the config file?**
 
-There is no config file. TeamsAPI requires no configuration.
+TeamsAPI generates a `plugins/TeamsAPI/config.yml` on first run. It controls the
+power shop and passive power regen features, both of which are disabled by default.
 
 ## Velocity setup
 

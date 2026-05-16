@@ -270,7 +270,7 @@ TeamsAPI.unregisterSubcommand(mySubcommand);
 | `/teamsapi status` | `teamsapi.status` | everyone | Active provider, team count, registered services |
 | `/teamsapi info` | `teamsapi.admin` | op | Full internal diagnostic |
 | `/teamsapi power status` | `teamsapi.power` | op | Sender's current and max power |
-| `/teamsapi power buy <n>` | `teamsapi.power.buy` | op | Purchase power via Vault economy |
+| `/teamsapi power buy <n>` | `teamsapi.power.buy` | disabled | Disabled by default; enable with `power-shop.enabled: true` in `config.yml`. Requires Vault. |
 
 ### Events
 
