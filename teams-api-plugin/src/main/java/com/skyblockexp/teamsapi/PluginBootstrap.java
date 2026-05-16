@@ -205,6 +205,11 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
             return false;
         }
 
+        if (!sender.hasPermission("teamsapi.use")) {
+            sender.sendMessage("[TeamsAPI] You do not have permission to use this command.");
+            return true;
+        }
+
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
             sendHelp(sender);
             return true;
@@ -218,11 +223,19 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
         }
 
         if (args[0].equalsIgnoreCase("status")) {
+            if (!sender.hasPermission("teamsapi.status")) {
+                sender.sendMessage("[TeamsAPI] You do not have permission to use this command.");
+                return true;
+            }
             sendStatus(sender);
             return true;
         }
 
         if (args[0].equalsIgnoreCase("info")) {
+            if (!sender.hasPermission("teamsapi.admin")) {
+                sender.sendMessage("[TeamsAPI] You do not have permission to use this command.");
+                return true;
+            }
             sendInfo(sender);
             return true;
         }
@@ -256,12 +269,23 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
     private static void sendHelp(final CommandSender sender) {
         sender.sendMessage("[TeamsAPI] Commands:");
         sender.sendMessage("  /teamsapi version          - Show version info");
-        sender.sendMessage("  /teamsapi status           - Show TeamsAPI status");
-        sender.sendMessage("  /teamsapi info             - Show detailed provider info (op)");
-        sender.sendMessage("  /teamsapi power status     - Show your current power");
-        sender.sendMessage("  /teamsapi power buy <n>    - Purchase power (requires Vault)");
+        if (sender.hasPermission("teamsapi.status")) {
+            sender.sendMessage("  /teamsapi status           - Show TeamsAPI status");
+        }
+        if (sender.hasPermission("teamsapi.admin")) {
+            sender.sendMessage("  /teamsapi info             - Show detailed provider info (op)");
+        }
+        if (sender.hasPermission("teamsapi.power")) {
+            sender.sendMessage("  /teamsapi power status     - Show your current power");
+        }
+        if (sender.hasPermission("teamsapi.power.buy")) {
+            sender.sendMessage("  /teamsapi power buy <n>    - Purchase power (requires Vault)");
+        }
         for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
-            sender.sendMessage("  /teamsapi " + sub.getName() + " - " + sub.getDescription());
+            final String perm = sub.getPermission();
+            if (perm == null || sender.hasPermission(perm)) {
+                sender.sendMessage("  /teamsapi " + sub.getName() + " - " + sub.getDescription());
+            }
         }
     }
 
