@@ -100,4 +100,5 @@ softdepend:
 
 - [Team Provider](../provider-teams): implementing the core `TeamsService`
 - [Warp Provider](../provider-warps): adding optional warp support
+- [Custom Subcommands](../provider-subcommands): injecting subcommands into `/teamsapi`
 - [API Reference](../api): full interface and model documentation

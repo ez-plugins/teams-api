@@ -229,49 +229,23 @@ private void handlePowerCommand(Player player, UUID teamId) {
 ### 8. Register a custom subcommand (providers)
 
 Providers can expose additional commands under `/teamsapi <name>` without
-shipping a separate Bukkit command. Implement `TeamsSubcommand` and register it
-in `onEnable`; unregister in `onDisable` (Bukkit's `ServicesManager` unregisters
-automatically when the plugin unloads, but explicit cleanup is best practice).
+shipping a separate Bukkit command. See the dedicated
+[Custom Subcommands](provider-subcommands) guide for the full walkthrough,
+permission behaviour, and a complete working example.
+
+Quick-start:
 
 ```java
-public class FactionsSubcommand implements TeamsSubcommand {
-
-    @Override
-    public String getName() { return "factions"; }
-
-    @Override
-    public String getDescription() { return "Show Factions-specific team stats."; }
-
-    @Override
-    public String getPermission() { return null; } // no restriction
-
-    @Override
-    public boolean execute(CommandSender sender, String[] args) {
-        sender.sendMessage("Factions info goes here.");
-        return true;
-    }
-}
-```
-
-In your plugin main class:
-
-```java
-private final FactionsSubcommand factionsSubcommand = new FactionsSubcommand();
-
 @Override
 public void onEnable() {
-    TeamsAPI.registerSubcommand(this, factionsSubcommand);
+    TeamsAPI.registerSubcommand(this, new StatsSubcommand());
 }
 
 @Override
 public void onDisable() {
-    TeamsAPI.unregisterSubcommand(factionsSubcommand);
+    TeamsAPI.unregisterSubcommand(statsSubcommand);
 }
 ```
-
-Players can then run `/teamsapi factions` and the call is routed to your
-implementation. The subcommand also appears in `/teamsapi help` with the
-description you provided.
 
 ## Events
 
