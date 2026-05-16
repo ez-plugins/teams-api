@@ -3,7 +3,7 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.6.0]
+## [1.5.0]
 
 ### Added
 
@@ -22,20 +22,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   subcommand count.
 - `teamsapi.use` permission (default: `true`) — basic access to `/teamsapi`.
 - `teamsapi.status` permission (default: `true`) — access to `/teamsapi status`.
-
-### Changed
-
-- `/teamsapi` now requires `teamsapi.use`; senders without it receive a permission
-  error instead of the help message.
-- `/teamsapi status` now requires `teamsapi.status`.
-- `/teamsapi info` now requires `teamsapi.admin`.
-- `/teamsapi help` (and the bare `/teamsapi`) only lists subcommands that the
-  sender has permission to execute.
-
-## [1.5.0]
-
-### Added
-
 - `PowerGainSource` enum (`PASSIVE`, `PURCHASE`, `GAMEPLAY`, `ADMIN`) — identifies
   the origin of a power gain for use in events and listeners.
 - `PowerLossCause` enum (`DEATH`, `DECAY`, `ADMIN`) — identifies the reason for a
@@ -61,6 +47,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Passive regen and power shop are both Folia-compatible. Folia is detected at
   runtime; `GlobalRegionScheduler` is used on Folia and `BukkitScheduler`
   on Paper / Spigot.
+
+### Changed
+
+- `/teamsapi` now requires `teamsapi.use`; senders without it receive a permission
+  error instead of the help message.
+- `/teamsapi status` now requires `teamsapi.status`.
+- `/teamsapi info` now requires `teamsapi.admin`.
+- `/teamsapi help` (and the bare `/teamsapi`) only lists subcommands that the
+  sender has permission to execute.
 
 ## [1.4.1]
 
