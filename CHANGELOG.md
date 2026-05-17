@@ -21,6 +21,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   the display color for a relation as a `#RRGGBB` hex string. Providers may override
   to supply server-configured colors; falls back to `TeamRelation.getDefaultHexColor()`.
 - `TeamsAPI.API_VERSION` bumped to `1.6.1`.
+- `plugin.yml` declares `softdepend: [Vault]`; Bukkit loads Vault before TeamsAPI when
+  present (enabling the power shop to charge players via the economy API). TeamsAPI loads
+  and functions normally when Vault is absent; the power-shop subcommand is disabled.
+- GitHub Actions smoke-test matrix updated to Minecraft 1.21.11 × Java 21 / Java 25
+  on Paper, Folia, and Spigot; build and smoke jobs are separated so each test job
+  runs with exactly one active JDK, preventing Paperclip relaunch version mismatches.
 
 ## [1.6.0]
 

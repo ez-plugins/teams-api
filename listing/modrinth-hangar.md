@@ -31,8 +31,8 @@ consumer plugin keeps working without a recompile.
 - **Optional power service**: providers can expose `TeamsPowerService` for player and team power values.
 - **Optional relation service**: providers can expose `TeamsRelationService` for inter-team diplomacy (ally/truce/neutral/enemy).
 - **Custom subcommands**: any plugin registers a `TeamsSubcommand` via `TeamsAPI.registerSubcommand()`; team plugins call `TeamsAPI.getSubcommands()` in their own command handler to dispatch them, extending the command tree without coupling.
-- **Cancellable events**: twelve Bukkit events that providers can fire so other plugins can react to or cancel team operations.
-- **Lightweight**: a single shaded JAR with no runtime dependencies beyond the Bukkit API.
+- **Cancellable events**: fifteen Bukkit events that providers can fire so other plugins can react to or cancel team operations.
+- **Lightweight**: a single shaded JAR with no required runtime dependencies beyond the Bukkit API (optional: [Vault](https://github.com/MilkBowl/VaultAPI) for the built-in power shop).
 - **JitPack-ready**: depend on just the API module at compile time; no transitive dependencies leak into your plugin.
 - **Velocity bridge** *(experimental)*: optional `teams-api-velocity` plugin for querying team data from the Velocity proxy. Supports multi-proxy networks via Redis.
 - **BungeeCord bridge** *(experimental)*: optional `teams-api-bungeecord` plugin for querying team data from BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
@@ -43,7 +43,7 @@ consumer plugin keeps working without a recompile.
 |-------------|-------|
 | Server software | Paper / Spigot / Purpur / Folia 1.16+ |
 | Java | 17+ (25 recommended) |
-| Plugin dependencies | None |
+| Plugin dependencies | None (optional: [Vault](https://github.com/MilkBowl/VaultAPI) for power shop) |
 
 ## Installation (server owners)
 

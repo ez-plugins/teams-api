@@ -83,7 +83,7 @@ Consumers are plugins that read or react to team data. They depend on
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.3.0</version>
+    <version>1.6.1</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -98,7 +98,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.4.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.6.1'
 }
 ```
 
@@ -226,7 +226,29 @@ private void handlePowerCommand(Player player, UUID teamId) {
 }
 ```
 
-### 8. Register a custom subcommand (providers)
+### 8. Use the relation service (optional)
+
+The relation service is registered separately from the core service. Always check
+`TeamsAPI.isRelationAvailable()` before using it.
+
+```java
+private void handleRelationQuery(Player player, UUID myTeamId, UUID theirTeamId) {
+    if (!TeamsAPI.isRelationAvailable()) {
+        player.sendMessage("The active team plugin does not support relations.");
+        return;
+    }
+    TeamsRelationService relations = TeamsAPI.getRelationService();
+    TeamRelation rel = relations.getRelation(myTeamId, theirTeamId);
+    String color = relations.getRelationColor(rel);
+    player.sendMessage(rel.getDisplayName() + " (" + color + ")");
+
+    if (relations.areAllies(myTeamId, theirTeamId)) {
+        player.sendMessage("You are mutual allies!");
+    }
+}
+```
+
+### 9. Register a custom subcommand (providers)
 
 Providers can expose additional commands under `/teamsapi <name>` without
 shipping a separate Bukkit command. See the dedicated
@@ -293,6 +315,23 @@ Fired by providers that implement `TeamsClaimService`.
 | `TeamClaimEvent` | Yes | Before a chunk is claimed |
 | `TeamUnclaimEvent` | Yes | Before a chunk is unclaimed |
 
+### Power events
+
+Fired by providers that implement `TeamsPowerService`.
+
+| Event | Cancellable | When fired |
+|-------|-------------|------------|
+| `TeamPowerGainEvent` | Yes | Before a player's power is increased. Listeners can modify the gain amount. |
+| `TeamPowerLossEvent` | Yes | Before a player's power is decreased. Listeners can modify the loss amount. |
+
+### Relation events
+
+Fired by providers that implement `TeamsRelationService`.
+
+| Event | Cancellable | When fired |
+|-------|-------------|------------|
+| `TeamRelationChangeEvent` | Yes | Before an inter-team relation changes. Listeners can override the incoming relation via `setNewRelation()`. |
+
 ### Example listeners
 
 ```java
@@ -317,6 +356,11 @@ public void onWarpSet(TeamWarpSetEvent event) {
 public void onClaim(TeamClaimEvent event) {
     // Cancel to block the claim
 }
+
+@EventHandler
+public void onRelationChange(TeamRelationChangeEvent event) {
+    // Override or cancel an incoming relation change
+}
 ```
 
 ## Using TeamsAPI from a Velocity plugin
@@ -332,7 +376,7 @@ over a plugin messaging channel from a backend Bukkit server.
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api-velocity</artifactId>
-    <version>1.4.0</version>
+    <version>1.6.1</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -360,7 +404,7 @@ Check `TeamsAPI.API_VERSION` at runtime if you need to guard against future
 breaking changes:
 
 ```java
-String version = TeamsAPI.API_VERSION; // e.g. "1.3.0"
+String version = TeamsAPI.API_VERSION; // e.g. "1.6.1"
 ```
 
 TeamsAPI follows Semantic Versioning. A major version bump signals breaking
