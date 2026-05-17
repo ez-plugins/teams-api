@@ -30,6 +30,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [*][B]Optional warp service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsWarpService[/COLOR] for named team warps.
 [*][B]Optional claim service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsClaimService[/COLOR] for chunk-claim management.
 [*][B]Optional power service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerService[/COLOR] for player and team power values.
+[*][B]Optional relation service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsRelationService[/COLOR] for inter-team diplomacy (ally / truce / neutral / enemy).
 [*][B]Custom subcommands[/B] -- any plugin registers a [COLOR=#6cb4ff]TeamsSubcommand[/COLOR] via [COLOR=#6cb4ff]TeamsAPI.registerSubcommand()[/COLOR]; team plugins call [COLOR=#6cb4ff]TeamsAPI.getSubcommands()[/COLOR] in their own command handler to dispatch them without coupling.
 [*][B]Cancellable events[/B] -- twelve Bukkit events that providers can fire so other plugins can react to or cancel team operations.
 [*][B]Lightweight[/B] -- a single shaded JAR with no runtime dependencies beyond the Bukkit API.
@@ -75,7 +76,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
     <scope>provided</scope>
 </dependency>
 [/CODE]
@@ -87,7 +88,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.5.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.6.0'
 }
 [/CODE]
 [/SPOILER]
@@ -211,6 +212,21 @@ public void onDisable() {
 [*][COLOR=#6cb4ff]getTeamPower(teamId)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Combined power of all team members
 [*][COLOR=#6cb4ff]getTeamMaxPower(teamId)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Maximum combined power the team can hold
 [/LIST]
+
+[SIZE=4][B]Relation service (optional)[/B][/SIZE]
+
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isRelationAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getRelationService()[/COLOR].[/COLOR]
+
+[LIST]
+[*][COLOR=#6cb4ff]setRelation(fromTeamId, toTeamId, relation, initiatorUUID)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Declares a relation toward another team. Fires [COLOR=#6cb4ff]TeamRelationChangeEvent[/COLOR]; returns [COLOR=#f08080]false[/COLOR] if cancelled. Setting [COLOR=#ffd700]NEUTRAL[/COLOR] removes the relation.
+[*][COLOR=#6cb4ff]getRelation(fromTeamId, toTeamId)[/COLOR] -> [COLOR=#ffd700]TeamRelation[/COLOR] -- Returns the declared relation (defaults to [COLOR=#ffd700]NEUTRAL[/COLOR] if none set).
+[*][COLOR=#6cb4ff]getRelations(teamId)[/COLOR] -> [COLOR=#ffd700]Map<UUID, TeamRelation>[/COLOR] -- All non-neutral relations declared by the team.
+[*][COLOR=#6cb4ff]clearRelations(teamId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes all relations declared by or toward the team (use on disband).
+[*][COLOR=#6cb4ff]areAllies(teamAId, teamBId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- [COLOR=#ffd700]true[/COLOR] when both teams have declared [COLOR=#ffd700]ALLY[/COLOR] toward each other.
+[*][COLOR=#6cb4ff]areEnemies(teamAId, teamBId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- [COLOR=#ffd700]true[/COLOR] when either team has declared [COLOR=#ffd700]ENEMY[/COLOR] toward the other.
+[/LIST]
+
+[COLOR=#aaaaaa]TeamRelation values (lowest → highest hostility): [COLOR=#ffd700]ALLY[/COLOR], [COLOR=#ffd700]TRUCE[/COLOR], [COLOR=#ffd700]NEUTRAL[/COLOR], [COLOR=#ffd700]ENEMY[/COLOR].[/COLOR]
 
 [SIZE=4][B]Custom subcommands[/B][/SIZE]
 

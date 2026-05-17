@@ -52,7 +52,7 @@ public final class TeamsAPI {
      * compatibility when the API introduces breaking changes. The version follows
      * Semantic Versioning ({@code MAJOR.MINOR.PATCH}).</p>
      */
-    public static final String API_VERSION = "1.5.0";
+    public static final String API_VERSION = "1.6.0";
 
     /** Suppresses default constructor, ensuring non-instantiability. */
     private TeamsAPI() { }
@@ -534,6 +534,102 @@ public final class TeamsAPI {
         }
 
         Bukkit.getServicesManager().unregister(TeamsPowerService.class, provider);
+    }
+
+    // -------------------------------------------------------------------------
+    // Relation provider registration and lookup
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the currently registered {@link TeamsRelationService} provider, or
+     * {@code null} if no relation provider has been registered.
+     *
+     * <p>Consumers should check {@link #isRelationAvailable()} before calling this
+     * method to handle gracefully the case where no team plugin exposes inter-team
+     * relations.</p>
+     *
+     * @return the active {@link TeamsRelationService}, or {@code null} if unavailable
+     */
+    public static TeamsRelationService getRelationService() {
+        try {
+            final RegisteredServiceProvider<TeamsRelationService> reg =
+                Bukkit.getServicesManager().getRegistration(TeamsRelationService.class);
+
+            return reg != null ? reg.getProvider() : null;
+        }
+        catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns {@code true} if at least one {@link TeamsRelationService} provider is
+     * currently registered.
+     *
+     * @return {@code true} if a relation provider is available, {@code false} otherwise
+     */
+    public static boolean isRelationAvailable() {
+        return getRelationService() != null;
+    }
+
+    /**
+     * Registers a {@link TeamsRelationService} provider with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at {@link ServicePriority#Normal}.
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin   the plugin registering the provider; must not be {@code null}
+     * @param provider the {@link TeamsRelationService} implementation; must not be {@code null}
+     */
+    public static void registerRelationProvider(final Plugin plugin,
+            final TeamsRelationService provider) {
+        if (plugin == null || provider == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsRelationService.class, provider, plugin, ServicePriority.Normal);
+    }
+
+    /**
+     * Registers a {@link TeamsRelationService} provider with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at the specified priority.
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin   the plugin registering the provider; must not be {@code null}
+     * @param provider the {@link TeamsRelationService} implementation; must not be {@code null}
+     * @param priority the {@link ServicePriority} to register at; must not be {@code null}
+     */
+    public static void registerRelationProvider(
+            final Plugin plugin,
+            final TeamsRelationService provider,
+            final ServicePriority priority) {
+        if (plugin == null || provider == null || priority == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsRelationService.class, provider, plugin, priority);
+    }
+
+    /**
+     * Unregisters a {@link TeamsRelationService} provider from Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager}.
+     *
+     * <p>Providers should call this in their plugin's {@code onDisable()} alongside
+     * {@link #unregisterProvider(TeamsService)}.</p>
+     *
+     * <p>This method silently ignores a {@code null} argument.</p>
+     *
+     * @param provider the {@link TeamsRelationService} provider to unregister; may be {@code null}
+     */
+    public static void unregisterRelationProvider(final TeamsRelationService provider) {
+        if (provider == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager().unregister(TeamsRelationService.class, provider);
     }
 
     // -------------------------------------------------------------------------

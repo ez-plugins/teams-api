@@ -3,6 +3,29 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.6.0]
+
+### Added
+
+- `TeamRelation` enum (`ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY`) — models the declared
+  relationship one team holds toward another. Includes `isFriendly()`, `isHostile()`,
+  and `isMoreHostileThan(other)` helpers.
+- `TeamsRelationService` interface: optional extension service for inter-team relation
+  management. Methods: `setRelation(fromTeamId, toTeamId, relation, initiatorUUID)`,
+  `getRelation(fromTeamId, toTeamId)` (defaults to `NEUTRAL`), `getRelations(teamId)`
+  (returns all non-neutral relations as an unmodifiable map), `clearRelations(teamId)`
+  (for use on team disband). Default methods: `areAllies(teamAId, teamBId)` (mutual
+  ALLY required), `areEnemies(teamAId, teamBId)` (either side suffices).
+- `TeamRelationChangeEvent` (cancellable): fired before a team's declared relation
+  toward another changes. Exposes `getTargetTeam()`, `getInitiatorUUID()`,
+  `getOldRelation()`, `getNewRelation()`, and `setNewRelation()` so listeners can
+  override the incoming relation before it is persisted.
+- `TeamsAPI` facade methods: `getRelationService()`, `isRelationAvailable()`,
+  `registerRelationProvider(plugin, service)`,
+  `registerRelationProvider(plugin, service, priority)`,
+  `unregisterRelationProvider(service)`.
+- `TeamsAPI.API_VERSION` bumped to `1.6.0`.
+
 ## [1.5.0]
 
 ### Added
