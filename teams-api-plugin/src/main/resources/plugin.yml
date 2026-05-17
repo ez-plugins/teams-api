@@ -8,6 +8,7 @@ description: >
   depend on them. Install this plugin alongside any TeamsAPI-compatible team plugin.
 author: ez-plugins
 website: https://github.com/ez-plugins/teams-api
+softdepend: [Vault]
 
 commands:
   teamsapi:

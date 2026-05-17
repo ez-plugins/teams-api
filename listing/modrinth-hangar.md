@@ -72,7 +72,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.6.0</version>
+    <version>1.6.1</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -84,7 +84,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.6.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.6.1'
 }
 ```
 
@@ -250,8 +250,17 @@ TeamsAPI.registerRelationProvider(this, relationService);
 | `clearRelations(teamId)` | `boolean` | Removes all relations declared by or toward the team (use on disband). |
 | `areAllies(teamAId, teamBId)` | `boolean` | Returns `true` when both teams have declared `ALLY` toward each other. |
 | `areEnemies(teamAId, teamBId)` | `boolean` | Returns `true` when either team has declared `ENEMY` toward the other. |
+| `getTeamsInRelation(teamId, relation)` | `Collection<UUID>` | Returns all team UUIDs toward which `teamId` has declared the given relation. Filters `getRelations(teamId)` by value; providers may override for efficiency. |
+| `getRelationColor(relation)` | `String` | `#RRGGBB` hex color for the relation. Default returns `relation.getDefaultHexColor()`; providers may override to supply server-configured colors. |
 
-`TeamRelation` values (lowest → highest hostility): `ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY`.
+`TeamRelation` values with display name, legacy color code, and hex color:
+
+| Constant | Display name | Legacy color | Hex color |
+|----------|-------------|--------------|-----------|
+| `ALLY`    | "Ally"    | `§a` (green) | `#55FF55` |
+| `TRUCE`   | "Truce"   | `§6` (gold)  | `#FFAA00` |
+| `NEUTRAL` | "Neutral" | `§7` (gray)  | `#AAAAAA` |
+| `ENEMY`   | "Enemy"   | `§c` (red)   | `#FF5555` |
 
 Consumers check availability with `TeamsAPI.isRelationAvailable()` before calling `TeamsAPI.getRelationService()`.
 

@@ -4,7 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.skyblockexp.teamsapi.model.TeamRelation;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -171,5 +179,148 @@ class TeamsAPIRelationTest {
 
         assertTrue(TeamsAPI.isRelationAvailable());
         assertFalse(TeamsAPI.isAvailable());
+    }
+
+    // -------------------------------------------------------------------------
+    // TeamRelation enum — display name
+    // -------------------------------------------------------------------------
+
+    /**
+     * teamRelation_getDisplayName_returnsCorrectName verifies that every
+     * {@link TeamRelation} constant returns the expected human-friendly display name.
+     */
+    @Test
+    void teamRelation_getDisplayName_returnsCorrectName() {
+        assertEquals("Ally",    TeamRelation.ALLY.getDisplayName());
+        assertEquals("Truce",   TeamRelation.TRUCE.getDisplayName());
+        assertEquals("Neutral", TeamRelation.NEUTRAL.getDisplayName());
+        assertEquals("Enemy",   TeamRelation.ENEMY.getDisplayName());
+    }
+
+    // -------------------------------------------------------------------------
+    // TeamRelation enum — legacy color code
+    // -------------------------------------------------------------------------
+
+    /**
+     * teamRelation_getLegacyColorCode_returnsCorrectCode verifies that every
+     * {@link TeamRelation} constant returns the expected legacy Minecraft color code
+     * character.
+     */
+    @Test
+    void teamRelation_getLegacyColorCode_returnsCorrectCode() {
+        assertEquals('a', TeamRelation.ALLY.getLegacyColorCode());
+        assertEquals('6', TeamRelation.TRUCE.getLegacyColorCode());
+        assertEquals('7', TeamRelation.NEUTRAL.getLegacyColorCode());
+        assertEquals('c', TeamRelation.ENEMY.getLegacyColorCode());
+    }
+
+    // -------------------------------------------------------------------------
+    // TeamRelation enum — default hex color
+    // -------------------------------------------------------------------------
+
+    /**
+     * teamRelation_getDefaultHexColor_returnsCorrectHex verifies that every
+     * {@link TeamRelation} constant returns the expected default hex color string.
+     */
+    @Test
+    void teamRelation_getDefaultHexColor_returnsCorrectHex() {
+        assertEquals("#55FF55", TeamRelation.ALLY.getDefaultHexColor());
+        assertEquals("#FFAA00", TeamRelation.TRUCE.getDefaultHexColor());
+        assertEquals("#AAAAAA", TeamRelation.NEUTRAL.getDefaultHexColor());
+        assertEquals("#FF5555", TeamRelation.ENEMY.getDefaultHexColor());
+    }
+
+    // -------------------------------------------------------------------------
+    // TeamsRelationService — getTeamsInRelation default method
+    // -------------------------------------------------------------------------
+
+    /**
+     * getTeamsInRelation_returnsOnlyTeamsMatchingRelation verifies that
+     * {@link TeamsRelationService#getTeamsInRelation(UUID, TeamRelation)} returns
+     * only the team UUIDs for which the given team has declared the specified relation,
+     * excluding teams with other relations.
+     */
+    @Test
+    void getTeamsInRelation_returnsOnlyTeamsMatchingRelation() {
+        final UUID myTeam    = UUID.randomUUID();
+        final UUID allyTeam  = UUID.randomUUID();
+        final UUID enemyTeam = UUID.randomUUID();
+        final UUID truceTeam = UUID.randomUUID();
+
+        final TeamsRelationService service = mock(TeamsRelationService.class);
+        when(service.getRelations(myTeam)).thenReturn(Map.of(
+            allyTeam,  TeamRelation.ALLY,
+            enemyTeam, TeamRelation.ENEMY,
+            truceTeam, TeamRelation.TRUCE
+        ));
+        // Wire through the default implementation
+        when(service.getTeamsInRelation(myTeam, TeamRelation.ALLY))
+            .thenCallRealMethod();
+
+        final Collection<UUID> allies = service.getTeamsInRelation(myTeam, TeamRelation.ALLY);
+
+        assertEquals(1, allies.size());
+        assertTrue(allies.contains(allyTeam));
+        assertFalse(allies.contains(enemyTeam));
+        assertFalse(allies.contains(truceTeam));
+    }
+
+    /**
+     * getTeamsInRelation_returnsEmpty_whenNoMatchingRelation verifies that
+     * {@link TeamsRelationService#getTeamsInRelation(UUID, TeamRelation)} returns an
+     * empty collection when the team has no relations matching the requested type.
+     */
+    @Test
+    void getTeamsInRelation_returnsEmpty_whenNoMatchingRelation() {
+        final UUID myTeam    = UUID.randomUUID();
+        final UUID enemyTeam = UUID.randomUUID();
+
+        final TeamsRelationService service = mock(TeamsRelationService.class);
+        when(service.getRelations(myTeam)).thenReturn(Map.of(
+            enemyTeam, TeamRelation.ENEMY
+        ));
+        when(service.getTeamsInRelation(myTeam, TeamRelation.ALLY))
+            .thenCallRealMethod();
+
+        final Collection<UUID> allies = service.getTeamsInRelation(myTeam, TeamRelation.ALLY);
+
+        assertTrue(allies.isEmpty());
+    }
+
+    // TeamsRelationService — getRelationColor default method
+
+    /**
+     * getRelationColor_defaultImpl_returnsEnumHexColor verifies that the default
+     * implementation of {@link TeamsRelationService#getRelationColor(TeamRelation)}
+     * returns the same value as {@link TeamRelation#getDefaultHexColor()} for every
+     * relation constant.
+     */
+    @Test
+    void getRelationColor_defaultImpl_returnsEnumHexColor() {
+        final TeamsRelationService service = mock(TeamsRelationService.class);
+        when(service.getRelationColor(any(TeamRelation.class))).thenCallRealMethod();
+
+        for (final TeamRelation relation : TeamRelation.values()) {
+            assertEquals(
+                relation.getDefaultHexColor(),
+                service.getRelationColor(relation),
+                "Default color mismatch for " + relation
+            );
+        }
+    }
+
+    /**
+     * getRelationColor_providerOverride_returnsCustomColor verifies that a provider
+     * can override {@link TeamsRelationService#getRelationColor(TeamRelation)} to
+     * return a server-specific color, taking precedence over the enum default.
+     */
+    @Test
+    void getRelationColor_providerOverride_returnsCustomColor() {
+        final TeamsRelationService service = mock(TeamsRelationService.class);
+        when(service.getRelationColor(TeamRelation.ALLY)).thenReturn("#0000FF");
+        when(service.getRelationColor(TeamRelation.ENEMY)).thenCallRealMethod();
+
+        assertEquals("#0000FF", service.getRelationColor(TeamRelation.ALLY));
+        assertEquals(TeamRelation.ENEMY.getDefaultHexColor(), service.getRelationColor(TeamRelation.ENEMY));
     }
 }

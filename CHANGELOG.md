@@ -3,6 +3,25 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.6.1]
+
+### Added
+
+- `TeamRelation.getDisplayName()` — returns a human-friendly relation name
+  ("Ally", "Truce", "Neutral", "Enemy").
+- `TeamRelation.getLegacyColorCode()` — returns the legacy Minecraft color code
+  character (`'a'` green, `'6'` gold, `'7'` gray, `'c'` red) for use in chat
+  formatting: `"§" + relation.getLegacyColorCode()`.
+- `TeamRelation.getDefaultHexColor()` — returns a `#RRGGBB` hex string suitable
+  for Adventure / MiniMessage consumers (`#55FF55`, `#FFAA00`, `#AAAAAA`, `#FF5555`).
+- `TeamsRelationService.getTeamsInRelation(teamId, relation)` — default convenience
+  method that returns all team UUIDs toward which `teamId` has declared the given
+  relation. Providers may override for a more efficient implementation.
+- `TeamsRelationService.getRelationColor(relation)` — default method that returns
+  the display color for a relation as a `#RRGGBB` hex string. Providers may override
+  to supply server-configured colors; falls back to `TeamRelation.getDefaultHexColor()`.
+- `TeamsAPI.API_VERSION` bumped to `1.6.1`.
+
 ## [1.6.0]
 
 ### Added

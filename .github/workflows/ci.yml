@@ -25,6 +25,9 @@ jobs:
           java-version: '25'
           cache: maven
 
+      - name: Purge stale JitPack artifacts from Maven cache
+        run: rm -rf ~/.m2/repository/com/github
+
       - name: Run Checkstyle
         run: mvn -B -ntp checkstyle:check
 
@@ -53,6 +56,9 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
+
+      - name: Purge stale JitPack artifacts from Maven cache
+        run: rm -rf ~/.m2/repository/com/github
 
       - name: Compile, test and coverage
         env:
@@ -83,6 +89,9 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
+
+      - name: Purge stale JitPack artifacts from Maven cache
+        run: rm -rf ~/.m2/repository/com/github
 
       - name: Package
         run: mvn -B -ntp -DskipTests package
