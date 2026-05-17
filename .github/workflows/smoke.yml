@@ -13,7 +13,7 @@ on:
 
 jobs:
   smoke:
-    name: Smoke – ${{ matrix.server }} ${{ matrix.mc_version }}
+    name: Smoke – ${{ matrix.server }} ${{ matrix.mc_version }} / Java ${{ matrix.java_version }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
@@ -22,19 +22,34 @@ jobs:
         include:
           - server: Paper
             project: paper
-            mc_version: "1.21.4"
+            mc_version: "1.21.11"
+            java_version: '21'
+          - server: Paper
+            project: paper
+            mc_version: "1.21.11"
+            java_version: '25'
           - server: Folia
             project: folia
-            mc_version: "1.21.4"
+            mc_version: "1.21.11"
+            java_version: '21'
+          - server: Folia
+            project: folia
+            mc_version: "1.21.11"
+            java_version: '25'
           - server: Spigot
             project: spigot
-            mc_version: "1.21.4"
+            mc_version: "1.21.11"
+            java_version: '21'
+          - server: Spigot
+            project: spigot
+            mc_version: "1.21.11"
+            java_version: '25'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 25
+      - name: Set up JDK 25 (build)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -51,6 +66,13 @@ jobs:
             -name "teams-api-plugin-*.jar" ! -name "original-*" | head -1)
           echo "path=$JAR" >> "$GITHUB_OUTPUT"
           echo "Located: $JAR"
+
+      - name: Set up JDK ${{ matrix.java_version }} (server runtime)
+        id: server-jdk
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java_version }}
 
       # ── Paper / Folia ────────────────────────────────────────────────────────
 
@@ -113,9 +135,11 @@ jobs:
       # ── Start server ─────────────────────────────────────────────────────────
 
       - name: Start server and wait for Done
+        env:
+          JAVA_CMD: ${{ steps.server-jdk.outputs.java-home }}/bin/java
         run: |
           cd server
-          java -Xmx512M -Xms512M -jar server.jar --nogui > server.log 2>&1 &
+          "${JAVA_CMD}" -Xmx512M -Xms512M -jar server.jar --nogui > server.log 2>&1 &
           SERVER_PID=$!
           echo "Server PID: ${SERVER_PID}"
 
@@ -162,26 +186,29 @@ jobs:
             exit 1
           fi
 
-          # No SEVERE lines from TeamsAPI
-          if grep -E "SEVERE|ERROR" "${LOG}" | grep -qi "teamsapi"; then
+          # No SEVERE or ERROR lines from TeamsAPI's own logger.
+          # Use the [TeamsAPI] prefix to avoid false positives from the server's
+          # bytecode remapper (Commodore) which may log errors mentioning the
+          # plugin name when processing the MRJAR on newer JVMs.
+          if grep -E 'SEVERE|ERROR' "${LOG}" | grep -q '\[TeamsAPI\]'; then
             echo "::error::TeamsAPI produced a SEVERE or ERROR log entry"
             cat "${LOG}"
             exit 1
           fi
 
-          # No exception stack traces involving TeamsAPI
-          if grep -iE "exception|caused by" "${LOG}" | grep -qi "teamsapi"; then
+          # No exception stack traces from within TeamsAPI's own code
+          if grep -iE 'exception|caused by' "${LOG}" | grep -q '\[TeamsAPI\]'; then
             echo "::error::Exception detected in TeamsAPI context"
             cat "${LOG}"
             exit 1
           fi
 
-          echo "OK – TeamsAPI loaded cleanly on ${{ matrix.server }} ${{ matrix.mc_version }}"
+          echo "OK – TeamsAPI loaded cleanly on ${{ matrix.server }} ${{ matrix.mc_version }} / Java ${{ matrix.java_version }}"
 
       - name: Upload server log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: server-log-${{ matrix.server }}-${{ matrix.mc_version }}
+          name: server-log-${{ matrix.server }}-${{ matrix.mc_version }}-java${{ matrix.java_version }}
           path: server/server.log
           if-no-files-found: ignore
