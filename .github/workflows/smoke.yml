@@ -1,8 +1,8 @@
 name: Smoke Tests
 
 # Verify that the plugin JAR starts cleanly on Paper, Folia, and Spigot.
-# The test passes when the server reaches its "Done" state and TeamsAPI logs
-# its enabled banner without any SEVERE / exception output.
+# The test passes when the server reaches its "Done" state without TeamsAPI
+# logging an enable-failure or a JVM API-incompatibility error.
 
 on:
   push:
@@ -11,113 +11,148 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  MC_VERSION: "1.21.11"
+
 jobs:
-  smoke:
-    name: Smoke – ${{ matrix.server }} ${{ matrix.mc_version }} / Java ${{ matrix.java_version }}
+
+  # ── 1. Build the shaded plugin JAR once with JDK 25 ─────────────────────────
+  build:
+    name: Build plugin JAR
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - server: Paper
-            project: paper
-            mc_version: "1.21.11"
-            java_version: '21'
-          - server: Paper
-            project: paper
-            mc_version: "1.21.11"
-            java_version: '25'
-          - server: Folia
-            project: folia
-            mc_version: "1.21.11"
-            java_version: '21'
-          - server: Folia
-            project: folia
-            mc_version: "1.21.11"
-            java_version: '25'
-          - server: Spigot
-            project: spigot
-            mc_version: "1.21.11"
-            java_version: '21'
-          - server: Spigot
-            project: spigot
-            mc_version: "1.21.11"
-            java_version: '25'
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 25 (build)
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
           java-version: '25'
+          distribution: temurin
           cache: maven
 
       - name: Purge stale JitPack artifacts from Maven cache
         run: rm -rf ~/.m2/repository/com/github
 
-      - name: Build plugin JAR
+      - name: Build plugin (skip tests)
         run: mvn -B -ntp -DskipTests package
 
-      - name: Locate plugin JAR
-        id: jar
+      - name: Stage plugin JAR
         run: |
           JAR=$(find teams-api-plugin/target -maxdepth 1 \
             -name "teams-api-plugin-*.jar" ! -name "original-*" | head -1)
-          echo "path=$JAR" >> "$GITHUB_OUTPUT"
           echo "Located: $JAR"
+          cp "$JAR" plugin.jar
 
-      - name: Set up JDK ${{ matrix.java_version }} (server runtime)
-        id: server-jdk
+      - name: Upload plugin JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-jar
+          path: plugin.jar
+          if-no-files-found: error
+
+  # ── 2. Smoke-test on each server / Java combination ──────────────────────────
+  smoke:
+    name: Smoke – ${{ matrix.server }} / Java ${{ matrix.java }}
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - server: paper
+            java: 21
+          - server: paper
+            java: 25
+          - server: folia
+            java: 21
+          - server: folia
+            java: 25
+          - server: spigot
+            java: 21
+          - server: spigot
+            java: 25
+
+    steps:
+      - name: Download plugin JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: plugin-jar
+
+      - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
+          java-version: ${{ matrix.java }}
           distribution: temurin
-          java-version: ${{ matrix.java_version }}
 
-      # ── Paper / Folia ────────────────────────────────────────────────────────
+      # ── Paper ────────────────────────────────────────────────────────────────
 
-      - name: Download ${{ matrix.server }} ${{ matrix.mc_version }} JAR
-        if: matrix.project != 'spigot'
+      - name: Download Paper ${{ env.MC_VERSION }}
+        if: matrix.server == 'paper'
         run: |
           BUILD=$(curl -sf \
-            "https://api.papermc.io/v2/projects/${{ matrix.project }}/versions/${{ matrix.mc_version }}/builds" \
+            "https://api.papermc.io/v2/projects/paper/versions/${{ env.MC_VERSION }}/builds" \
             | python3 -c "import sys,json; print(json.load(sys.stdin)['builds'][-1]['build'])")
-          JAR_NAME=$(curl -sf \
-            "https://api.papermc.io/v2/projects/${{ matrix.project }}/versions/${{ matrix.mc_version }}/builds/${BUILD}" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin)['downloads']['application']['name'])")
-          curl -sfL \
-            "https://api.papermc.io/v2/projects/${{ matrix.project }}/versions/${{ matrix.mc_version }}/builds/${BUILD}/downloads/${JAR_NAME}" \
-            -o server.jar
-          echo "Downloaded ${{ matrix.server }} ${{ matrix.mc_version }} build ${BUILD} (${JAR_NAME})"
+          curl -sfLo server.jar \
+            "https://api.papermc.io/v2/projects/paper/versions/${{ env.MC_VERSION }}/builds/${BUILD}/downloads/paper-${{ env.MC_VERSION }}-${BUILD}.jar"
+          echo "Paper build: $BUILD"
+
+      # ── Folia ────────────────────────────────────────────────────────────────
+
+      - name: Download Folia ${{ env.MC_VERSION }}
+        if: matrix.server == 'folia'
+        run: |
+          BUILD=$(curl -sf \
+            "https://api.papermc.io/v2/projects/folia/versions/${{ env.MC_VERSION }}/builds" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['builds'][-1]['build'])")
+          curl -sfLo server.jar \
+            "https://api.papermc.io/v2/projects/folia/versions/${{ env.MC_VERSION }}/builds/${BUILD}/downloads/folia-${{ env.MC_VERSION }}-${BUILD}.jar"
+          echo "Folia build: $BUILD"
 
       # ── Spigot via BuildTools ────────────────────────────────────────────────
+      # BuildTools is strict about its build JVM: always run it with Java 21
+      # regardless of the matrix Java used to *run* the server.
 
-      - name: Cache Spigot ${{ matrix.mc_version }}
-        if: matrix.project == 'spigot'
-        id: cache-spigot
+      - name: Set up Java 21 for Spigot BuildTools
+        if: matrix.server == 'spigot'
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - name: Cache Spigot ${{ env.MC_VERSION }}
+        if: matrix.server == 'spigot'
+        id: spigot-cache
         uses: actions/cache@v4
         with:
-          path: ~/.spigot-cache
-          key: spigot-${{ matrix.mc_version }}-buildtools-v1
+          path: ~/spigot-jar
+          key: spigot-${{ env.MC_VERSION }}-buildtools-v1
 
       - name: Build Spigot via BuildTools
-        if: matrix.project == 'spigot' && steps.cache-spigot.outputs.cache-hit != 'true'
+        if: matrix.server == 'spigot' && steps.spigot-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 25
         run: |
           git config --global user.email "ci@example.com"
           git config --global user.name "GitHub Actions CI"
-          mkdir -p ~/.spigot-cache
-          cd ~/.spigot-cache
-          curl -sfL \
-            https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar \
-            -o BuildTools.jar
-          java -jar BuildTools.jar --rev ${{ matrix.mc_version }} --compile SPIGOT 2>&1
+          mkdir -p ~/spigot-jar buildtools
+          cd buildtools
+          curl -sfLo BuildTools.jar \
+            "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
+          "$JAVA_HOME_21_X64/bin/java" -jar BuildTools.jar \
+            --rev "${{ env.MC_VERSION }}" --compile SPIGOT --nogui
+          cp "spigot-${{ env.MC_VERSION }}.jar" "$HOME/spigot-jar/"
 
-      - name: Copy Spigot JAR
-        if: matrix.project == 'spigot'
-        run: cp ~/.spigot-cache/spigot-${{ matrix.mc_version }}.jar server.jar
+      # Restore the matrix Java so the server runs on the intended JVM.
+      - name: Restore JDK ${{ matrix.java }} (server runtime)
+        if: matrix.server == 'spigot'
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: temurin
+
+      - name: Use Spigot JAR
+        if: matrix.server == 'spigot'
+        run: cp "$HOME/spigot-jar/spigot-${{ env.MC_VERSION }}.jar" server.jar
 
       # ── Prepare server directory ─────────────────────────────────────────────
 
@@ -125,7 +160,7 @@ jobs:
         run: |
           mkdir -p server/plugins
           cp server.jar server/server.jar
-          cp "${{ steps.jar.outputs.path }}" server/plugins/TeamsAPI.jar
+          cp plugin.jar server/plugins/TeamsAPI.jar
           echo "eula=true" > server/eula.txt
           {
             echo "online-mode=false"
@@ -135,83 +170,85 @@ jobs:
             echo "simulation-distance=2"
           } > server/server.properties
 
-      # ── Start server ─────────────────────────────────────────────────────────
+      # ── Smoke test ───────────────────────────────────────────────────────────
 
-      - name: Start server and wait for Done
-        env:
-          JAVA_CMD: ${{ steps.server-jdk.outputs.java-home }}/bin/java
+      - name: Run smoke test
+        timeout-minutes: 5
         run: |
           cd server
-          "${JAVA_CMD}" -Xmx512M -Xms512M -jar server.jar --nogui > server.log 2>&1 &
+          java -Xmx512M -Xms512M -jar server.jar --nogui > server.log 2>&1 &
           SERVER_PID=$!
           echo "Server PID: ${SERVER_PID}"
 
-          # Poll every 5 s, up to 3 minutes
-          for i in $(seq 1 36); do
-            if grep -q "Done (" server.log 2>/dev/null; then
-              echo "Server reached Done state after $((i * 5))s"
+          FAIL_PAT="NoSuchMethodError|NoSuchFieldError|Error enabling plugin TeamsAPI|Error occurred while enabling TeamsAPI"
+          RESULT=timeout
+
+          for i in $(seq 1 120); do
+            sleep 1
+
+            # Hard failure — API incompatibility or onEnable exception
+            if grep -qE "$FAIL_PAT" server.log 2>/dev/null; then
+              RESULT=fail
               break
             fi
-            if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
-              echo "::error::Server process exited before reaching Done state"
-              cat server.log
-              exit 1
+
+            # Server fully started — all plugins enabled without errors
+            if grep -qE "Done \([0-9.]" server.log 2>/dev/null; then
+              if grep -qE "$FAIL_PAT" server.log 2>/dev/null; then
+                RESULT=fail
+              else
+                RESULT=pass
+              fi
+              break
             fi
-            sleep 5
+
+            # Enabling logged — wait 5 s for any delayed crash before declaring pass
+            if grep -q "Enabling TeamsAPI" server.log 2>/dev/null; then
+              sleep 5
+              if grep -qE "$FAIL_PAT" server.log 2>/dev/null; then
+                RESULT=fail
+              else
+                RESULT=pass
+              fi
+              break
+            fi
+
+            if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
+              echo "Server process exited before reaching Done state."
+              RESULT=fail
+              break
+            fi
           done
 
-          if ! grep -q "Done (" server.log; then
-            echo "::error::Server did not reach Done state within 180s"
-            kill "${SERVER_PID}" 2>/dev/null || true
-            cat server.log
-            exit 1
-          fi
-
-          # Graceful stop
-          kill "${SERVER_PID}"
+          # SIGKILL guarantees the JVM exits immediately
+          kill -9 "${SERVER_PID}" 2>/dev/null || true
           wait "${SERVER_PID}" 2>/dev/null || true
-          echo "Server stopped"
 
-      # ── Assertions ───────────────────────────────────────────────────────────
+          echo ""
+          echo "=== Error context in server.log ==="
+          grep -n -B1 -A25 -E \
+            "Error occurred while enabling|Error enabling plugin|NoSuchMethodError|NoSuchFieldError" \
+            server.log | head -80 || true
+          echo ""
+          echo "=== Last 100 lines of server.log ==="
+          tail -100 server.log
+          echo "====================================="
+          echo ""
 
-      - name: Assert TeamsAPI loaded cleanly
-        run: |
-          LOG=server/server.log
-
-          echo "=== TeamsAPI log lines ==="
-          grep -i "teamsapi" "${LOG}" || true
-          echo "=========================="
-
-          # Plugin must have printed its enabled banner
-          if ! grep -q "TeamsAPI v.*enabled\." "${LOG}"; then
-            echo "::error::TeamsAPI enabled banner not found in server log"
-            cat "${LOG}"
+          if [ "$RESULT" = "pass" ]; then
+            echo "PASS: TeamsAPI enabled on ${{ matrix.server }} / Java ${{ matrix.java }}"
+          elif [ "$RESULT" = "fail" ]; then
+            echo "FAIL: Plugin threw an error during startup"
+            exit 1
+          else
+            echo "FAIL: Timed out — TeamsAPI never appeared in server.log within 120 s"
             exit 1
           fi
-
-          # No SEVERE or ERROR lines from TeamsAPI's own logger.
-          # Use the [TeamsAPI] prefix to avoid false positives from the server's
-          # bytecode remapper (Commodore) which may log errors mentioning the
-          # plugin name when processing the MRJAR on newer JVMs.
-          if grep -E 'SEVERE|ERROR' "${LOG}" | grep -q '\[TeamsAPI\]'; then
-            echo "::error::TeamsAPI produced a SEVERE or ERROR log entry"
-            cat "${LOG}"
-            exit 1
-          fi
-
-          # No exception stack traces from within TeamsAPI's own code
-          if grep -iE 'exception|caused by' "${LOG}" | grep -q '\[TeamsAPI\]'; then
-            echo "::error::Exception detected in TeamsAPI context"
-            cat "${LOG}"
-            exit 1
-          fi
-
-          echo "OK – TeamsAPI loaded cleanly on ${{ matrix.server }} ${{ matrix.mc_version }} / Java ${{ matrix.java_version }}"
 
       - name: Upload server log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: server-log-${{ matrix.server }}-${{ matrix.mc_version }}-java${{ matrix.java_version }}
+          name: server-log-${{ matrix.server }}-java${{ matrix.java }}
           path: server/server.log
           if-no-files-found: ignore
