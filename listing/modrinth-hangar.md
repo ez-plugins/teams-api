@@ -29,6 +29,7 @@ consumer plugin keeps working without a recompile.
 - **Optional warp service**: providers can expose `TeamsWarpService` for named team warps.
 - **Optional claim service**: providers can expose `TeamsClaimService` for chunk-claim management.
 - **Optional power service**: providers can expose `TeamsPowerService` for player and team power values.
+- **Optional relation service**: providers can expose `TeamsRelationService` for inter-team diplomacy (ally/truce/neutral/enemy).
 - **Custom subcommands**: any plugin registers a `TeamsSubcommand` via `TeamsAPI.registerSubcommand()`; team plugins call `TeamsAPI.getSubcommands()` in their own command handler to dispatch them, extending the command tree without coupling.
 - **Cancellable events**: twelve Bukkit events that providers can fire so other plugins can react to or cancel team operations.
 - **Lightweight**: a single shaded JAR with no runtime dependencies beyond the Bukkit API.
@@ -71,7 +72,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -83,7 +84,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.5.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.6.0'
 }
 ```
 
@@ -232,6 +233,27 @@ TeamsAPI.registerPowerProvider(this, powerService);
 | `getTeamMaxPower(teamId)` | `double` | Maximum combined power the team can hold |
 
 Consumers check availability with `TeamsAPI.isPowerAvailable()` before calling `TeamsAPI.getPowerService()`.
+
+### Relation service (optional)
+
+Register alongside `TeamsService` if your plugin supports inter-team diplomacy:
+
+```java
+TeamsAPI.registerRelationProvider(this, relationService);
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `setRelation(fromTeamId, toTeamId, relation, initiatorUUID)` | `boolean` | Declares a relation from one team toward another. Fires `TeamRelationChangeEvent`; returns `false` if cancelled. Setting `NEUTRAL` removes the relation. |
+| `getRelation(fromTeamId, toTeamId)` | `TeamRelation` | Returns the declared relation (defaults to `NEUTRAL` if none is set). |
+| `getRelations(teamId)` | `Map<UUID, TeamRelation>` | All non-neutral relations declared by the team. |
+| `clearRelations(teamId)` | `boolean` | Removes all relations declared by or toward the team (use on disband). |
+| `areAllies(teamAId, teamBId)` | `boolean` | Returns `true` when both teams have declared `ALLY` toward each other. |
+| `areEnemies(teamAId, teamBId)` | `boolean` | Returns `true` when either team has declared `ENEMY` toward the other. |
+
+`TeamRelation` values (lowest → highest hostility): `ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY`.
+
+Consumers check availability with `TeamsAPI.isRelationAvailable()` before calling `TeamsAPI.getRelationService()`.
 
 ### Custom subcommands
 

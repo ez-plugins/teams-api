@@ -44,7 +44,7 @@ Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -56,7 +56,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.5.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.6.0'
 }
 ```
 
@@ -206,7 +206,47 @@ public void onDisable() {
 }
 ```
 
-### Custom subcommands
+### Relation service (optional)
+
+If the active team plugin supports inter-team diplomacy, a `TeamsRelationService` is
+available. Relations are directional — team A can declare `ALLY` toward team B
+independently of what team B declares toward team A.
+
+```java
+if (TeamsAPI.isRelationAvailable()) {
+    TeamsRelationService relations = TeamsAPI.getRelationService();
+
+    // Declare an alliance
+    relations.setRelation(myTeamId, theirTeamId, TeamRelation.ALLY, player.getUniqueId());
+
+    // Query the current relation
+    TeamRelation rel = relations.getRelation(myTeamId, theirTeamId);
+    player.sendMessage("Relation: " + rel.name());
+
+    // Convenience helpers (mutual check)
+    if (relations.areAllies(myTeamId, theirTeamId)) {
+        player.sendMessage("You are mutual allies!");
+    }
+}
+```
+
+Providers that support relations register the service alongside `TeamsService`:
+
+```java
+@Override
+public void onEnable() {
+    TeamsAPI.registerProvider(this, teamsService);
+    TeamsAPI.registerRelationProvider(this, relationService);
+}
+
+@Override
+public void onDisable() {
+    TeamsAPI.unregisterProvider(teamsService);
+    TeamsAPI.unregisterRelationProvider(relationService);
+}
+```
+
+`TeamRelation` values (lowest → highest hostility): `ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY`.
 
 Any plugin can register a `TeamsSubcommand` via `TeamsAPI.registerSubcommand()`. Team
 plugins call `TeamsAPI.getSubcommands()` in their own command executor to dispatch them,

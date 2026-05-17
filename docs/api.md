@@ -70,6 +70,16 @@ Entry point for all API interactions. All methods are static.
 | `registerPowerProvider(plugin, service, priority)` | Registers a power provider at the given priority. |
 | `unregisterPowerProvider(service)` | Unregisters a power provider from Bukkit's ServicesManager. |
 
+**Relation service**
+
+| Method | Description |
+|--------|-------------|
+| `getRelationService()` | Returns the active `TeamsRelationService`, or `null` if none is registered. |
+| `isRelationAvailable()` | Returns `true` when a relation provider is registered. |
+| `registerRelationProvider(plugin, service)` | Registers a relation provider at `ServicePriority.Normal`. |
+| `registerRelationProvider(plugin, service, priority)` | Registers a relation provider at the given priority. |
+| `unregisterRelationProvider(service)` | Unregisters a relation provider from Bukkit's ServicesManager. |
+
 **Custom subcommands**
 
 | Method | Description |
@@ -189,6 +199,25 @@ How power is gained, lost, and used to gate land claims is entirely up to the pr
 | `getTeamPower(teamId)` | `double` | Total power for the team (typically sum of member power plus any boost). `0.0` if the team is unknown. |
 | `getTeamMaxPower(teamId)` | `double` | Theoretical maximum power for the team (typically `maxPowerPerPlayer * memberCount`). `0.0` if the team is unknown. |
 
+## `TeamsRelationService` (interface)
+
+Optional extension service for inter-team relation management. Providers that
+support faction-style ally/enemy diplomacy register an implementation via
+`TeamsAPI.registerRelationProvider()`. Existing `TeamsService` implementations are
+not required to support it.
+
+Relations are directional: team A may declare `ALLY` toward team B before team B has
+responded. Whether a relation requires mutual agreement for benefits is provider-defined.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `setRelation(fromTeamId, toTeamId, relation, initiatorUUID)` | `boolean` | Declares a relation from one team toward another. Providers should fire `TeamRelationChangeEvent` before persisting; return `false` if cancelled or either team does not exist. Setting `NEUTRAL` removes a previously declared relation. |
+| `getRelation(fromTeamId, toTeamId)` | `TeamRelation` | Returns the relation declared by `fromTeam` toward `toTeam`. Returns `NEUTRAL` if no explicit relation exists. |
+| `getRelations(teamId)` | `Map<UUID, TeamRelation>` | Returns all non-neutral relations declared by the team. Never `null`; empty if no relations exist. |
+| `clearRelations(teamId)` | `boolean` | Removes all relations declared by or toward the team (e.g. on disband). Returns `false` if the team had no relations. |
+| `areAllies(teamAId, teamBId)` | `boolean` | Default: returns `true` when both teams have declared `ALLY` toward each other. |
+| `areEnemies(teamAId, teamBId)` | `boolean` | Default: returns `true` when either team has declared `ENEMY` toward the other. |
+
 ## `Team` (interface)
 
 A read-only snapshot of a team. Obtain via `TeamsService` lookup methods.
@@ -243,6 +272,26 @@ methods.
 | `getChunkZ()` | `int` | The Z coordinate of the claimed chunk. |
 | `getClaimedAt()` | `Instant` | When the chunk was claimed; may be `Instant.EPOCH` if the provider does not track this. |
 
+## `TeamRelation` (enum)
+
+Represents the relationship one team has declared toward another. Ordinal ordering
+(lowest hostility → highest): `ALLY < TRUCE < NEUTRAL < ENEMY`.
+
+| Constant | Description |
+|----------|-------------|
+| `ALLY`    | Formal alliance — mutual benefits apply. |
+| `TRUCE`   | Agreed ceasefire — no active hostility. |
+| `NEUTRAL` | No formal relation (default when none is set). |
+| `ENEMY`   | Actively hostile. |
+
+Helper methods:
+
+| Method | Description |
+|--------|-------------|
+| `isFriendly()` | Returns `true` for `ALLY` and `TRUCE`. |
+| `isHostile()` | Returns `true` for `ENEMY`. |
+| `isMoreHostileThan(other)` | Returns `true` if this relation has a higher hostility level than `other`. |
+
 ## `TeamRole` (enum)
 
 | Constant | Priority | Description |
@@ -296,9 +345,28 @@ All concrete events implement `Cancellable`.
 | `TeamClaimEvent` | Yes | `getTeam()`, `getPlayerUUID()`, `getWorldName()`, `getChunkX()`, `getChunkZ()` |
 | `TeamUnclaimEvent` | Yes | `getTeam()`, `getPlayerUUID()`, `getWorldName()`, `getChunkX()`, `getChunkZ()` |
 
+**Relation events**
+
+| Class | Cancellable | Key fields |
+|-------|-------------|------------|
+| `TeamRelationChangeEvent` | Yes | `getTeam()` (source), `getTargetTeam()`, `getInitiatorUUID()`, `getOldRelation()`, `getNewRelation()`, `setNewRelation(relation)` |
+
 ## Migration notes
 
-### 1.4.0
+### 1.6.0
+
+Non-breaking addition. No changes required for existing providers or consumers.
+
+- New `TeamRelation` enum: `ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY` with `isFriendly()`,
+  `isHostile()`, and `isMoreHostileThan(other)` helpers.
+- New optional `TeamsRelationService` interface for inter-team relation management.
+- New `TeamsAPI` static methods: `getRelationService()`, `isRelationAvailable()`,
+  `registerRelationProvider(...)`, `unregisterRelationProvider(...)`.
+- New event: `TeamRelationChangeEvent` (cancellable). Exposes `setNewRelation()` so
+  listeners can override the incoming relation before it is persisted.
+- `TeamsAPI.API_VERSION` bumped from `1.5.0` to `1.6.0`.
+
+### 1.5.0
 
 Non-breaking addition. No changes required for existing providers or consumers.
 
