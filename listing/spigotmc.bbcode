@@ -76,7 +76,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.6.0</version>
+    <version>1.6.1</version>
     <scope>provided</scope>
 </dependency>
 [/CODE]
@@ -88,7 +88,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.6.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.6.1'
 }
 [/CODE]
 [/SPOILER]
@@ -224,9 +224,17 @@ public void onDisable() {
 [*][COLOR=#6cb4ff]clearRelations(teamId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes all relations declared by or toward the team (use on disband).
 [*][COLOR=#6cb4ff]areAllies(teamAId, teamBId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- [COLOR=#ffd700]true[/COLOR] when both teams have declared [COLOR=#ffd700]ALLY[/COLOR] toward each other.
 [*][COLOR=#6cb4ff]areEnemies(teamAId, teamBId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- [COLOR=#ffd700]true[/COLOR] when either team has declared [COLOR=#ffd700]ENEMY[/COLOR] toward the other.
+[*][COLOR=#6cb4ff]getTeamsInRelation(teamId, relation)[/COLOR] -> [COLOR=#ffd700]Collection<UUID>[/COLOR] -- All team UUIDs toward which [COLOR=#ffd700]teamId[/COLOR] has declared the given relation; providers may override for efficiency.
 [/LIST]
 
-[COLOR=#aaaaaa]TeamRelation values (lowest → highest hostility): [COLOR=#ffd700]ALLY[/COLOR], [COLOR=#ffd700]TRUCE[/COLOR], [COLOR=#ffd700]NEUTRAL[/COLOR], [COLOR=#ffd700]ENEMY[/COLOR].[/COLOR]
+[COLOR=#aaaaaa]TeamRelation display names, legacy color codes, and hex colors:[/COLOR]
+
+[LIST]
+[*][COLOR=#55FF55][COLOR=#ffd700]ALLY[/COLOR][/COLOR] -- display: "Ally", legacy: [COLOR=#6cb4ff]§a[/COLOR] (green), hex: [COLOR=#55FF55]#55FF55[/COLOR]
+[*][COLOR=#FFAA00][COLOR=#ffd700]TRUCE[/COLOR][/COLOR] -- display: "Truce", legacy: [COLOR=#6cb4ff]§6[/COLOR] (gold), hex: [COLOR=#FFAA00]#FFAA00[/COLOR]
+[*][COLOR=#AAAAAA][COLOR=#ffd700]NEUTRAL[/COLOR][/COLOR] -- display: "Neutral", legacy: [COLOR=#6cb4ff]§7[/COLOR] (gray), hex: [COLOR=#AAAAAA]#AAAAAA[/COLOR]
+[*][COLOR=#FF5555][COLOR=#ffd700]ENEMY[/COLOR][/COLOR] -- display: "Enemy", legacy: [COLOR=#6cb4ff]§c[/COLOR] (red), hex: [COLOR=#FF5555]#FF5555[/COLOR]
+[/LIST]
 
 [SIZE=4][B]Custom subcommands[/B][/SIZE]
 

@@ -2,8 +2,10 @@ package com.skyblockexp.teamsapi.api;
 
 import com.skyblockexp.teamsapi.model.TeamRelation;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Optional extension service for inter-team relation management.
@@ -134,5 +136,37 @@ public interface TeamsRelationService {
     default boolean areEnemies(final UUID teamAId, final UUID teamBId) {
         return getRelation(teamAId, teamBId) == TeamRelation.ENEMY
             || getRelation(teamBId, teamAId) == TeamRelation.ENEMY;
+    }
+
+    /**
+     * Returns the UUIDs of all teams toward which the given team has declared the
+     * specified relation.
+     *
+     * <p>This is a convenience shorthand for filtering {@link #getRelations(UUID)}.
+     * Providers may override this method with a more efficient implementation (e.g.
+     * an indexed database query).</p>
+     *
+     * <p>Example — collect all players in teams that are allied to {@code myTeamId}:</p>
+     * <pre>{@code
+     * Collection<UUID> alliedTeamIds =
+     *     relService.getTeamsInRelation(myTeamId, TeamRelation.ALLY);
+     *
+     * List<UUID> alliedPlayers = alliedTeamIds.stream()
+     *     .flatMap(id -> teamsService.getTeam(id).stream())
+     *     .flatMap(t  -> t.getMemberUUIDs().stream())
+     *     .collect(Collectors.toList());
+     * }</pre>
+     *
+     * @param teamId   the UUID of the team whose outgoing relations are queried;
+     *                 must not be {@code null}
+     * @param relation the {@link TeamRelation} to filter by; must not be {@code null}
+     * @return an unmodifiable collection of team UUIDs that have been assigned the
+     *         given relation by {@code teamId}; never {@code null}, empty if none exist
+     */
+    default Collection<UUID> getTeamsInRelation(final UUID teamId, final TeamRelation relation) {
+        return getRelations(teamId).entrySet().stream()
+            .filter(e -> e.getValue() == relation)
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toUnmodifiableList());
     }
 }

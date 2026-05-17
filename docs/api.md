@@ -217,6 +217,7 @@ responded. Whether a relation requires mutual agreement for benefits is provider
 | `clearRelations(teamId)` | `boolean` | Removes all relations declared by or toward the team (e.g. on disband). Returns `false` if the team had no relations. |
 | `areAllies(teamAId, teamBId)` | `boolean` | Default: returns `true` when both teams have declared `ALLY` toward each other. |
 | `areEnemies(teamAId, teamBId)` | `boolean` | Default: returns `true` when either team has declared `ENEMY` toward the other. |
+| `getTeamsInRelation(teamId, relation)` | `Collection<UUID>` | Default: returns all team UUIDs toward which `teamId` has declared the given relation. Equivalent to filtering `getRelations(teamId)` by value. Providers may override for efficiency. |
 
 ## `Team` (interface)
 
@@ -277,20 +278,23 @@ methods.
 Represents the relationship one team has declared toward another. Ordinal ordering
 (lowest hostility → highest): `ALLY < TRUCE < NEUTRAL < ENEMY`.
 
-| Constant | Description |
-|----------|-------------|
-| `ALLY`    | Formal alliance — mutual benefits apply. |
-| `TRUCE`   | Agreed ceasefire — no active hostility. |
-| `NEUTRAL` | No formal relation (default when none is set). |
-| `ENEMY`   | Actively hostile. |
+| Constant | Display name | Legacy color | Hex color | Description |
+|----------|-------------|--------------|-----------|-------------|
+| `ALLY`    | "Ally"    | `§a` (green) | `#55FF55` | Formal alliance — mutual benefits apply. |
+| `TRUCE`   | "Truce"   | `§6` (gold)  | `#FFAA00` | Agreed ceasefire — no active hostility. |
+| `NEUTRAL` | "Neutral" | `§7` (gray)  | `#AAAAAA` | No formal relation (default when none is set). |
+| `ENEMY`   | "Enemy"   | `§c` (red)   | `#FF5555` | Actively hostile. |
 
 Helper methods:
 
-| Method | Description |
-|--------|-------------|
-| `isFriendly()` | Returns `true` for `ALLY` and `TRUCE`. |
-| `isHostile()` | Returns `true` for `ENEMY`. |
-| `isMoreHostileThan(other)` | Returns `true` if this relation has a higher hostility level than `other`. |
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getDisplayName()` | `String` | Human-friendly name ("Ally", "Truce", etc.). |
+| `getLegacyColorCode()` | `char` | Legacy color code character; prepend `§` to build the full code: `"§" + rel.getLegacyColorCode()`. |
+| `getDefaultHexColor()` | `String` | Default `#RRGGBB` hex string for Adventure / MiniMessage consumers. |
+| `isFriendly()` | `boolean` | Returns `true` for `ALLY` and `TRUCE`. |
+| `isHostile()` | `boolean` | Returns `true` for `ENEMY`. |
+| `isMoreHostileThan(other)` | `boolean` | Returns `true` if this relation has a higher hostility level than `other`. |
 
 ## `TeamRole` (enum)
 
@@ -352,6 +356,16 @@ All concrete events implement `Cancellable`.
 | `TeamRelationChangeEvent` | Yes | `getTeam()` (source), `getTargetTeam()`, `getInitiatorUUID()`, `getOldRelation()`, `getNewRelation()`, `setNewRelation(relation)` |
 
 ## Migration notes
+
+### 1.6.1
+
+Non-breaking addition. No changes required for existing providers or consumers.
+
+- `TeamRelation` now carries presentation metadata: `getDisplayName()`,
+  `getLegacyColorCode()`, and `getDefaultHexColor()`.
+- New default method `TeamsRelationService.getTeamsInRelation(teamId, relation)`:
+  returns all team UUIDs toward which `teamId` has declared the given relation.
+- `TeamsAPI.API_VERSION` bumped from `1.6.0` to `1.6.1`.
 
 ### 1.6.0
 
