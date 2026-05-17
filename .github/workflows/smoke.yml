@@ -56,6 +56,9 @@ jobs:
           java-version: '25'
           cache: maven
 
+      - name: Purge stale JitPack artifacts from Maven cache
+        run: rm -rf ~/.m2/repository/com/github
+
       - name: Build plugin JAR
         run: mvn -B -ntp -DskipTests package
 
