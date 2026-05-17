@@ -17,6 +17,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `TeamsRelationService.getTeamsInRelation(teamId, relation)` — default convenience
   method that returns all team UUIDs toward which `teamId` has declared the given
   relation. Providers may override for a more efficient implementation.
+- `TeamsRelationService.getRelationColor(relation)` — default method that returns
+  the display color for a relation as a `#RRGGBB` hex string. Providers may override
+  to supply server-configured colors; falls back to `TeamRelation.getDefaultHexColor()`.
 - `TeamsAPI.API_VERSION` bumped to `1.6.1`.
 
 ## [1.6.0]

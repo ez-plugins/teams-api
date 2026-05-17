@@ -218,6 +218,7 @@ responded. Whether a relation requires mutual agreement for benefits is provider
 | `areAllies(teamAId, teamBId)` | `boolean` | Default: returns `true` when both teams have declared `ALLY` toward each other. |
 | `areEnemies(teamAId, teamBId)` | `boolean` | Default: returns `true` when either team has declared `ENEMY` toward the other. |
 | `getTeamsInRelation(teamId, relation)` | `Collection<UUID>` | Default: returns all team UUIDs toward which `teamId` has declared the given relation. Equivalent to filtering `getRelations(teamId)` by value. Providers may override for efficiency. |
+| `getRelationColor(relation)` | `String` | Default: returns `relation.getDefaultHexColor()`. Providers may override to supply server-configured colors. Consumers should prefer this over reading the enum directly to honour provider customisation. |
 
 ## `Team` (interface)
 
@@ -365,6 +366,11 @@ Non-breaking addition. No changes required for existing providers or consumers.
   `getLegacyColorCode()`, and `getDefaultHexColor()`.
 - New default method `TeamsRelationService.getTeamsInRelation(teamId, relation)`:
   returns all team UUIDs toward which `teamId` has declared the given relation.
+- New default method `TeamsRelationService.getRelationColor(relation)`: returns
+  the display color for a relation as a `#RRGGBB` hex string. Providers may
+  override to supply server-configured colors; falls back to
+  `TeamRelation.getDefaultHexColor()`. Chat plugins should call this instead of
+  reading the enum directly.
 - `TeamsAPI.API_VERSION` bumped from `1.6.0` to `1.6.1`.
 
 ### 1.6.0

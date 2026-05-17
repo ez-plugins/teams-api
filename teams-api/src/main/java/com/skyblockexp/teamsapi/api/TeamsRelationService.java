@@ -169,4 +169,27 @@ public interface TeamsRelationService {
             .map(Map.Entry::getKey)
             .collect(Collectors.toUnmodifiableList());
     }
+
+    /**
+     * Returns the display color for the given relation on this server as a
+     * {@code #RRGGBB} hex string.
+     *
+     * <p>Providers may override this method to supply server-configured colors.
+     * The default implementation delegates to
+     * {@link TeamRelation#getDefaultHexColor()}, so consumers always obtain a
+     * valid color even when the provider has not overridden it.</p>
+     *
+     * <p>Priority for chat plugins:</p>
+     * <ol>
+     *   <li>Consumer's own per-relation config (highest)</li>
+     *   <li>This method — provider-supplied color</li>
+     *   <li>{@link TeamRelation#getDefaultHexColor()} — API default (lowest)</li>
+     * </ol>
+     *
+     * @param relation the relation type; must not be {@code null}
+     * @return a {@code #RRGGBB} hex color string; never {@code null}
+     */
+    default String getRelationColor(final TeamRelation relation) {
+        return relation.getDefaultHexColor();
+    }
 }

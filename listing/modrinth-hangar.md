@@ -251,6 +251,7 @@ TeamsAPI.registerRelationProvider(this, relationService);
 | `areAllies(teamAId, teamBId)` | `boolean` | Returns `true` when both teams have declared `ALLY` toward each other. |
 | `areEnemies(teamAId, teamBId)` | `boolean` | Returns `true` when either team has declared `ENEMY` toward the other. |
 | `getTeamsInRelation(teamId, relation)` | `Collection<UUID>` | Returns all team UUIDs toward which `teamId` has declared the given relation. Filters `getRelations(teamId)` by value; providers may override for efficiency. |
+| `getRelationColor(relation)` | `String` | `#RRGGBB` hex color for the relation. Default returns `relation.getDefaultHexColor()`; providers may override to supply server-configured colors. |
 
 `TeamRelation` values with display name, legacy color code, and hex color:
 

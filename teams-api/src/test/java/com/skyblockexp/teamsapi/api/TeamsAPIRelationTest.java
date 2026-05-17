@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -284,5 +285,42 @@ class TeamsAPIRelationTest {
         final Collection<UUID> allies = service.getTeamsInRelation(myTeam, TeamRelation.ALLY);
 
         assertTrue(allies.isEmpty());
+    }
+
+    // TeamsRelationService — getRelationColor default method
+
+    /**
+     * getRelationColor_defaultImpl_returnsEnumHexColor verifies that the default
+     * implementation of {@link TeamsRelationService#getRelationColor(TeamRelation)}
+     * returns the same value as {@link TeamRelation#getDefaultHexColor()} for every
+     * relation constant.
+     */
+    @Test
+    void getRelationColor_defaultImpl_returnsEnumHexColor() {
+        final TeamsRelationService service = mock(TeamsRelationService.class);
+        when(service.getRelationColor(any(TeamRelation.class))).thenCallRealMethod();
+
+        for (final TeamRelation relation : TeamRelation.values()) {
+            assertEquals(
+                relation.getDefaultHexColor(),
+                service.getRelationColor(relation),
+                "Default color mismatch for " + relation
+            );
+        }
+    }
+
+    /**
+     * getRelationColor_providerOverride_returnsCustomColor verifies that a provider
+     * can override {@link TeamsRelationService#getRelationColor(TeamRelation)} to
+     * return a server-specific color, taking precedence over the enum default.
+     */
+    @Test
+    void getRelationColor_providerOverride_returnsCustomColor() {
+        final TeamsRelationService service = mock(TeamsRelationService.class);
+        when(service.getRelationColor(TeamRelation.ALLY)).thenReturn("#0000FF");
+        when(service.getRelationColor(TeamRelation.ENEMY)).thenCallRealMethod();
+
+        assertEquals("#0000FF", service.getRelationColor(TeamRelation.ALLY));
+        assertEquals(TeamRelation.ENEMY.getDefaultHexColor(), service.getRelationColor(TeamRelation.ENEMY));
     }
 }

@@ -225,6 +225,7 @@ public void onDisable() {
 [*][COLOR=#6cb4ff]areAllies(teamAId, teamBId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- [COLOR=#ffd700]true[/COLOR] when both teams have declared [COLOR=#ffd700]ALLY[/COLOR] toward each other.
 [*][COLOR=#6cb4ff]areEnemies(teamAId, teamBId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- [COLOR=#ffd700]true[/COLOR] when either team has declared [COLOR=#ffd700]ENEMY[/COLOR] toward the other.
 [*][COLOR=#6cb4ff]getTeamsInRelation(teamId, relation)[/COLOR] -> [COLOR=#ffd700]Collection<UUID>[/COLOR] -- All team UUIDs toward which [COLOR=#ffd700]teamId[/COLOR] has declared the given relation; providers may override for efficiency.
+[*][COLOR=#6cb4ff]getRelationColor(relation)[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- [COLOR=#ffd700]#RRGGBB[/COLOR] hex color for the relation. Default returns [COLOR=#6cb4ff]TeamRelation.getDefaultHexColor()[/COLOR]; providers override to supply server-configured colors.
 [/LIST]
 
 [COLOR=#aaaaaa]TeamRelation display names, legacy color codes, and hex colors:[/COLOR]
