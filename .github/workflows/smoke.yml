@@ -1,0 +1,187 @@
+name: Smoke Tests
+
+# Verify that the plugin JAR starts cleanly on Paper, Folia, and Spigot.
+# The test passes when the server reaches its "Done" state and TeamsAPI logs
+# its enabled banner without any SEVERE / exception output.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: Smoke – ${{ matrix.server }} ${{ matrix.mc_version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - server: Paper
+            project: paper
+            mc_version: "1.21.4"
+          - server: Folia
+            project: folia
+            mc_version: "1.21.4"
+          - server: Spigot
+            project: spigot
+            mc_version: "1.21.4"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Build plugin JAR
+        run: mvn -B -ntp -DskipTests package
+
+      - name: Locate plugin JAR
+        id: jar
+        run: |
+          JAR=$(find teams-api-plugin/target -maxdepth 1 \
+            -name "teams-api-plugin-*.jar" ! -name "original-*" | head -1)
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+          echo "Located: $JAR"
+
+      # ── Paper / Folia ────────────────────────────────────────────────────────
+
+      - name: Download ${{ matrix.server }} ${{ matrix.mc_version }} JAR
+        if: matrix.project != 'spigot'
+        run: |
+          BUILD=$(curl -sf \
+            "https://api.papermc.io/v2/projects/${{ matrix.project }}/versions/${{ matrix.mc_version }}/builds" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['builds'][-1]['build'])")
+          JAR_NAME=$(curl -sf \
+            "https://api.papermc.io/v2/projects/${{ matrix.project }}/versions/${{ matrix.mc_version }}/builds/${BUILD}" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['downloads']['application']['name'])")
+          curl -sfL \
+            "https://api.papermc.io/v2/projects/${{ matrix.project }}/versions/${{ matrix.mc_version }}/builds/${BUILD}/downloads/${JAR_NAME}" \
+            -o server.jar
+          echo "Downloaded ${{ matrix.server }} ${{ matrix.mc_version }} build ${BUILD} (${JAR_NAME})"
+
+      # ── Spigot via BuildTools ────────────────────────────────────────────────
+
+      - name: Cache Spigot ${{ matrix.mc_version }}
+        if: matrix.project == 'spigot'
+        id: cache-spigot
+        uses: actions/cache@v4
+        with:
+          path: ~/.spigot-cache
+          key: spigot-${{ matrix.mc_version }}-buildtools-v1
+
+      - name: Build Spigot via BuildTools
+        if: matrix.project == 'spigot' && steps.cache-spigot.outputs.cache-hit != 'true'
+        run: |
+          git config --global user.email "ci@example.com"
+          git config --global user.name "GitHub Actions CI"
+          mkdir -p ~/.spigot-cache
+          cd ~/.spigot-cache
+          curl -sfL \
+            https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar \
+            -o BuildTools.jar
+          java -jar BuildTools.jar --rev ${{ matrix.mc_version }} --compile SPIGOT 2>&1
+
+      - name: Copy Spigot JAR
+        if: matrix.project == 'spigot'
+        run: cp ~/.spigot-cache/spigot-${{ matrix.mc_version }}.jar server.jar
+
+      # ── Prepare server directory ─────────────────────────────────────────────
+
+      - name: Prepare server
+        run: |
+          mkdir -p server/plugins
+          cp server.jar server/server.jar
+          cp "${{ steps.jar.outputs.path }}" server/plugins/TeamsAPI.jar
+          echo "eula=true" > server/eula.txt
+          {
+            echo "online-mode=false"
+            echo "level-type=flat"
+            echo "generate-structures=false"
+            echo "view-distance=2"
+            echo "simulation-distance=2"
+          } > server/server.properties
+
+      # ── Start server ─────────────────────────────────────────────────────────
+
+      - name: Start server and wait for Done
+        run: |
+          cd server
+          java -Xmx512M -Xms512M -jar server.jar --nogui > server.log 2>&1 &
+          SERVER_PID=$!
+          echo "Server PID: ${SERVER_PID}"
+
+          # Poll every 5 s, up to 3 minutes
+          for i in $(seq 1 36); do
+            if grep -q "Done (" server.log 2>/dev/null; then
+              echo "Server reached Done state after $((i * 5))s"
+              break
+            fi
+            if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
+              echo "::error::Server process exited before reaching Done state"
+              cat server.log
+              exit 1
+            fi
+            sleep 5
+          done
+
+          if ! grep -q "Done (" server.log; then
+            echo "::error::Server did not reach Done state within 180s"
+            kill "${SERVER_PID}" 2>/dev/null || true
+            cat server.log
+            exit 1
+          fi
+
+          # Graceful stop
+          kill "${SERVER_PID}"
+          wait "${SERVER_PID}" 2>/dev/null || true
+          echo "Server stopped"
+
+      # ── Assertions ───────────────────────────────────────────────────────────
+
+      - name: Assert TeamsAPI loaded cleanly
+        run: |
+          LOG=server/server.log
+
+          echo "=== TeamsAPI log lines ==="
+          grep -i "teamsapi" "${LOG}" || true
+          echo "=========================="
+
+          # Plugin must have printed its enabled banner
+          if ! grep -q "TeamsAPI v.*enabled\." "${LOG}"; then
+            echo "::error::TeamsAPI enabled banner not found in server log"
+            cat "${LOG}"
+            exit 1
+          fi
+
+          # No SEVERE lines from TeamsAPI
+          if grep -E "SEVERE|ERROR" "${LOG}" | grep -qi "teamsapi"; then
+            echo "::error::TeamsAPI produced a SEVERE or ERROR log entry"
+            cat "${LOG}"
+            exit 1
+          fi
+
+          # No exception stack traces involving TeamsAPI
+          if grep -iE "exception|caused by" "${LOG}" | grep -qi "teamsapi"; then
+            echo "::error::Exception detected in TeamsAPI context"
+            cat "${LOG}"
+            exit 1
+          fi
+
+          echo "OK – TeamsAPI loaded cleanly on ${{ matrix.server }} ${{ matrix.mc_version }}"
+
+      - name: Upload server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log-${{ matrix.server }}-${{ matrix.mc_version }}
+          path: server/server.log
+          if-no-files-found: ignore
