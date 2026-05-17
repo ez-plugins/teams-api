@@ -32,8 +32,8 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [*][B]Optional power service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerService[/COLOR] for player and team power values.
 [*][B]Optional relation service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsRelationService[/COLOR] for inter-team diplomacy (ally / truce / neutral / enemy).
 [*][B]Custom subcommands[/B] -- any plugin registers a [COLOR=#6cb4ff]TeamsSubcommand[/COLOR] via [COLOR=#6cb4ff]TeamsAPI.registerSubcommand()[/COLOR]; team plugins call [COLOR=#6cb4ff]TeamsAPI.getSubcommands()[/COLOR] in their own command handler to dispatch them without coupling.
-[*][B]Cancellable events[/B] -- twelve Bukkit events that providers can fire so other plugins can react to or cancel team operations.
-[*][B]Lightweight[/B] -- a single shaded JAR with no runtime dependencies beyond the Bukkit API.
+[*][B]Cancellable events[/B] -- fifteen Bukkit events that providers can fire so other plugins can react to or cancel team operations.
+[*][B]Lightweight[/B] -- a single shaded JAR with no required runtime dependencies beyond the Bukkit API (optional: [URL='https://github.com/MilkBowl/VaultAPI']Vault[/URL] for the built-in power shop).
 [*][B]JitPack-ready[/B] -- depend on just the API module at compile time via Maven or Gradle.
 [*][B]Velocity bridge[/B] [COLOR=#f08080](experimental)[/COLOR] -- optional [COLOR=#6cb4ff]teams-api-velocity[/COLOR] plugin queries team data from the Velocity proxy. Supports multi-proxy networks via Redis.
 [*][B]BungeeCord bridge[/B] [COLOR=#f08080](experimental)[/COLOR] -- optional [COLOR=#6cb4ff]teams-api-bungeecord[/COLOR] plugin for BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
@@ -44,7 +44,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [LIST]
 [*][B]Server software:[/B] Paper, Spigot, Purpur, or Folia [COLOR=#6cb4ff]1.16+[/COLOR]
 [*][B]Java:[/B] [COLOR=#6cb4ff]17+[/COLOR] (25 recommended)
-[*][B]Plugin dependencies:[/B] None
+[*][B]Plugin dependencies:[/B] None (optional: [URL='https://github.com/MilkBowl/VaultAPI']Vault[/URL] for power shop)
 [/LIST]
 
 [SIZE=5][B][COLOR=#6cb4ff]Installation (server owners)[/COLOR][/B][/SIZE]

@@ -107,11 +107,17 @@ service:
 |---------|-----------------|
 | `TeamsInviteService` | Sending, accepting, and declining team invitations |
 | `TeamsWarpService` | Creating and teleporting to named team warps |
+| `TeamsClaimService` | Claiming and unclaiming chunks for the team |
+| `TeamsPowerService` | Player and team power values; optional power shop via `/teamsapi power buy` (requires [Vault](https://github.com/MilkBowl/VaultAPI)) |
+| `TeamsRelationService` | Inter-team diplomacy (ally / truce / neutral / enemy) |
 
-These are independent of the core service. A plugin that reads warp data checks
-whether a warp provider is registered and reports that warps are unsupported if
-none is found. No configuration is required on your end; it is entirely up to
+These are independent of the core service. No configuration is required on your end; it is entirely up to
 your team plugin whether it registers these services.
+
+> **Vault (optional):** TeamsAPI declares `softdepend: [Vault]` in its plugin manifest.
+> If Vault is installed, Bukkit will load it before TeamsAPI so that the built-in
+> power shop can charge players economy currency. TeamsAPI loads and works normally
+> when Vault is absent; the power-shop subcommand is simply disabled.
 
 ## Updating TeamsAPI
 
@@ -142,10 +148,10 @@ Your team plugin has not registered a provider. Possible causes:
   plugins may check availability before registration is complete. This is a bug
   in the team plugin, not in TeamsAPI.
 
-### Invite or warp features are reported as unavailable
+### Optional services are reported as unavailable
 
-Not every team plugin implements `TeamsInviteService` or `TeamsWarpService`.
-Check the documentation of your team plugin to see which services it registers.
+Not every team plugin implements every optional service. Check the documentation
+of your team plugin to see which services it registers.
 
 ### Two team plugins are installed
 

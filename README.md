@@ -221,7 +221,7 @@ if (TeamsAPI.isRelationAvailable()) {
 
     // Query the current relation
     TeamRelation rel = relations.getRelation(myTeamId, theirTeamId);
-    player.sendMessage("Relation: " + rel.name());
+    player.sendMessage("Relation: " + rel.getDisplayName());
 
     // Convenience helpers (mutual check)
     if (relations.areAllies(myTeamId, theirTeamId)) {
@@ -247,6 +247,10 @@ public void onDisable() {
 ```
 
 `TeamRelation` values (lowest → highest hostility): `ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY`.
+
+> **Vault (optional):** `plugin.yml` declares `softdepend: [Vault]`. When Vault is
+> installed the built-in power shop (`/teamsapi power buy`) can charge players.
+> TeamsAPI loads normally without Vault; the shop is simply disabled.
 
 Any plugin can register a `TeamsSubcommand` via `TeamsAPI.registerSubcommand()`. Team
 plugins call `TeamsAPI.getSubcommands()` in their own command executor to dispatch them,
