@@ -3,7 +3,7 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [1.7.0]
 
 ### Added
 
@@ -23,13 +23,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - New tests:
   `TeamsAPINotificationTest` (service registration/availability/null-safety)
   and `TeamNotificationTypeTest` (enum contract coverage).
-- API reference docs updated with notification service method tables,
-  enum documentation, and examples for both built-in and custom string types.
-
-## [1.7.0]
-
-### Added
-
+- API reference docs and public listings updated with notification service method
+  tables, enum documentation, and examples for both built-in and custom string
+  types.
 - `ClaimTerritoryType` enum (`WILDERNESS`, `TEAM`, `SAFE_ZONE`, `WAR_ZONE`) to
   represent classic faction territory classes, including SafeZone and WarZone.
 - `TeamClaim.getTerritoryType()` default method. Legacy providers map to `TEAM`
