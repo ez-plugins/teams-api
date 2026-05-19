@@ -32,6 +32,8 @@ consumer plugin keeps working without a recompile.
 - **Optional warp service**: providers can expose `TeamsWarpService` for named team warps.
 - **Optional claim service**: providers can expose `TeamsClaimService` for chunk-claim management, including SafeZone and WarZone territory support.
 - **Optional power service**: providers can expose `TeamsPowerService` for player and team power values.
+- **Optional power-history service**: providers can expose `TeamsPowerHistoryService`
+  for reading and managing player/team power-history entries.
 - **Optional relation service**: providers can expose `TeamsRelationService` for inter-team diplomacy (ally/truce/neutral/enemy).
 - **Optional notification service**: providers can expose `TeamsNotificationService` for
   cross-plugin player notifications using built-in enum types and custom string types.
@@ -77,7 +79,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.7.0</version>
+    <version>1.8.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -89,7 +91,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.7.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.8.0'
 }
 ```
 
@@ -241,6 +243,28 @@ TeamsAPI.registerPowerProvider(this, powerService);
 | `getTeamMaxPower(teamId)` | `double` | Maximum combined power the team can hold |
 
 Consumers check availability with `TeamsAPI.isPowerAvailable()` before calling `TeamsAPI.getPowerService()`.
+
+### Power history service (optional)
+
+Register alongside `TeamsService` if your plugin exposes power history:
+
+```java
+TeamsAPI.registerPowerHistoryProvider(this, powerHistoryService);
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getPlayerPowerHistory(playerUUID, limit)` | `Collection<TeamPowerHistoryEntry>` | Recent entries for a player, newest first. |
+| `getPlayerPowerHistory(playerUUID, fromInclusive, toExclusive, limit)` | `Collection<TeamPowerHistoryEntry>` | Player entries in a time window, newest first. |
+| `getTeamPowerHistory(teamId, limit)` | `Collection<TeamPowerHistoryEntry>` | Recent entries linked to a team. |
+| `addPowerHistoryEntry(entryId, playerUUID, teamId, delta, type, reason, actorUUID, occurredAt, details)` | `boolean` | Inserts a history entry. |
+| `updatePowerHistoryEntry(entryId, delta, type, reason, actorUUID, occurredAt, details)` | `boolean` | Updates an existing entry. |
+| `removePowerHistoryEntry(entryId)` | `boolean` | Deletes one entry by ID. |
+| `clearPlayerPowerHistory(playerUUID)` | `int` | Deletes all player entries; returns removed count. |
+| `clearTeamPowerHistory(teamId)` | `int` | Deletes all team-linked entries; returns removed count. |
+
+Consumers check availability with `TeamsAPI.isPowerHistoryAvailable()` before calling
+`TeamsAPI.getPowerHistoryService()`.
 
 ### Relation service (optional)
 
