@@ -80,6 +80,16 @@ Entry point for all API interactions. All methods are static.
 | `registerRelationProvider(plugin, service, priority)` | Registers a relation provider at the given priority. |
 | `unregisterRelationProvider(service)` | Unregisters a relation provider from Bukkit's ServicesManager. |
 
+**Notification service**
+
+| Method | Description |
+|--------|-------------|
+| `getNotificationService()` | Returns the active `TeamsNotificationService`, or `null` if none is registered. |
+| `isNotificationAvailable()` | Returns `true` when a notification provider is registered. |
+| `registerNotificationProvider(plugin, service)` | Registers a notification provider at `ServicePriority.Normal`. |
+| `registerNotificationProvider(plugin, service, priority)` | Registers a notification provider at the given priority. |
+| `unregisterNotificationProvider(service)` | Unregisters a notification provider from Bukkit's ServicesManager. |
+
 **Custom subcommands**
 
 | Method | Description |
@@ -226,6 +236,58 @@ responded. Whether a relation requires mutual agreement for benefits is provider
 | `getTeamsInRelation(teamId, relation)` | `Collection<UUID>` | Default: returns all team UUIDs toward which `teamId` has declared the given relation. Equivalent to filtering `getRelations(teamId)` by value. Providers may override for efficiency. |
 | `getRelationColor(relation)` | `String` | Default: returns `relation.getDefaultHexColor()`. Providers may override to supply server-configured colors. Consumers should prefer this over reading the enum directly to honour provider customisation. |
 
+## `TeamsNotificationService` (interface)
+
+Optional extension service for cross-plugin player notifications. Providers that
+support notifications register an implementation via
+`TeamsAPI.registerNotificationProvider()`. Existing `TeamsService`
+implementations are not required to support it.
+
+Providers may enforce their own authorization policy (for example an allowlist)
+based on the sending plugin parameter. Consumers should always check
+`TeamsAPI.isNotificationAvailable()` before use.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `sendNotification(senderPlugin, recipientUUID, type, message)` | `boolean` | Sends a notification using a built-in `TeamNotificationType`. Returns `false` if unauthorized, invalid, or not delivered. |
+| `sendNotification(senderPlugin, recipientUUID, notificationType, message)` | `boolean` | Sends a notification using a custom string type. `notificationType` must be non-null and non-blank; providers should normalize consistently (recommended: lowercase). |
+| `isNotificationEnabled(playerUUID, type)` | `boolean` | Returns whether this built-in notification type is enabled for the player. |
+| `isNotificationEnabled(playerUUID, notificationType)` | `boolean` | Returns whether this custom string notification type is enabled for the player. Invalid types should return `false`. |
+| `setNotificationEnabled(playerUUID, type, enabled)` | `boolean` | Enables or disables a built-in notification type for a player. |
+| `setNotificationEnabled(playerUUID, notificationType, enabled)` | `boolean` | Enables or disables a custom string notification type for a player. Invalid types should return `false`. |
+
+**Usage examples**
+
+Built-in join notification:
+
+```java
+TeamsNotificationService notifications = TeamsAPI.getNotificationService();
+if (notifications != null) {
+    notifications.sendNotification(
+        getPlugin(),
+        player.getUniqueId(),
+        TeamNotificationType.TEAM_JOIN,
+        "You joined Red Team."
+    );
+}
+```
+
+Custom external notification type:
+
+```java
+TeamsNotificationService notifications = TeamsAPI.getNotificationService();
+if (notifications != null) {
+    notifications.sendNotification(
+        getPlugin(),
+        player.getUniqueId(),
+        "quest_reward",
+        "Quest complete: +250 coins"
+    );
+}
+```
+
+For custom string types, `pluginid:type` is recommended to reduce naming collisions.
+
 ## `Team` (interface)
 
 A read-only snapshot of a team. Obtain via `TeamsService` lookup methods.
@@ -316,6 +378,19 @@ Helper methods:
 | `isHostile()` | `boolean` | Returns `true` for `ENEMY`. |
 | `isMoreHostileThan(other)` | `boolean` | Returns `true` if this relation has a higher hostility level than `other`. |
 
+## `TeamNotificationType` (enum)
+
+Built-in notification categories for `TeamsNotificationService`.
+
+| Constant | Description |
+|----------|-------------|
+| `GENERAL` | General-purpose team-domain notifications. |
+| `TEAM_JOIN` | A player joined a team. |
+| `TEAM_LEAVE` | A player left a team. |
+| `TEAM_INVITE` | A player received a team invitation. |
+| `TEAM_INVITE_ACCEPT` | A player accepted a team invitation. |
+| `TEAM_INVITE_DECLINE` | A player declined a team invitation. |
+
 ## `TeamRole` (enum)
 
 | Constant | Priority | Description |
@@ -376,6 +451,18 @@ All concrete events implement `Cancellable`.
 | `TeamRelationChangeEvent` | Yes | `getTeam()` (source), `getTargetTeam()`, `getInitiatorUUID()`, `getOldRelation()`, `getNewRelation()`, `setNewRelation(relation)` |
 
 ## Migration notes
+
+### Unreleased
+
+Non-breaking addition. No changes required for existing providers or consumers.
+
+- New optional `TeamsNotificationService` for cross-plugin player notifications.
+- New `TeamNotificationType` enum with built-in notification categories.
+- New `TeamsAPI` static methods: `getNotificationService()`,
+  `isNotificationAvailable()`, `registerNotificationProvider(...)`,
+  `unregisterNotificationProvider(...)`.
+- `TeamsNotificationService` supports both built-in enum types and custom
+  string notification types.
 
 ### 1.7.0
 

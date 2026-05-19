@@ -7,6 +7,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- `TeamsNotificationService` optional extension interface for cross-plugin player
+  notifications with provider-controlled authorization via `senderPlugin`.
+- Dual notification type support:
+  enum-based built-ins (`TeamNotificationType`) and custom string notification
+  types for third-party plugin namespaces.
+- New `TeamsAPI` notification facade methods:
+  `getNotificationService()`, `isNotificationAvailable()`,
+  `registerNotificationProvider(plugin, service)`,
+  `registerNotificationProvider(plugin, service, priority)`,
+  `unregisterNotificationProvider(service)`.
+- New `TeamNotificationType` enum with built-in categories:
+  `GENERAL`, `TEAM_JOIN`, `TEAM_LEAVE`, `TEAM_INVITE`,
+  `TEAM_INVITE_ACCEPT`, `TEAM_INVITE_DECLINE`.
+- New tests:
+  `TeamsAPINotificationTest` (service registration/availability/null-safety)
+  and `TeamNotificationTypeTest` (enum contract coverage).
+- API reference docs and public listings updated with notification service method
+  tables, enum documentation, and examples for both built-in and custom string
+  types.
 - `ClaimTerritoryType` enum (`WILDERNESS`, `TEAM`, `SAFE_ZONE`, `WAR_ZONE`) to
   represent classic faction territory classes, including SafeZone and WarZone.
 - `TeamClaim.getTerritoryType()` default method. Legacy providers map to `TEAM`

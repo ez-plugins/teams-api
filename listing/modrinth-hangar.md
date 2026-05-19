@@ -33,6 +33,8 @@ consumer plugin keeps working without a recompile.
 - **Optional claim service**: providers can expose `TeamsClaimService` for chunk-claim management, including SafeZone and WarZone territory support.
 - **Optional power service**: providers can expose `TeamsPowerService` for player and team power values.
 - **Optional relation service**: providers can expose `TeamsRelationService` for inter-team diplomacy (ally/truce/neutral/enemy).
+- **Optional notification service**: providers can expose `TeamsNotificationService` for
+  cross-plugin player notifications using built-in enum types and custom string types.
 - **Custom subcommands**: any plugin registers a `TeamsSubcommand` via `TeamsAPI.registerSubcommand()`; team plugins call `TeamsAPI.getSubcommands()` in their own command handler to dispatch them, extending the command tree without coupling.
 - **Cancellable events**: fifteen Bukkit events that providers can fire so other plugins can react to or cancel team operations.
 - **Lightweight**: a single shaded JAR with no required runtime dependencies beyond the Bukkit API (optional: [Vault](https://github.com/MilkBowl/VaultAPI) for the built-in power shop).
@@ -269,6 +271,30 @@ TeamsAPI.registerRelationProvider(this, relationService);
 | `ENEMY`   | "Enemy"   | `§c` (red)   | `#FF5555` |
 
 Consumers check availability with `TeamsAPI.isRelationAvailable()` before calling `TeamsAPI.getRelationService()`.
+
+### Notification service (optional)
+
+Register alongside `TeamsService` if your plugin supports cross-plugin player notifications:
+
+```java
+TeamsAPI.registerNotificationProvider(this, notificationService);
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `sendNotification(senderPlugin, recipientUUID, type, message)` | `boolean` | Sends a notification using built-in `TeamNotificationType`. |
+| `sendNotification(senderPlugin, recipientUUID, notificationType, message)` | `boolean` | Sends a notification using a custom string type (non-null, non-blank). |
+| `isNotificationEnabled(playerUUID, type)` | `boolean` | Whether this built-in notification type is enabled for the player. |
+| `isNotificationEnabled(playerUUID, notificationType)` | `boolean` | Whether this custom string notification type is enabled for the player. |
+| `setNotificationEnabled(playerUUID, type, enabled)` | `boolean` | Enables or disables a built-in notification type for the player. |
+| `setNotificationEnabled(playerUUID, notificationType, enabled)` | `boolean` | Enables or disables a custom string notification type for the player. |
+
+Built-in `TeamNotificationType` values:
+`GENERAL`, `TEAM_JOIN`, `TEAM_LEAVE`, `TEAM_INVITE`,
+`TEAM_INVITE_ACCEPT`, `TEAM_INVITE_DECLINE`.
+
+Consumers check availability with `TeamsAPI.isNotificationAvailable()` before calling
+`TeamsAPI.getNotificationService()`.
 
 ### Custom subcommands
 

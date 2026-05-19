@@ -37,6 +37,8 @@ backend server directly.
   SafeZone and WarZone territory typing
 - **Optional power support**: register a `TeamsPowerService` to expose team/player power
 - **Optional relation support**: register a `TeamsRelationService` for ally/truce/neutral/enemy diplomacy
+- **Optional notification support**: register a `TeamsNotificationService` for
+  cross-plugin player notifications with built-in and custom string types
 - **Velocity bridge**: proxy-side async API (`VelocityTeamsService`) backed by a plugin
   messaging channel — no direct backend connection required
 - **BungeeCord bridge**: proxy-side async API (`BungeeTeamsService`) for BungeeCord

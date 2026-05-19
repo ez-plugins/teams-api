@@ -31,6 +31,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [*][B]Optional claim service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsClaimService[/COLOR] for chunk-claim management, including SafeZone and WarZone support.
 [*][B]Optional power service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerService[/COLOR] for player and team power values.
 [*][B]Optional relation service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsRelationService[/COLOR] for inter-team diplomacy (ally / truce / neutral / enemy).
+[*][B]Optional notification service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsNotificationService[/COLOR] for cross-plugin player notifications with built-in enum types and custom string types.
 [*][B]Custom subcommands[/B] -- any plugin registers a [COLOR=#6cb4ff]TeamsSubcommand[/COLOR] via [COLOR=#6cb4ff]TeamsAPI.registerSubcommand()[/COLOR]; team plugins call [COLOR=#6cb4ff]TeamsAPI.getSubcommands()[/COLOR] in their own command handler to dispatch them without coupling.
 [*][B]Cancellable events[/B] -- fifteen Bukkit events that providers can fire so other plugins can react to or cancel team operations.
 [*][B]Lightweight[/B] -- a single shaded JAR with no required runtime dependencies beyond the Bukkit API (optional: [URL='https://github.com/MilkBowl/VaultAPI']Vault[/URL] for the built-in power shop).
@@ -239,6 +240,24 @@ public void onDisable() {
 [*][COLOR=#AAAAAA][COLOR=#ffd700]NEUTRAL[/COLOR][/COLOR] -- display: "Neutral", legacy: [COLOR=#6cb4ff]§7[/COLOR] (gray), hex: [COLOR=#AAAAAA]#AAAAAA[/COLOR]
 [*][COLOR=#FF5555][COLOR=#ffd700]ENEMY[/COLOR][/COLOR] -- display: "Enemy", legacy: [COLOR=#6cb4ff]§c[/COLOR] (red), hex: [COLOR=#FF5555]#FF5555[/COLOR]
 [/LIST]
+
+[SIZE=4][B]Notification service (optional)[/B][/SIZE]
+
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isNotificationAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getNotificationService()[/COLOR].[/COLOR]
+
+[LIST]
+[*][COLOR=#6cb4ff]sendNotification(senderPlugin, recipientUUID, type, message)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Sends a notification using built-in [COLOR=#ffd700]TeamNotificationType[/COLOR].
+[*][COLOR=#6cb4ff]sendNotification(senderPlugin, recipientUUID, notificationType, message)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Sends a notification using a custom string type ([COLOR=#ffd700]non-null, non-blank[/COLOR]).
+[*][COLOR=#6cb4ff]isNotificationEnabled(playerUUID, type)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether this built-in notification type is enabled for the player.
+[*][COLOR=#6cb4ff]isNotificationEnabled(playerUUID, notificationType)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether this custom notification type is enabled for the player.
+[*][COLOR=#6cb4ff]setNotificationEnabled(playerUUID, type, enabled)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Enables or disables a built-in notification type for the player.
+[*][COLOR=#6cb4ff]setNotificationEnabled(playerUUID, notificationType, enabled)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Enables or disables a custom notification type for the player.
+[/LIST]
+
+[COLOR=#aaaaaa]Built-in [COLOR=#6cb4ff]TeamNotificationType[/COLOR] values:[/COLOR]
+[CODE]
+GENERAL, TEAM_JOIN, TEAM_LEAVE, TEAM_INVITE, TEAM_INVITE_ACCEPT, TEAM_INVITE_DECLINE
+[/CODE]
 
 [SIZE=4][B]Custom subcommands[/B][/SIZE]
 
