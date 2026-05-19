@@ -36,6 +36,8 @@ backend server directly.
 - **Optional claim support**: register a `TeamsClaimService` for chunk claims, including
   SafeZone and WarZone territory typing
 - **Optional power support**: register a `TeamsPowerService` to expose team/player power
+- **Optional power-history support**: register a `TeamsPowerHistoryService` so
+  plugins can read, write, and manage power-history entries
 - **Optional relation support**: register a `TeamsRelationService` for ally/truce/neutral/enemy diplomacy
 - **Optional notification support**: register a `TeamsNotificationService` for
   cross-plugin player notifications with built-in and custom string types

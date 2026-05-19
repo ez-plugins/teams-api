@@ -3,6 +3,25 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.8.0]
+
+### Added
+
+- `TeamsPowerHistoryService` optional extension interface for reading and
+  managing power-history entries through TeamsAPI.
+- New power-history model types:
+  `TeamPowerHistoryEntry` and `TeamPowerHistoryType`
+  (`GAIN`, `LOSS`, `ADJUSTMENT`).
+- New `TeamsAPI` power-history facade methods:
+  `getPowerHistoryService()`, `isPowerHistoryAvailable()`,
+  `registerPowerHistoryProvider(plugin, service)`,
+  `registerPowerHistoryProvider(plugin, service, priority)`,
+  `unregisterPowerHistoryProvider(service)`.
+- New tests:
+  `TeamsAPIPowerHistoryTest` (service registration/availability/null-safety)
+  and `TeamPowerHistoryTypeTest` (enum contract coverage).
+- `TeamsAPI.API_VERSION` bumped to `1.8.0`.
+
 ## [1.7.0]
 
 ### Added

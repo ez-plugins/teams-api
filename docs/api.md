@@ -70,6 +70,16 @@ Entry point for all API interactions. All methods are static.
 | `registerPowerProvider(plugin, service, priority)` | Registers a power provider at the given priority. |
 | `unregisterPowerProvider(service)` | Unregisters a power provider from Bukkit's ServicesManager. |
 
+**Power history service**
+
+| Method | Description |
+|--------|-------------|
+| `getPowerHistoryService()` | Returns the active `TeamsPowerHistoryService`, or `null` if none is registered. |
+| `isPowerHistoryAvailable()` | Returns `true` when a power-history provider is registered. |
+| `registerPowerHistoryProvider(plugin, service)` | Registers a power-history provider at `ServicePriority.Normal`. |
+| `registerPowerHistoryProvider(plugin, service, priority)` | Registers a power-history provider at the given priority. |
+| `unregisterPowerHistoryProvider(service)` | Unregisters a power-history provider from Bukkit's ServicesManager. |
+
 **Relation service**
 
 | Method | Description |
@@ -214,6 +224,26 @@ How power is gained, lost, and used to gate land claims is entirely up to the pr
 | `setPlayerPower(playerUUID, power)` | `boolean` | Overrides the player's current power (clamped by the provider). Returns `false` if the player is unknown. |
 | `getTeamPower(teamId)` | `double` | Total power for the team (typically sum of member power plus any boost). `0.0` if the team is unknown. |
 | `getTeamMaxPower(teamId)` | `double` | Theoretical maximum power for the team (typically `maxPowerPerPlayer * memberCount`). `0.0` if the team is unknown. |
+
+## `TeamsPowerHistoryService` (interface)
+
+Optional extension service for reading and managing power-history entries.
+Providers that support history register via `TeamsAPI.registerPowerHistoryProvider()`.
+Existing `TeamsService` and `TeamsPowerService` implementations are not required to
+support it.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getPlayerPowerHistory(playerUUID, limit)` | `Collection<TeamPowerHistoryEntry>` | Recent entries for a player, newest first. |
+| `getPlayerPowerHistory(playerUUID, fromInclusive, toExclusive, limit)` | `Collection<TeamPowerHistoryEntry>` | Player entries in a time window, newest first. |
+| `getTeamPowerHistory(teamId, limit)` | `Collection<TeamPowerHistoryEntry>` | Recent entries linked to a team, newest first. |
+| `addPowerHistoryEntry(entryId, playerUUID, teamId, delta, type, reason, actorUUID, occurredAt, details)` | `boolean` | Inserts a new history entry. |
+| `updatePowerHistoryEntry(entryId, delta, type, reason, actorUUID, occurredAt, details)` | `boolean` | Updates an existing history entry. |
+| `removePowerHistoryEntry(entryId)` | `boolean` | Deletes one history entry by ID. |
+| `clearPlayerPowerHistory(playerUUID)` | `int` | Deletes all entries for a player; returns removed count. |
+| `clearTeamPowerHistory(teamId)` | `int` | Deletes all entries linked to a team; returns removed count. |
+| `addGainHistoryEntry(...)` | `boolean` | Default helper that records a `GAIN` entry from `PowerGainSource`. |
+| `addLossHistoryEntry(...)` | `boolean` | Default helper that records a `LOSS` entry from `PowerLossCause`. |
 
 ## `TeamsRelationService` (interface)
 
@@ -406,6 +436,32 @@ Helper methods:
 | `getPriority()` | Numeric priority value. Higher = more authority. |
 | `outranks(other)` | Returns `true` if this role has a higher priority than `other`. |
 | `canManage(target)` | Returns `true` if this role can manage members of the `target` role. |
+
+## `TeamPowerHistoryEntry` (interface)
+
+Read-only snapshot of a provider-owned power-history entry.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getEntryId()` | `UUID` | Stable unique identifier for the entry. |
+| `getPlayerUUID()` | `UUID` | Player whose power changed. |
+| `getTeamId()` | `Optional<UUID>` | Team linked to the change, if any. |
+| `getDelta()` | `double` | Signed power delta (positive gain, negative loss). |
+| `getType()` | `TeamPowerHistoryType` | Categorized change type. |
+| `getReason()` | `String` | Provider-defined reason key (recommended lowercase stable keys). |
+| `getActorUUID()` | `Optional<UUID>` | Actor who initiated the change, if applicable. |
+| `getOccurredAt()` | `Instant` | Timestamp of the change. |
+| `getDetails()` | `Optional<String>` | Optional human-readable details text. |
+
+## `TeamPowerHistoryType` (enum)
+
+Classifies the type of a power-history entry.
+
+| Constant | Description |
+|----------|-------------|
+| `GAIN` | Positive power gain entries. |
+| `LOSS` | Power loss entries. |
+| `ADJUSTMENT` | Manual or system corrections. |
 
 ## Events
 

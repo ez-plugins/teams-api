@@ -30,6 +30,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [*][B]Optional warp service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsWarpService[/COLOR] for named team warps.
 [*][B]Optional claim service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsClaimService[/COLOR] for chunk-claim management, including SafeZone and WarZone support.
 [*][B]Optional power service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerService[/COLOR] for player and team power values.
+[*][B]Optional power-history service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerHistoryService[/COLOR] for reading and managing player/team power-history entries.
 [*][B]Optional relation service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsRelationService[/COLOR] for inter-team diplomacy (ally / truce / neutral / enemy).
 [*][B]Optional notification service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsNotificationService[/COLOR] for cross-plugin player notifications with built-in enum types and custom string types.
 [*][B]Custom subcommands[/B] -- any plugin registers a [COLOR=#6cb4ff]TeamsSubcommand[/COLOR] via [COLOR=#6cb4ff]TeamsAPI.registerSubcommand()[/COLOR]; team plugins call [COLOR=#6cb4ff]TeamsAPI.getSubcommands()[/COLOR] in their own command handler to dispatch them without coupling.
@@ -77,7 +78,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.7.0</version>
+    <version>1.8.0</version>
     <scope>provided</scope>
 </dependency>
 [/CODE]
@@ -89,7 +90,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.7.0'
+    compileOnly 'com.github.ez-plugins:teams-api:1.8.0'
 }
 [/CODE]
 [/SPOILER]
@@ -215,6 +216,21 @@ public void onDisable() {
 [*][COLOR=#6cb4ff]setPlayerPower(playerUUID, power)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Sets the player's power
 [*][COLOR=#6cb4ff]getTeamPower(teamId)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Combined power of all team members
 [*][COLOR=#6cb4ff]getTeamMaxPower(teamId)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Maximum combined power the team can hold
+[/LIST]
+
+[SIZE=4][B]Power history service (optional)[/B][/SIZE]
+
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isPowerHistoryAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getPowerHistoryService()[/COLOR].[/COLOR]
+
+[LIST]
+[*][COLOR=#6cb4ff]getPlayerPowerHistory(playerUUID, limit)[/COLOR] -> [COLOR=#ffd700]Collection<TeamPowerHistoryEntry>[/COLOR] -- Recent entries for a player, newest first.
+[*][COLOR=#6cb4ff]getPlayerPowerHistory(playerUUID, fromInclusive, toExclusive, limit)[/COLOR] -> [COLOR=#ffd700]Collection<TeamPowerHistoryEntry>[/COLOR] -- Player entries in a time window, newest first.
+[*][COLOR=#6cb4ff]getTeamPowerHistory(teamId, limit)[/COLOR] -> [COLOR=#ffd700]Collection<TeamPowerHistoryEntry>[/COLOR] -- Recent entries linked to a team.
+[*][COLOR=#6cb4ff]addPowerHistoryEntry(entryId, playerUUID, teamId, delta, type, reason, actorUUID, occurredAt, details)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Inserts a history entry.
+[*][COLOR=#6cb4ff]updatePowerHistoryEntry(entryId, delta, type, reason, actorUUID, occurredAt, details)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Updates an existing entry.
+[*][COLOR=#6cb4ff]removePowerHistoryEntry(entryId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Deletes one entry by ID.
+[*][COLOR=#6cb4ff]clearPlayerPowerHistory(playerUUID)[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Deletes all player entries; returns removed count.
+[*][COLOR=#6cb4ff]clearTeamPowerHistory(teamId)[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Deletes all team-linked entries; returns removed count.
 [/LIST]
 
 [SIZE=4][B]Relation service (optional)[/B][/SIZE]
