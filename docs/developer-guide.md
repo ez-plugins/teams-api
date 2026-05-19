@@ -83,7 +83,7 @@ Consumers are plugins that read or react to team data. They depend on
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.6.1</version>
+    <version>1.7.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -98,7 +98,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.6.1'
+    compileOnly 'com.github.ez-plugins:teams-api:1.7.0'
 }
 ```
 
@@ -205,6 +205,17 @@ private void handleClaimCommand(Player player, UUID teamId) {
         chunk.getWorld().getName(), chunk.getX(), chunk.getZ()
     );
     player.sendMessage(ok ? "Chunk claimed!" : "That chunk is already claimed.");
+}
+```
+
+For SafeZone / WarZone-aware providers, consumers can read territory type:
+
+```java
+ClaimTerritoryType type = claims.getTerritoryTypeAt(
+    chunk.getWorld().getName(), chunk.getX(), chunk.getZ()
+);
+if (type == ClaimTerritoryType.WAR_ZONE) {
+    player.sendMessage("PvP is always enabled here.");
 }
 ```
 
@@ -376,7 +387,7 @@ over a plugin messaging channel from a backend Bukkit server.
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api-velocity</artifactId>
-    <version>1.6.1</version>
+    <version>1.7.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -404,7 +415,7 @@ Check `TeamsAPI.API_VERSION` at runtime if you need to guard against future
 breaking changes:
 
 ```java
-String version = TeamsAPI.API_VERSION; // e.g. "1.6.1"
+String version = TeamsAPI.API_VERSION; // e.g. "1.7.0"
 ```
 
 TeamsAPI follows Semantic Versioning. A major version bump signals breaking

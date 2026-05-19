@@ -1,14 +1,17 @@
-# TeamsAPI
+[![CI](https://github.com/ez-plugins/teams-api/actions/workflows/ci.yml/badge.svg)](https://github.com/ez-plugins/teams-api/actions)
+[![codecov](https://codecov.io/gh/ez-plugins/teams-api/branch/main/graph/badge.svg)](https://codecov.io/gh/ez-plugins/teams-api)
+[![License](https://img.shields.io/github/license/ez-plugins/teams-api)](LICENSE)
+[![Jitpack](https://jitpack.io/v/ez-plugins/teams-api.svg)](https://jitpack.io/#ez-plugins/teams-api)
 
 **The universal bridge between team plugins and everything else.**
 
 TeamsAPI is a passive, server-side bridge plugin for Paper, Spigot, Purpur, and Folia servers, inspired by Vault. It provides a single, stable interface for team operations, so any plugin that needs team data can work with any compatible team plugin, without either plugin knowing about the other.
 
+Implemented in our refactored Factions fork: [https://modrinth.com/plugin/pvpindex-factions](https://modrinth.com/plugin/pvpindex-factions)
+
 ## How it works
 
-```text
-Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
-```
+![Teams API connect your plugin with team plugins](https://i.ibb.co/VpzgC9SK/teams-api-header.png)
 
 - **Providers** -- faction, clan, guild, or custom team plugins `implement TeamsService`
   and register with TeamsAPI during `onEnable()`.
@@ -27,7 +30,7 @@ consumer plugin keeps working without a recompile.
 - **Role hierarchy**: built-in `OWNER > ADMIN > MEMBER` with `outranks()` and `canManage()` helpers.
 - **Optional invite service**: providers can expose `TeamsInviteService` for invitation workflows.
 - **Optional warp service**: providers can expose `TeamsWarpService` for named team warps.
-- **Optional claim service**: providers can expose `TeamsClaimService` for chunk-claim management.
+- **Optional claim service**: providers can expose `TeamsClaimService` for chunk-claim management, including SafeZone and WarZone territory support.
 - **Optional power service**: providers can expose `TeamsPowerService` for player and team power values.
 - **Optional relation service**: providers can expose `TeamsRelationService` for inter-team diplomacy (ally/truce/neutral/enemy).
 - **Custom subcommands**: any plugin registers a `TeamsSubcommand` via `TeamsAPI.registerSubcommand()`; team plugins call `TeamsAPI.getSubcommands()` in their own command handler to dispatch them, extending the command tree without coupling.
@@ -72,7 +75,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.6.1</version>
+    <version>1.7.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -84,7 +87,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.6.1'
+    compileOnly 'com.github.ez-plugins:teams-api:1.7.0'
 }
 ```
 
@@ -212,6 +215,9 @@ TeamsAPI.registerClaimProvider(this, claimService);
 | `getClaimCount(teamId)` | `int` | Number of claimed chunks |
 | `isClaimed(world, x, z)` | `boolean` | Whether the chunk is claimed by anyone |
 | `isClaimedBy(teamId, world, x, z)` | `boolean` | Whether the chunk is claimed by this team |
+| `getTerritoryTypeAt(world, x, z)` | `ClaimTerritoryType` | Returns `WILDERNESS`, `TEAM`, `SAFE_ZONE`, or `WAR_ZONE` |
+| `isSafeZone(world, x, z)` | `boolean` | Whether the chunk is a SafeZone |
+| `isWarZone(world, x, z)` | `boolean` | Whether the chunk is a WarZone |
 | `getTeamMaxClaims(teamId)` | `int` | Claim limit (-1 means unlimited) |
 
 Consumers check availability with `TeamsAPI.isClaimAvailable()` before calling `TeamsAPI.getClaimService()`.

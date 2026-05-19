@@ -3,6 +3,23 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.7.0]
+
+### Added
+
+- `ClaimTerritoryType` enum (`WILDERNESS`, `TEAM`, `SAFE_ZONE`, `WAR_ZONE`) to
+  represent classic faction territory classes, including SafeZone and WarZone.
+- `TeamClaim.getTerritoryType()` default method. Legacy providers map to `TEAM`
+  automatically unless they override.
+- `TeamClaim.getOwningTeamId()` default method for territory-aware ownership
+  lookups. Returns empty for non-team special territory.
+- `TeamsClaimService` default methods for special territory support:
+  `claimSafeZone(...)`, `claimWarZone(...)`, `unclaimSpecialZone(...)`,
+  `getTerritoryTypeAt(...)`, `isSafeZone(...)`, and `isWarZone(...)`.
+- API docs, developer docs, README, and public listings updated with new claim
+  territory capabilities and examples.
+- `TeamsAPI.API_VERSION` bumped to `1.7.0`.
+
 ## [1.6.1]
 
 ### Added

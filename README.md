@@ -44,7 +44,7 @@ Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.6.1</version>
+    <version>1.7.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -56,7 +56,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.6.1'
+    compileOnly 'com.github.ez-plugins:teams-api:1.7.0'
 }
 ```
 
@@ -158,6 +158,17 @@ if (TeamsAPI.isClaimAvailable()) {
         teamId, player.getUniqueId(),
         chunk.getWorld().getName(), chunk.getX(), chunk.getZ()
     );
+}
+```
+
+Territory type checks are also available for SafeZone/WarZone-aware providers:
+
+```java
+ClaimTerritoryType territory = claims.getTerritoryTypeAt(
+    chunk.getWorld().getName(), chunk.getX(), chunk.getZ()
+);
+if (territory == ClaimTerritoryType.SAFE_ZONE) {
+    player.sendMessage("You are in SafeZone.");
 }
 ```
 

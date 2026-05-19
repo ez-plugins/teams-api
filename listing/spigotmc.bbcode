@@ -28,7 +28,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [*][B]Role hierarchy[/B] -- built-in [COLOR=#ffd700]OWNER[/COLOR] > [COLOR=#ffd700]ADMIN[/COLOR] > [COLOR=#ffd700]MEMBER[/COLOR] with [COLOR=#6cb4ff]outranks()[/COLOR] and [COLOR=#6cb4ff]canManage()[/COLOR] helpers.
 [*][B]Optional invite service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsInviteService[/COLOR] for invitation workflows.
 [*][B]Optional warp service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsWarpService[/COLOR] for named team warps.
-[*][B]Optional claim service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsClaimService[/COLOR] for chunk-claim management.
+[*][B]Optional claim service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsClaimService[/COLOR] for chunk-claim management, including SafeZone and WarZone support.
 [*][B]Optional power service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerService[/COLOR] for player and team power values.
 [*][B]Optional relation service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsRelationService[/COLOR] for inter-team diplomacy (ally / truce / neutral / enemy).
 [*][B]Custom subcommands[/B] -- any plugin registers a [COLOR=#6cb4ff]TeamsSubcommand[/COLOR] via [COLOR=#6cb4ff]TeamsAPI.registerSubcommand()[/COLOR]; team plugins call [COLOR=#6cb4ff]TeamsAPI.getSubcommands()[/COLOR] in their own command handler to dispatch them without coupling.
@@ -76,7 +76,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>1.6.1</version>
+    <version>1.7.0</version>
     <scope>provided</scope>
 </dependency>
 [/CODE]
@@ -88,7 +88,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:1.6.1'
+    compileOnly 'com.github.ez-plugins:teams-api:1.7.0'
 }
 [/CODE]
 [/SPOILER]
@@ -198,6 +198,9 @@ public void onDisable() {
 [*][COLOR=#6cb4ff]getClaimCount(teamId)[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Number of claimed chunks
 [*][COLOR=#6cb4ff]isClaimed(world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether the chunk is claimed by anyone
 [*][COLOR=#6cb4ff]isClaimedBy(teamId, world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether the chunk is claimed by this team
+[*][COLOR=#6cb4ff]getTerritoryTypeAt(world, x, z)[/COLOR] -> [COLOR=#ffd700]ClaimTerritoryType[/COLOR] -- Returns [COLOR=#ffd700]WILDERNESS[/COLOR], [COLOR=#ffd700]TEAM[/COLOR], [COLOR=#ffd700]SAFE_ZONE[/COLOR], or [COLOR=#ffd700]WAR_ZONE[/COLOR]
+[*][COLOR=#6cb4ff]isSafeZone(world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether the chunk is a SafeZone
+[*][COLOR=#6cb4ff]isWarZone(world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether the chunk is a WarZone
 [*][COLOR=#6cb4ff]getTeamMaxClaims(teamId)[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Claim limit (-1 means unlimited)
 [/LIST]
 
