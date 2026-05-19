@@ -3,6 +3,29 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- `TeamsNotificationService` optional extension interface for cross-plugin player
+  notifications with provider-controlled authorization via `senderPlugin`.
+- Dual notification type support:
+  enum-based built-ins (`TeamNotificationType`) and custom string notification
+  types for third-party plugin namespaces.
+- New `TeamsAPI` notification facade methods:
+  `getNotificationService()`, `isNotificationAvailable()`,
+  `registerNotificationProvider(plugin, service)`,
+  `registerNotificationProvider(plugin, service, priority)`,
+  `unregisterNotificationProvider(service)`.
+- New `TeamNotificationType` enum with built-in categories:
+  `GENERAL`, `TEAM_JOIN`, `TEAM_LEAVE`, `TEAM_INVITE`,
+  `TEAM_INVITE_ACCEPT`, `TEAM_INVITE_DECLINE`.
+- New tests:
+  `TeamsAPINotificationTest` (service registration/availability/null-safety)
+  and `TeamNotificationTypeTest` (enum contract coverage).
+- API reference docs updated with notification service method tables,
+  enum documentation, and examples for both built-in and custom string types.
+
 ## [1.7.0]
 
 ### Added

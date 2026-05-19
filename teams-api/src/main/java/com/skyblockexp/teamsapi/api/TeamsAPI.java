@@ -633,6 +633,105 @@ public final class TeamsAPI {
     }
 
     // -------------------------------------------------------------------------
+    // Notification provider registration and lookup
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the currently registered {@link TeamsNotificationService} provider, or
+     * {@code null} if no notification provider has been registered.
+     *
+     * <p>Consumers should check {@link #isNotificationAvailable()} before calling this
+     * method to handle gracefully the case where no team plugin exposes a notification
+     * bridge.</p>
+     *
+     * @return the active {@link TeamsNotificationService}, or {@code null} if unavailable
+     */
+    public static TeamsNotificationService getNotificationService() {
+        try {
+            final RegisteredServiceProvider<TeamsNotificationService> reg =
+                Bukkit.getServicesManager().getRegistration(TeamsNotificationService.class);
+
+            return reg != null ? reg.getProvider() : null;
+        }
+        catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns {@code true} if at least one {@link TeamsNotificationService} provider is
+     * currently registered.
+     *
+     * @return {@code true} if a notification provider is available, {@code false} otherwise
+     */
+    public static boolean isNotificationAvailable() {
+        return getNotificationService() != null;
+    }
+
+    /**
+     * Registers a {@link TeamsNotificationService} provider with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at {@link ServicePriority#Normal}.
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin   the plugin registering the provider; must not be {@code null}
+     * @param provider the {@link TeamsNotificationService} implementation; must not be
+     *                 {@code null}
+     */
+    public static void registerNotificationProvider(final Plugin plugin,
+            final TeamsNotificationService provider) {
+        if (plugin == null || provider == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsNotificationService.class, provider, plugin, ServicePriority.Normal);
+    }
+
+    /**
+     * Registers a {@link TeamsNotificationService} provider with Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager} at the specified priority.
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin   the plugin registering the provider; must not be {@code null}
+     * @param provider the {@link TeamsNotificationService} implementation; must not be
+     *                 {@code null}
+     * @param priority the {@link ServicePriority} to register at; must not be {@code null}
+     */
+    public static void registerNotificationProvider(
+            final Plugin plugin,
+            final TeamsNotificationService provider,
+            final ServicePriority priority) {
+        if (plugin == null || provider == null || priority == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager()
+            .register(TeamsNotificationService.class, provider, plugin, priority);
+    }
+
+    /**
+     * Unregisters a {@link TeamsNotificationService} provider from Bukkit's
+     * {@link org.bukkit.plugin.ServicesManager}.
+     *
+     * <p>Providers should call this in their plugin's {@code onDisable()} alongside
+     * {@link #unregisterProvider(TeamsService)}.</p>
+     *
+     * <p>This method silently ignores a {@code null} argument.</p>
+     *
+     * @param provider the {@link TeamsNotificationService} provider to unregister;
+     *                 may be {@code null}
+     */
+    public static void unregisterNotificationProvider(final TeamsNotificationService provider) {
+        if (provider == null) {
+            return;
+        }
+
+        Bukkit.getServicesManager().unregister(TeamsNotificationService.class, provider);
+    }
+
+    // -------------------------------------------------------------------------
     // Custom subcommand registration and dispatch
     // -------------------------------------------------------------------------
 

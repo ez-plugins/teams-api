@@ -110,6 +110,7 @@ service:
 | `TeamsClaimService` | Claiming and unclaiming chunks for the team, including optional SafeZone/WarZone territory support |
 | `TeamsPowerService` | Player and team power values; optional power shop via `/teamsapi power buy` (requires [Vault](https://github.com/MilkBowl/VaultAPI)) |
 | `TeamsRelationService` | Inter-team diplomacy (ally / truce / neutral / enemy) |
+| `TeamsNotificationService` | Cross-plugin player notifications with built-in enum types and custom string notification types |
 
 These are independent of the core service. No configuration is required on your end; it is entirely up to
 your team plugin whether it registers these services.
@@ -189,7 +190,7 @@ Yes. TeamsAPI provides the `/teamsapi` command for diagnostic and status checks.
 |------------|-----------|---------|-------------|
 | `/teamsapi` or `/teamsapi version` | `teamsapi.use` | everyone | Prints the installed API version. |
 | `/teamsapi status` | `teamsapi.status` | everyone | Shows the active provider, team count, and which optional services are registered. |
-| `/teamsapi info` | `teamsapi.admin` | op | Detailed internal diagnostic: all five service types, registered subcommands, plugin version. |
+| `/teamsapi info` | `teamsapi.admin` | op | Detailed internal diagnostic: all registered service types, registered subcommands, plugin version. |
 | `/teamsapi power status` | `teamsapi.power` | op | Shows the sender's current and maximum power. |
 | `/teamsapi power buy <amount>` | `teamsapi.power.buy` | disabled | Disabled by default. Enable with `power-shop.enabled: true` in `config.yml`. Requires Vault. |
 
