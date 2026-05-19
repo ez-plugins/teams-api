@@ -9,7 +9,7 @@ permalink: /
 # TeamsAPI
 
 [![JitPack](https://jitpack.io/v/ez-plugins/teams-api.svg)](https://jitpack.io/#ez-plugins/teams-api)
-[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-1.3.0-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
+[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-1.7.0-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
 
 **TeamsAPI** is a passive bridge plugin for Paper, Spigot, Purpur, and Folia
 servers running Minecraft 1.16+, modelled on [Vault](https://github.com/MilkBowl/VaultAPI).
@@ -33,6 +33,10 @@ backend server directly.
   independently of the core team service
 - **Optional warp support**: register a `TeamsWarpService` to manage named team warps
   independently of the core team service
+- **Optional claim support**: register a `TeamsClaimService` for chunk claims, including
+  SafeZone and WarZone territory typing
+- **Optional power support**: register a `TeamsPowerService` to expose team/player power
+- **Optional relation support**: register a `TeamsRelationService` for ally/truce/neutral/enemy diplomacy
 - **Velocity bridge**: proxy-side async API (`VelocityTeamsService`) backed by a plugin
   messaging channel — no direct backend connection required
 - **BungeeCord bridge**: proxy-side async API (`BungeeTeamsService`) for BungeeCord
@@ -56,7 +60,7 @@ backend server directly.
 <dependency>
   <groupId>com.github.ez-plugins</groupId>
   <artifactId>teams-api</artifactId>
-  <version>1.3.0</version>
+  <version>1.7.0</version>
   <scope>provided</scope>
 </dependency>
 ```

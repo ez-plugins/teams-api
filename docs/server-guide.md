@@ -107,7 +107,7 @@ service:
 |---------|-----------------|
 | `TeamsInviteService` | Sending, accepting, and declining team invitations |
 | `TeamsWarpService` | Creating and teleporting to named team warps |
-| `TeamsClaimService` | Claiming and unclaiming chunks for the team |
+| `TeamsClaimService` | Claiming and unclaiming chunks for the team, including optional SafeZone/WarZone territory support |
 | `TeamsPowerService` | Player and team power values; optional power shop via `/teamsapi power buy` (requires [Vault](https://github.com/MilkBowl/VaultAPI)) |
 | `TeamsRelationService` | Inter-team diplomacy (ally / truce / neutral / enemy) |
 
