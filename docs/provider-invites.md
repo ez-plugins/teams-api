@@ -1,7 +1,7 @@
 ---
 title: Invite Provider
-nav_order: 2
-parent: Developer Guide
+nav_order: 4
+parent: Provider Guide
 description: "How to implement and register TeamsInviteService for invitation support"
 ---
 

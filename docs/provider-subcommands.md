@@ -1,7 +1,7 @@
 ---
 title: Custom Subcommands
-nav_order: 4
-parent: Developer Guide
+nav_order: 3
+parent: Provider Guide
 description: "How to dispatch TeamsSubcommand registrations inside your team plugin's own command handler"
 ---
 

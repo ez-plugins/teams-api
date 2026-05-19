@@ -1,7 +1,7 @@
 ---
 title: Team Provider
-nav_order: 1
-parent: Developer Guide
+nav_order: 2
+parent: Provider Guide
 description: "How to implement and register TeamsService in your team plugin"
 ---
 
