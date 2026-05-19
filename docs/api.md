@@ -173,13 +173,19 @@ Existing `TeamsService` implementations are not required to support it.
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `claimChunk(teamId, playerUUID, worldName, chunkX, chunkZ)` | `boolean` | Claims the chunk for the team. Providers should fire `TeamClaimEvent` before persisting; return `false` if cancelled, already claimed, or the team lacks enough power. |
+| `claimSafeZone(actorUUID, worldName, chunkX, chunkZ)` | `boolean` | Default method. Claims a chunk as SafeZone on behalf of an admin actor. Returns `false` by default unless overridden by the provider. |
+| `claimWarZone(actorUUID, worldName, chunkX, chunkZ)` | `boolean` | Default method. Claims a chunk as WarZone on behalf of an admin actor. Returns `false` by default unless overridden by the provider. |
 | `unclaimChunk(teamId, playerUUID, worldName, chunkX, chunkZ)` | `boolean` | Removes the team's claim on the chunk. Providers should fire `TeamUnclaimEvent` before removing; return `false` if cancelled or no claim existed. |
+| `unclaimSpecialZone(actorUUID, worldName, chunkX, chunkZ)` | `boolean` | Default method. Removes a SafeZone/WarZone claim. Returns `false` by default unless overridden by the provider. |
 | `unclaimAll(teamId)` | `boolean` | Removes all claims owned by the team (e.g. on disband). Individual unclaim events are not required. Returns `false` if the team had no claims. |
 | `getClaimAt(worldName, chunkX, chunkZ)` | `Optional<TeamClaim>` | Returns the claim at the given chunk, or empty if unclaimed. |
+| `getTerritoryTypeAt(worldName, chunkX, chunkZ)` | `ClaimTerritoryType` | Default method. Returns `WILDERNESS` when no claim exists, otherwise uses `TeamClaim.getTerritoryType()`. |
 | `getTeamClaims(teamId)` | `Collection<TeamClaim>` | All chunks claimed by the team. Never `null`; empty if the team has no claims. |
 | `getClaimCount(teamId)` | `int` | Number of chunks currently claimed by the team. Always `>= 0`. |
 | `isClaimed(worldName, chunkX, chunkZ)` | `boolean` | Whether any team owns the chunk. |
 | `isClaimedBy(teamId, worldName, chunkX, chunkZ)` | `boolean` | Whether the specific team owns the chunk. |
+| `isSafeZone(worldName, chunkX, chunkZ)` | `boolean` | Default method. Returns `true` when `getTerritoryTypeAt(...) == SAFE_ZONE`. |
+| `isWarZone(worldName, chunkX, chunkZ)` | `boolean` | Default method. Returns `true` when `getTerritoryTypeAt(...) == WAR_ZONE`. |
 | `getTeamMaxClaims(teamId)` | `int` | Maximum chunks the team may claim. `-1` means no limit. |
 
 ## `TeamsPowerService` (interface)
@@ -269,10 +275,23 @@ methods.
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `getTeamId()` | `UUID` | The UUID of the team that owns this claim. |
+| `getTerritoryType()` | `ClaimTerritoryType` | Default method. Returns `TEAM` for legacy providers unless overridden. |
+| `getOwningTeamId()` | `Optional<UUID>` | Default method. Returns `Optional.of(getTeamId())` for `TEAM`; empty for special territories such as SafeZone/WarZone. |
 | `getWorldName()` | `String` | The name of the world the chunk is in. |
 | `getChunkX()` | `int` | The X coordinate of the claimed chunk. |
 | `getChunkZ()` | `int` | The Z coordinate of the claimed chunk. |
 | `getClaimedAt()` | `Instant` | When the chunk was claimed; may be `Instant.EPOCH` if the provider does not track this. |
+
+## `ClaimTerritoryType` (enum)
+
+Classifies chunk territory in faction-style claiming systems.
+
+| Constant | Description |
+|----------|-------------|
+| `WILDERNESS` | Unclaimed land. |
+| `TEAM` | Claimed by a regular player team. |
+| `SAFE_ZONE` | Server-admin protected territory (typically no PvP/no damage). |
+| `WAR_ZONE` | Server-admin war territory (typically PvP always enabled). |
 
 ## `TeamRelation` (enum)
 
@@ -357,6 +376,18 @@ All concrete events implement `Cancellable`.
 | `TeamRelationChangeEvent` | Yes | `getTeam()` (source), `getTargetTeam()`, `getInitiatorUUID()`, `getOldRelation()`, `getNewRelation()`, `setNewRelation(relation)` |
 
 ## Migration notes
+
+### 1.7.0
+
+Non-breaking addition. No changes required for existing providers or consumers.
+
+- New enum: `ClaimTerritoryType` with `WILDERNESS`, `TEAM`, `SAFE_ZONE`, `WAR_ZONE`.
+- `TeamClaim` now includes default methods:
+  `getTerritoryType()` and `getOwningTeamId()`.
+- `TeamsClaimService` now includes default methods for special territories:
+  `claimSafeZone(...)`, `claimWarZone(...)`, `unclaimSpecialZone(...)`,
+  `getTerritoryTypeAt(...)`, `isSafeZone(...)`, and `isWarZone(...)`.
+- `TeamsAPI.API_VERSION` bumped from `1.6.1` to `1.7.0`.
 
 ### 1.6.1
 

@@ -1,5 +1,6 @@
 package com.skyblockexp.teamsapi.api;
 
+import com.skyblockexp.teamsapi.model.ClaimTerritoryType;
 import com.skyblockexp.teamsapi.model.TeamClaim;
 
 import java.util.Collection;
@@ -59,6 +60,40 @@ public interface TeamsClaimService {
     boolean claimChunk(UUID teamId, UUID playerUUID, String worldName, int chunkX, int chunkZ);
 
     /**
+     * Claims the given chunk as SafeZone territory on behalf of an administrator.
+     *
+     * <p>Default implementation returns {@code false} for backward compatibility.
+     * Providers that support special territories should override this method.</p>
+     *
+     * @param actorUUID the UUID of the player performing the claim; must not be {@code null}
+     * @param worldName the name of the world the chunk is in; must not be {@code null}
+     * @param chunkX    the X coordinate of the chunk
+     * @param chunkZ    the Z coordinate of the chunk
+     * @return {@code true} if the claim was recorded successfully, {@code false} otherwise
+     */
+    default boolean claimSafeZone(final UUID actorUUID, final String worldName,
+            final int chunkX, final int chunkZ) {
+        return false;
+    }
+
+    /**
+     * Claims the given chunk as WarZone territory on behalf of an administrator.
+     *
+     * <p>Default implementation returns {@code false} for backward compatibility.
+     * Providers that support special territories should override this method.</p>
+     *
+     * @param actorUUID the UUID of the player performing the claim; must not be {@code null}
+     * @param worldName the name of the world the chunk is in; must not be {@code null}
+     * @param chunkX    the X coordinate of the chunk
+     * @param chunkZ    the Z coordinate of the chunk
+     * @return {@code true} if the claim was recorded successfully, {@code false} otherwise
+     */
+    default boolean claimWarZone(final UUID actorUUID, final String worldName,
+            final int chunkX, final int chunkZ) {
+        return false;
+    }
+
+    /**
      * Unclaims the given chunk from the given team on behalf of the given player.
      *
      * <p>Providers should fire {@link com.skyblockexp.teamsapi.event.TeamUnclaimEvent}
@@ -73,6 +108,23 @@ public interface TeamsClaimService {
      * @return {@code true} if the claim existed and was removed, {@code false} otherwise
      */
     boolean unclaimChunk(UUID teamId, UUID playerUUID, String worldName, int chunkX, int chunkZ);
+
+    /**
+     * Unclaims a special territory chunk (SafeZone/WarZone) on behalf of an administrator.
+     *
+     * <p>Default implementation returns {@code false} for backward compatibility.
+     * Providers that support special territories should override this method.</p>
+     *
+     * @param actorUUID the UUID of the player performing the unclaim; must not be {@code null}
+     * @param worldName the name of the world the chunk is in; must not be {@code null}
+     * @param chunkX    the X coordinate of the chunk
+     * @param chunkZ    the Z coordinate of the chunk
+     * @return {@code true} if a special territory claim existed and was removed
+     */
+    default boolean unclaimSpecialZone(final UUID actorUUID, final String worldName,
+            final int chunkX, final int chunkZ) {
+        return false;
+    }
 
     /**
      * Removes all chunk claims belonging to the given team.
@@ -96,6 +148,25 @@ public interface TeamsClaimService {
      *         is unclaimed
      */
     Optional<TeamClaim> getClaimAt(String worldName, int chunkX, int chunkZ);
+
+    /**
+     * Returns the effective territory type at the given chunk.
+     *
+     * <p>Default implementation derives the type from {@link #getClaimAt}. If no claim
+     * exists, this returns {@link ClaimTerritoryType#WILDERNESS}.</p>
+     *
+     * @param worldName the name of the world; must not be {@code null}
+     * @param chunkX    the X coordinate of the chunk
+     * @param chunkZ    the Z coordinate of the chunk
+     * @return the effective territory type; never {@code null}
+     */
+    default ClaimTerritoryType getTerritoryTypeAt(
+            final String worldName,
+            final int chunkX,
+            final int chunkZ) {
+        final Optional<TeamClaim> claim = getClaimAt(worldName, chunkX, chunkZ);
+        return claim.map(TeamClaim::getTerritoryType).orElse(ClaimTerritoryType.WILDERNESS);
+    }
 
     /**
      * Returns all chunks currently claimed by the given team.
@@ -134,6 +205,34 @@ public interface TeamsClaimService {
      * @return {@code true} if the chunk is owned by the given team, {@code false} otherwise
      */
     boolean isClaimedBy(UUID teamId, String worldName, int chunkX, int chunkZ);
+
+    /**
+     * Returns {@code true} if the given chunk is SafeZone territory.
+     *
+     * <p>Default implementation checks {@link #getTerritoryTypeAt}.</p>
+     *
+     * @param worldName the name of the world; must not be {@code null}
+     * @param chunkX    the X coordinate of the chunk
+     * @param chunkZ    the Z coordinate of the chunk
+     * @return {@code true} if the chunk is SafeZone territory
+     */
+    default boolean isSafeZone(final String worldName, final int chunkX, final int chunkZ) {
+        return getTerritoryTypeAt(worldName, chunkX, chunkZ) == ClaimTerritoryType.SAFE_ZONE;
+    }
+
+    /**
+     * Returns {@code true} if the given chunk is WarZone territory.
+     *
+     * <p>Default implementation checks {@link #getTerritoryTypeAt}.</p>
+     *
+     * @param worldName the name of the world; must not be {@code null}
+     * @param chunkX    the X coordinate of the chunk
+     * @param chunkZ    the Z coordinate of the chunk
+     * @return {@code true} if the chunk is WarZone territory
+     */
+    default boolean isWarZone(final String worldName, final int chunkX, final int chunkZ) {
+        return getTerritoryTypeAt(worldName, chunkX, chunkZ) == ClaimTerritoryType.WAR_ZONE;
+    }
 
     /**
      * Returns the maximum number of chunks the given team is currently allowed to claim.
