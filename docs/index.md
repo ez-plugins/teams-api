@@ -85,15 +85,40 @@ public void onEnable() {
 
 ## Documentation
 
+### Server owners
+
 | Page | What it covers |
 |------|----------------|
 | [Server Guide](server-guide) | Installation, verification, and troubleshooting for server owners |
-| [Developer Guide](developer-guide) | Architecture, installation, and consumer usage |
-| [Team Provider](provider-teams) | Implementing `TeamsService` in your team plugin |
-| [Invite Provider](provider-invites) | Implementing `TeamsInviteService` for invitation support |
-| [Warp Provider](provider-warps) | Implementing `TeamsWarpService` for warp support |
-| [Velocity Guide](velocity) | Setting up and using the Velocity bridge plugin |
-| [BungeeCord Guide](bungeecord) | Setting up and using the BungeeCord bridge plugin |
+
+### Consumer addon developers
+
+| Page | What it covers |
+|------|----------------|
+| [Consumer Guide](consumer-guide) | Best entry point for addon plugin developers |
+| [Consumer Tutorial (Bukkit)](consumer-tutorial-bukkit) | Build a Bukkit consumer plugin step-by-step |
+| [Consumer Tutorial (Proxy)](consumer-tutorial-proxy) | Build a Velocity/Bungee consumer plugin step-by-step |
+| [Registering Subcommands](consumer-subcommands) | Register addon subcommands for provider command dispatch |
+| [Velocity Guide](velocity) | Proxy bridge setup and consumer API behavior (Velocity) |
+| [BungeeCord Guide](bungeecord) | Proxy bridge setup and consumer API behavior (BungeeCord) |
+
+### Team plugin providers
+
+| Page | What it covers |
+|------|----------------|
+| [Provider Guide](provider-guide) | Best entry point for team plugin developers |
+| [Provider Tutorial (Step-by-step)](provider-tutorial) | Simple guide to implement TeamsAPI in your team/faction plugin |
+| [Team Provider](provider-teams) | Implement and register `TeamsService` |
+| [Custom Subcommands](provider-subcommands) | Dispatch third-party TeamsAPI subcommands |
+| [Invite Provider](provider-invites) | Implement and register `TeamsInviteService` |
+| [Warp Provider](provider-warps) | Implement and register `TeamsWarpService` |
+| [Optional Integration & Shading](provider-optional-integration) | Keep TeamsAPI support optional and avoid classpath conflicts |
+
+### Shared reference
+
+| Page | What it covers |
+|------|----------------|
+| [Developer Guide](developer-guide) | Architecture and cross-cutting integration concepts |
 | [API Reference](api) | Full public-method tables for every class and event |
 
 ## Requirements

@@ -1,7 +1,7 @@
 ---
 title: Warp Provider
-nav_order: 3
-parent: Developer Guide
+nav_order: 5
+parent: Provider Guide
 description: "How to implement and register TeamsWarpService for team warp support"
 ---
 

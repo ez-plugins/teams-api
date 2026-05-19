@@ -1,8 +1,7 @@
 ---
 title: Developer Guide
-nav_order: 3
-has_children: true
-description: "Architecture overview, installation instructions, and consumer usage guide"
+nav_order: 6
+description: "Architecture and integration concepts for TeamsAPI"
 ---
 
 # Developer Guide
@@ -18,6 +17,11 @@ TeamsAPI is a passive bridge plugin, modelled on the same design philosophy as
 [Vault](https://github.com/MilkBowl/VaultAPI). It defines a standard interface
 for team operations so that any plugin needing team data can work with any
 compatible team plugin without coupling them together.
+
+Audience shortcuts:
+
+- Addon plugin developers: [Consumer Guide](consumer-guide)
+- Team plugin developers: [Provider Guide](provider-guide)
 
 ## Architecture
 
@@ -68,6 +72,12 @@ an empty `Optional` or `null` from the API and must handle that gracefully.
 Consumers are plugins that read or react to team data. They depend on
 `teams-api` but do not implement any service interfaces.
 
+If you want a full copy-paste starter first, use:
+
+- [Consumer Tutorial (Bukkit)](consumer-tutorial-bukkit)
+- [Consumer Tutorial (Proxy)](consumer-tutorial-proxy)
+- [Consumer Recipe Dropdown](consumer-tutorial-bukkit#consumer-tutorial-dropdown-recipes)
+
 ### 1. Add the dependency
 
 **Maven** (via Jitpack):
@@ -112,6 +122,13 @@ depend:
 If team support is optional in your plugin, use `softdepend` instead. In that
 case, always guard your API calls with `TeamsAPI.isAvailable()`.
 
+Recommended `softdepend` setup:
+
+```yaml
+softdepend:
+  - TeamsAPI
+```
+
 ### 3. Use the team service
 
 ```java
@@ -142,6 +159,14 @@ private void handlePlayerCommand(Player player) {
     player.sendMessage("Members: " + team.get().getSize());
 }
 ```
+
+Consumer safety checklist:
+
+- Treat `TeamsAPI.getService()` as nullable every time you read it.
+- Treat every `Optional<T>` lookup as potentially empty.
+- Use user-facing fallback messages instead of stack traces for unavailable services.
+- Keep all optional service usage behind `TeamsAPI.isXAvailable()` checks.
+- Avoid caching provider-owned objects long-term; re-query when needed.
 
 ### 4. Use the invite service (optional)
 
@@ -409,6 +434,8 @@ service.getPlayerTeam(player.getUniqueId())
 All methods time out after **5 seconds** if the backend does not respond.
 See the [Velocity Guide](velocity) for installation and full API details.
 
+For an end-to-end proxy example, see [Consumer Tutorial (Proxy)](consumer-tutorial-proxy).
+
 ## API versioning
 
 Check `TeamsAPI.API_VERSION` at runtime if you need to guard against future
@@ -424,6 +451,9 @@ backward-compatible features. Patch bumps are bug fixes only.
 
 ## See also
 
+- [Consumer Tutorial (Bukkit)](consumer-tutorial-bukkit): end-to-end Bukkit consumer plugin
+- [Consumer Tutorial (Proxy)](consumer-tutorial-proxy): end-to-end Velocity/Bungee consumer plugin
+- [Registering Subcommands](consumer-subcommands): consumer-side custom subcommands
 - [Team Provider](provider-teams): implementing `TeamsService` in your team plugin
 - [Invite Provider](provider-invites): implementing `TeamsInviteService` for invitation support
 - [Warp Provider](provider-warps): implementing `TeamsWarpService` for warp support

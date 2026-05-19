@@ -1,6 +1,7 @@
 ---
 title: Velocity Guide
-nav_order: 7
+nav_order: 4
+parent: Consumer Guide
 description: "Setting up and using the TeamsAPI Velocity bridge plugin"
 ---
 

@@ -1,6 +1,7 @@
 ---
 title: BungeeCord Guide
-nav_order: 8
+nav_order: 5
+parent: Consumer Guide
 description: "Setting up and using the TeamsAPI BungeeCord bridge plugin"
 ---
 

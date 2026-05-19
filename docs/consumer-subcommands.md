@@ -1,7 +1,7 @@
 ---
 title: Registering Subcommands
-nav_order: 5
-parent: Developer Guide
+nav_order: 2
+parent: Consumer Guide
 description: "How to implement and register a TeamsSubcommand so team plugins dispatch it in their own command handler"
 ---
 
