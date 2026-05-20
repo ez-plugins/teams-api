@@ -76,10 +76,17 @@ public interface TeamsRelationService {
      *
      * <p>If no explicit relation has been set, {@link TeamRelation#NEUTRAL} is returned.</p>
      *
+     * <p>When both UUIDs refer to the same team (i.e.
+     * {@code fromTeamId.equals(toTeamId)}), implementations SHOULD return
+     * {@link TeamRelation#MEMBER} to signal the same-team relationship. Consumers
+     * querying the relation between two players that may be on the same team should
+     * be prepared to receive {@link TeamRelation#MEMBER} as a result.</p>
+     *
      * @param fromTeamId the UUID of the team whose declaration is queried; must not be {@code null}
      * @param toTeamId   the UUID of the target team; must not be {@code null}
      * @return the declared {@link TeamRelation}; never {@code null};
-     *         {@link TeamRelation#NEUTRAL} if no relation has been set
+     *         {@link TeamRelation#NEUTRAL} if no relation has been set;
+     *         {@link TeamRelation#MEMBER} if both UUIDs refer to the same team
      */
     TeamRelation getRelation(UUID fromTeamId, UUID toTeamId);
 
