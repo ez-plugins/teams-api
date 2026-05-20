@@ -195,6 +195,7 @@ class TeamsAPIRelationTest {
         assertEquals("Truce",   TeamRelation.TRUCE.getDisplayName());
         assertEquals("Neutral", TeamRelation.NEUTRAL.getDisplayName());
         assertEquals("Enemy",   TeamRelation.ENEMY.getDisplayName());
+        assertEquals("Member",  TeamRelation.MEMBER.getDisplayName());
     }
 
     // -------------------------------------------------------------------------
@@ -208,10 +209,11 @@ class TeamsAPIRelationTest {
      */
     @Test
     void teamRelation_getLegacyColorCode_returnsCorrectCode() {
-        assertEquals('a', TeamRelation.ALLY.getLegacyColorCode());
-        assertEquals('6', TeamRelation.TRUCE.getLegacyColorCode());
+        assertEquals('b', TeamRelation.ALLY.getLegacyColorCode());
+        assertEquals('e', TeamRelation.TRUCE.getLegacyColorCode());
         assertEquals('7', TeamRelation.NEUTRAL.getLegacyColorCode());
         assertEquals('c', TeamRelation.ENEMY.getLegacyColorCode());
+        assertEquals('a', TeamRelation.MEMBER.getLegacyColorCode());
     }
 
     // -------------------------------------------------------------------------
@@ -224,10 +226,11 @@ class TeamsAPIRelationTest {
      */
     @Test
     void teamRelation_getDefaultHexColor_returnsCorrectHex() {
-        assertEquals("#55FF55", TeamRelation.ALLY.getDefaultHexColor());
-        assertEquals("#FFAA00", TeamRelation.TRUCE.getDefaultHexColor());
+        assertEquals("#55FFFF", TeamRelation.ALLY.getDefaultHexColor());
+        assertEquals("#FFFF55", TeamRelation.TRUCE.getDefaultHexColor());
         assertEquals("#AAAAAA", TeamRelation.NEUTRAL.getDefaultHexColor());
         assertEquals("#FF5555", TeamRelation.ENEMY.getDefaultHexColor());
+        assertEquals("#55FF55", TeamRelation.MEMBER.getDefaultHexColor());
     }
 
     // -------------------------------------------------------------------------
@@ -322,5 +325,57 @@ class TeamsAPIRelationTest {
 
         assertEquals("#0000FF", service.getRelationColor(TeamRelation.ALLY));
         assertEquals(TeamRelation.ENEMY.getDefaultHexColor(), service.getRelationColor(TeamRelation.ENEMY));
+    }
+
+    // -------------------------------------------------------------------------
+    // TeamRelation enum — isFriendly
+    // -------------------------------------------------------------------------
+
+    /**
+     * teamRelation_isFriendly_returnsTrue_forMemberAllyTruce verifies that
+     * {@link TeamRelation#isFriendly()} returns {@code true} for MEMBER, ALLY, and
+     * TRUCE, and {@code false} for NEUTRAL and ENEMY.
+     */
+    @Test
+    void teamRelation_isFriendly_returnsTrue_forMemberAllyTruce() {
+        assertTrue(TeamRelation.MEMBER.isFriendly());
+        assertTrue(TeamRelation.ALLY.isFriendly());
+        assertTrue(TeamRelation.TRUCE.isFriendly());
+        assertFalse(TeamRelation.NEUTRAL.isFriendly());
+        assertFalse(TeamRelation.ENEMY.isFriendly());
+    }
+
+    // -------------------------------------------------------------------------
+    // TeamRelation enum — isMoreHostileThan
+    // -------------------------------------------------------------------------
+
+    /**
+     * teamRelation_isMoreHostileThan_memberIsLeastHostile verifies that
+     * {@link TeamRelation#MEMBER} is less hostile than every other relation.
+     */
+    @Test
+    void teamRelation_isMoreHostileThan_memberIsLeastHostile() {
+        assertFalse(TeamRelation.MEMBER.isMoreHostileThan(TeamRelation.ALLY));
+        assertFalse(TeamRelation.MEMBER.isMoreHostileThan(TeamRelation.TRUCE));
+        assertFalse(TeamRelation.MEMBER.isMoreHostileThan(TeamRelation.NEUTRAL));
+        assertFalse(TeamRelation.MEMBER.isMoreHostileThan(TeamRelation.ENEMY));
+        assertTrue(TeamRelation.ALLY.isMoreHostileThan(TeamRelation.MEMBER));
+        assertTrue(TeamRelation.ENEMY.isMoreHostileThan(TeamRelation.MEMBER));
+    }
+
+    /**
+     * teamRelation_isMoreHostileThan_preservesExistingOrdering verifies that the
+     * original four-constant hostility ordering (ALLY &lt; TRUCE &lt; NEUTRAL &lt; ENEMY)
+     * is unchanged after the introduction of MEMBER.
+     */
+    @Test
+    void teamRelation_isMoreHostileThan_preservesExistingOrdering() {
+        assertTrue(TeamRelation.TRUCE.isMoreHostileThan(TeamRelation.ALLY));
+        assertTrue(TeamRelation.NEUTRAL.isMoreHostileThan(TeamRelation.TRUCE));
+        assertTrue(TeamRelation.ENEMY.isMoreHostileThan(TeamRelation.NEUTRAL));
+        assertTrue(TeamRelation.ENEMY.isMoreHostileThan(TeamRelation.ALLY));
+        assertFalse(TeamRelation.ALLY.isMoreHostileThan(TeamRelation.TRUCE));
+        assertFalse(TeamRelation.ALLY.isMoreHostileThan(TeamRelation.NEUTRAL));
+        assertFalse(TeamRelation.ALLY.isMoreHostileThan(TeamRelation.ENEMY));
     }
 }

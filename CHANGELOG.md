@@ -3,6 +3,39 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.0.0]
+
+### Added
+
+- `TeamRelation.MEMBER` constant (ordinal 4) representing the same-team relationship.
+  Providers should return `MEMBER` from `getRelation(A, A)` when both team UUIDs are
+  equal. Consumers comparing two players on potentially the same team will now receive
+  a dedicated constant instead of `NEUTRAL`.
+- `TeamRelation` internal `hostilityLevel` field. `isMoreHostileThan()` now uses this
+  field instead of ordinal position, correctly placing `MEMBER` at hostility level -1
+  (less hostile than `ALLY`). Results for the original four constants are unchanged.
+- `isFriendly()` now returns `true` for `MEMBER` in addition to `ALLY` and `TRUCE`.
+- `TeamsAPI.API_VERSION` bumped to `2.0.0`.
+
+### Changed
+
+- **`ALLY` default color**: `§a` (green / `#55FF55`) → `§b` (aqua / `#55FFFF`).
+  This aligns with the standard Factions color convention where green represents
+  same-team membership.
+- **`TRUCE` default color**: `§6` (gold / `#FFAA00`) → `§e` (yellow / `#FFFF55`).
+  Aligns legacy code character with MiniMessage `<yellow>`.
+
+### Migration
+
+The four original ordinals (`ALLY=0`, `TRUCE=1`, `NEUTRAL=2`, `ENEMY=3`) are
+**unchanged**. Code that does not reference `MEMBER` and does not depend on the
+specific color values of `ALLY` or `TRUCE` requires no changes.
+
+Consumers that use `ALLY` or `TRUCE` default colors (via `getLegacyColorCode()`,
+`getDefaultHexColor()`, or `TeamsRelationService.getRelationColor()`) should update
+their color expectations accordingly. Providers that configure their own colors via
+`getRelationColor()` overrides are unaffected.
+
 ## [1.8.0]
 
 ### Added

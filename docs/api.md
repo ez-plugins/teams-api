@@ -258,7 +258,7 @@ responded. Whether a relation requires mutual agreement for benefits is provider
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `setRelation(fromTeamId, toTeamId, relation, initiatorUUID)` | `boolean` | Declares a relation from one team toward another. Providers should fire `TeamRelationChangeEvent` before persisting; return `false` if cancelled or either team does not exist. Setting `NEUTRAL` removes a previously declared relation. |
-| `getRelation(fromTeamId, toTeamId)` | `TeamRelation` | Returns the relation declared by `fromTeam` toward `toTeam`. Returns `NEUTRAL` if no explicit relation exists. |
+| `getRelation(fromTeamId, toTeamId)` | `TeamRelation` | Returns the relation declared by `fromTeam` toward `toTeam`. Returns `NEUTRAL` if no explicit relation exists. Providers SHOULD return `MEMBER` when both UUIDs are equal. |
 | `getRelations(teamId)` | `Map<UUID, TeamRelation>` | Returns all non-neutral relations declared by the team. Never `null`; empty if no relations exist. |
 | `clearRelations(teamId)` | `boolean` | Removes all relations declared by or toward the team (e.g. on disband). Returns `false` if the team had no relations. |
 | `areAllies(teamAId, teamBId)` | `boolean` | Default: returns `true` when both teams have declared `ALLY` toward each other. |
@@ -387,15 +387,20 @@ Classifies chunk territory in faction-style claiming systems.
 
 ## `TeamRelation` (enum)
 
-Represents the relationship one team has declared toward another. Ordinal ordering
-(lowest hostility → highest): `ALLY < TRUCE < NEUTRAL < ENEMY`.
+Represents the relationship between two teams, including the same-team case.
+Hostility ordering (lowest → highest): `MEMBER < ALLY < TRUCE < NEUTRAL < ENEMY`.
 
-| Constant | Display name | Legacy color | Hex color | Description |
-|----------|-------------|--------------|-----------|-------------|
-| `ALLY`    | "Ally"    | `§a` (green) | `#55FF55` | Formal alliance — mutual benefits apply. |
-| `TRUCE`   | "Truce"   | `§6` (gold)  | `#FFAA00` | Agreed ceasefire — no active hostility. |
-| `NEUTRAL` | "Neutral" | `§7` (gray)  | `#AAAAAA` | No formal relation (default when none is set). |
-| `ENEMY`   | "Enemy"   | `§c` (red)   | `#FF5555` | Actively hostile. |
+`MEMBER` is declared last in the enum to preserve the original ordinals
+(`ALLY=0, TRUCE=1, NEUTRAL=2, ENEMY=3`). Use `isMoreHostileThan()` rather than
+`ordinal()` for hostility comparisons.
+
+| Constant  | Ordinal | Display name | Legacy color  | Hex color | Description |
+|-----------|---------|-------------|---------------|-----------|-------------|
+| `ALLY`    | 0       | "Ally"      | `§b` (aqua)   | `#55FFFF` | Formal alliance — mutual benefits apply. |
+| `TRUCE`   | 1       | "Truce"     | `§e` (yellow) | `#FFFF55` | Agreed ceasefire — no active hostility. |
+| `NEUTRAL` | 2       | "Neutral"   | `§7` (gray)   | `#AAAAAA` | No formal relation (default when none is set). |
+| `ENEMY`   | 3       | "Enemy"     | `§c` (red)    | `#FF5555` | Actively hostile. |
+| `MEMBER`  | 4       | "Member"    | `§a` (green)  | `#55FF55` | Same team — players are teammates. Providers should return this when both team UUIDs are equal. |
 
 Helper methods:
 
@@ -404,9 +409,9 @@ Helper methods:
 | `getDisplayName()` | `String` | Human-friendly name ("Ally", "Truce", etc.). |
 | `getLegacyColorCode()` | `char` | Legacy color code character; prepend `§` to build the full code: `"§" + rel.getLegacyColorCode()`. |
 | `getDefaultHexColor()` | `String` | Default `#RRGGBB` hex string for Adventure / MiniMessage consumers. |
-| `isFriendly()` | `boolean` | Returns `true` for `ALLY` and `TRUCE`. |
+| `isFriendly()` | `boolean` | Returns `true` for `MEMBER`, `ALLY`, and `TRUCE`. |
 | `isHostile()` | `boolean` | Returns `true` for `ENEMY`. |
-| `isMoreHostileThan(other)` | `boolean` | Returns `true` if this relation has a higher hostility level than `other`. |
+| `isMoreHostileThan(other)` | `boolean` | Returns `true` if this relation has a higher hostility level than `other`. Uses a dedicated field — not `ordinal()`. |
 
 ## `TeamNotificationType` (enum)
 
@@ -508,7 +513,38 @@ All concrete events implement `Cancellable`.
 
 ## Migration notes
 
-### Unreleased
+### 2.0.0
+
+**Breaking changes** — providers and consumers relying on `ALLY` or `TRUCE` default
+colors must update their color references.
+
+- **New `TeamRelation.MEMBER` constant** (ordinal 4) — represents the same-team
+  relationship. Providers should return `MEMBER` from `getRelation(A, A)` when both
+  UUIDs are equal. `isFriendly()` now returns `true` for `MEMBER`.
+- **`ALLY` color changed**: `§a` (green / `#55FF55`) → `§b` (aqua / `#55FFFF`).
+- **`TRUCE` color changed**: `§6` (gold / `#FFAA00`) → `§e` (yellow / `#FFFF55`).
+- **`isMoreHostileThan()` now uses a `hostilityLevel` field** instead of `ordinal()`.
+  Results for the original four constants (`ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY`) are
+  identical to previous versions. `MEMBER` has `hostilityLevel = -1` (least hostile).
+- Original four ordinals are **unchanged**: `ALLY=0, TRUCE=1, NEUTRAL=2, ENEMY=3`.
+  Code that does not reference `MEMBER` and does not depend on specific color values
+  requires no changes.
+- `TeamsAPI.API_VERSION` bumped from `1.8.0` to `2.0.0`.
+
+### 1.8.0
+
+Non-breaking addition. No changes required for existing providers or consumers.
+
+- New optional `TeamsPowerHistoryService` interface for reading and managing
+  power-history entries.
+- New model types: `TeamPowerHistoryEntry` and `TeamPowerHistoryType`
+  (`GAIN`, `LOSS`, `ADJUSTMENT`).
+- New `TeamsAPI` static methods: `getPowerHistoryService()`,
+  `isPowerHistoryAvailable()`, `registerPowerHistoryProvider(...)`,
+  `unregisterPowerHistoryProvider(...)`.
+- `TeamsAPI.API_VERSION` bumped from `1.7.0` to `1.8.0`.
+
+### 1.7.0
 
 Non-breaking addition. No changes required for existing providers or consumers.
 
@@ -519,11 +555,6 @@ Non-breaking addition. No changes required for existing providers or consumers.
   `unregisterNotificationProvider(...)`.
 - `TeamsNotificationService` supports both built-in enum types and custom
   string notification types.
-
-### 1.7.0
-
-Non-breaking addition. No changes required for existing providers or consumers.
-
 - New enum: `ClaimTerritoryType` with `WILDERNESS`, `TEAM`, `SAFE_ZONE`, `WAR_ZONE`.
 - `TeamClaim` now includes default methods:
   `getTerritoryType()` and `getOwningTeamId()`.
