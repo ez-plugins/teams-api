@@ -3,6 +3,31 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.1.0]
+
+### Added
+
+- Optional `RelationNature` enum (`FRIENDLY`, `NEUTRAL`, `HOSTILE`) to the model
+  package. Each `TeamRelation` constant carries a built-in default nature which may
+  be queried with `getDefaultNature()`.
+- Consumer override support: `TeamRelation#setNatureOverride(RelationNature)` and
+  `TeamRelation#getNature()` — allows server or provider code to re-categorise a
+  relation at runtime. Passing `null` to `setNatureOverride` clears the override
+  and restores the builtin default. Overrides are visible JVM-wide because enum
+  constants are singletons.
+- Unit tests: `TeamRelationTest` covering default natures and override behaviour.
+
+### Changed
+
+- `TeamsAPI.API_VERSION` bumped to `2.1.0`.
+
+### Migration
+
+No behavioural changes to existing `TeamRelation` helpers: `isFriendly()` and
+`isHostile()` remain unchanged and existing consumers require no changes. Providers
+that wish to reclassify relations (for example treating `TRUCE` as `NEUTRAL`) may
+call `setNatureOverride(...)` during initialisation.
+
 ## [2.0.0]
 
 ### Added
