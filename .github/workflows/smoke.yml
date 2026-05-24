@@ -301,6 +301,9 @@ jobs:
     needs: build
     timeout-minutes: 15
     steps:
+      - name: Checkout (for libs/)
+        uses: actions/checkout@v4
+
       - name: Download TeamsAPI plugin JAR
         uses: actions/download-artifact@v4
         with:
@@ -326,35 +329,13 @@ jobs:
             "https://api.papermc.io/v2/projects/paper/versions/${{ env.MC_VERSION }}/builds/${BUILD}/downloads/paper-${{ env.MC_VERSION }}-${BUILD}.jar"
           echo "Paper build: $BUILD"
 
-      - name: Download BetterTeams plugin JAR
-        run: |
-          # JitPack produces a bare Maven artifact without a valid plugin.yml.
-          # Use the GitHub Releases asset (the actual deployable plugin JAR) instead.
-          ASSET_URL=$(curl -sf \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/booksaw/BetterTeams/releases/latest" \
-            | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-assets = data.get('assets', [])
-jar = next((a['browser_download_url'] for a in assets
-            if a['name'].lower().endswith('.jar')
-            and 'source' not in a['name'].lower()), None)
-if not jar:
-    tag = data['tag_name']
-    jar = f\"https://github.com/booksaw/BetterTeams/releases/download/{tag}/BetterTeams.jar\"
-print(jar)
-")
-          echo "Downloading BetterTeams from: $ASSET_URL"
-          curl -sfLo BetterTeams.jar "$ASSET_URL"
-
       - name: Prepare server
         run: |
           mkdir -p server/plugins
           cp server.jar server/server.jar
           cp plugin.jar server/plugins/TeamsAPI.jar
           cp betterteams-extension.jar server/plugins/TeamsAPI-BetterTeams-Extension.jar
-          cp BetterTeams.jar server/plugins/BetterTeams.jar
+          cp libs/BetterTeams-5.1.2.jar server/plugins/BetterTeams.jar
           echo "eula=true" > server/eula.txt
           {
             echo "online-mode=false"
@@ -423,6 +404,9 @@ print(jar)
     needs: build
     timeout-minutes: 15
     steps:
+      - name: Checkout (for libs/)
+        uses: actions/checkout@v4
+
       - name: Download TeamsAPI plugin JAR
         uses: actions/download-artifact@v4
         with:
@@ -447,18 +431,13 @@ print(jar)
           curl -sfLo server.jar \
             "https://api.papermc.io/v2/projects/paper/versions/${{ env.MC_VERSION }}/builds/${BUILD}/downloads/paper-${{ env.MC_VERSION }}-${BUILD}.jar"
 
-      - name: Download Towny plugin JAR
-        run: |
-          curl -sfLo Towny.jar \
-            "https://repo.codemc.io/repository/maven-public/com/palmergames/bukkit/towny/Towny/0.96.2.16/Towny-0.96.2.16.jar"
-
       - name: Prepare server
         run: |
           mkdir -p server/plugins
           cp server.jar server/server.jar
           cp plugin.jar server/plugins/TeamsAPI.jar
           cp towny-extension.jar server/plugins/TeamsAPI-Towny-Extension.jar
-          cp Towny.jar server/plugins/Towny.jar
+          cp libs/Towny-0.103.0.0.jar server/plugins/Towny.jar
           echo "eula=true" > server/eula.txt
           {
             echo "online-mode=false"
@@ -522,6 +501,9 @@ print(jar)
     needs: build
     timeout-minutes: 15
     steps:
+      - name: Checkout (for libs/)
+        uses: actions/checkout@v4
+
       - name: Download TeamsAPI plugin JAR
         uses: actions/download-artifact@v4
         with:
@@ -546,17 +528,13 @@ print(jar)
           curl -sfLo server.jar \
             "https://api.papermc.io/v2/projects/paper/versions/${{ env.MC_VERSION }}/builds/${BUILD}/downloads/paper-${{ env.MC_VERSION }}-${BUILD}.jar"
 
-      # KingdomsX is not available as a free automated download — the Maven
-      # Central artifact explicitly refuses to start on a server. This step
-      # therefore intentionally omits KingdomsX so the smoke test verifies
-      # that the extension handles the missing-plugin case gracefully.
-
       - name: Prepare server
         run: |
           mkdir -p server/plugins
           cp server.jar server/server.jar
           cp plugin.jar server/plugins/TeamsAPI.jar
           cp kingdomsx-extension.jar server/plugins/TeamsAPI-KingdomsX-Extension.jar
+          cp libs/KingdomsX-1.17.26-bugfix.jar server/plugins/KingdomsX.jar
           echo "eula=true" > server/eula.txt
           {
             echo "online-mode=false"
@@ -582,9 +560,7 @@ print(jar)
               break
             fi
             if grep -qE "Done \([0-9.]" server.log 2>/dev/null; then
-              # KingdomsX is not present; verify the extension detected that
-              # and disabled itself gracefully (no JVM-level errors expected).
-              if grep -q "KingdomsX is not installed; disabling KingdomsX extension" server.log 2>/dev/null; then
+              if grep -q "Registered KingdomsX TeamsService provider" server.log 2>/dev/null; then
                 RESULT=pass
               else
                 RESULT=fail
@@ -601,9 +577,9 @@ print(jar)
           wait "${SERVER_PID}" 2>/dev/null || true
 
           if [ "$RESULT" = "pass" ]; then
-            echo "PASS: KingdomsX extension loaded and gracefully handled missing KingdomsX plugin."
+            echo "PASS: KingdomsX extension started and registered provider."
           else
-            echo "FAIL: KingdomsX extension did not handle missing KingdomsX gracefully."
+            echo "FAIL: KingdomsX extension startup failed."
             tail -120 server.log || true
             exit 1
           fi
