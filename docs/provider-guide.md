@@ -17,4 +17,5 @@ Recommended reading order:
 4. [Invite Provider](provider-invites)
 5. [Warp Provider](provider-warps)
 6. [Optional Integration & Shading](provider-optional-integration)
-7. [API Reference](api)
+7. [Provider Catalog (available providers, downloads, feature matrix)](provider-catalog)
+8. [API Reference](api)

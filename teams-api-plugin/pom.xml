@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.github.ez-plugins</groupId>
         <artifactId>teams-api-parent</artifactId>
-        <version>2.1.0</version>
+        <version>2.2.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -36,6 +36,26 @@
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
             <version>1.7</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Extension artifacts are bundled as installable jars inside TeamsAPI -->
+        <dependency>
+            <groupId>com.github.ez-plugins</groupId>
+            <artifactId>teams-api-extension-betterteams</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ez-plugins</groupId>
+            <artifactId>teams-api-extension-towny</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ez-plugins</groupId>
+            <artifactId>teams-api-extension-kingdomsx</artifactId>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -78,6 +98,46 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-bundled-extensions</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/bundled-extensions</outputDirectory>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.github.ez-plugins</groupId>
+                                    <artifactId>teams-api-extension-betterteams</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <destFileName>teams-api-extension-betterteams-${project.version}.jar</destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.github.ez-plugins</groupId>
+                                    <artifactId>teams-api-extension-towny</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <destFileName>teams-api-extension-towny-${project.version}.jar</destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.github.ez-plugins</groupId>
+                                    <artifactId>teams-api-extension-kingdomsx</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <destFileName>teams-api-extension-kingdomsx-${project.version}.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <!-- Shade teams-api classes into the final server JAR -->
             <plugin>

@@ -22,6 +22,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [SIZE=5][B][COLOR=#6cb4ff]Features[/COLOR][/B][/SIZE]
 
 [LIST]
+[*][B]Official extensions[/B] -- ready-to-use provider bridges for [URL='https://www.spigotmc.org/resources/betterteams.17664/']BetterTeams[/URL], [URL='https://modrinth.com/plugin/towny']Towny Advanced[/URL], and [URL='https://www.spigotmc.org/resources/kingdomsx.77782/']KingdomsX[/URL] -- bundled inside the main JAR, install in-game with [COLOR=#6cb4ff]/teamsapi install <name>[/COLOR].
 [*][B]Provider-agnostic[/B] -- works with any team plugin that ships a [COLOR=#6cb4ff]TeamsService[/COLOR] implementation.
 [*][B]Graceful fallback[/B] -- if no provider is present, [COLOR=#6cb4ff]TeamsAPI.isAvailable()[/COLOR] returns [COLOR=#f08080]false[/COLOR]; consumers can disable team features cleanly instead of crashing.
 [*][B]Read-only snapshots[/B] -- [COLOR=#6cb4ff]Team[/COLOR] and [COLOR=#6cb4ff]TeamMember[/COLOR] are immutable interfaces; providers own the backing data.
@@ -54,7 +55,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [LIST=1]
 [*]Download [B]teams-api-plugin-VERSION.jar[/B] from the [B]Download[/B] button at the top of this page or from [URL='https://github.com/ez-plugins/teams-api/releases']GitHub Releases[/URL].
 [*]Drop it into your server's [COLOR=#6cb4ff]plugins/[/COLOR] folder.
-[*]Install a compatible team plugin that provides a [COLOR=#6cb4ff]TeamsService[/COLOR] implementation.
+[*]Install a compatible team plugin. Official extensions for [URL='https://www.spigotmc.org/resources/betterteams.17664/']BetterTeams[/URL], [URL='https://modrinth.com/plugin/towny']Towny Advanced[/URL], and [URL='https://www.spigotmc.org/resources/kingdomsx.77782/']KingdomsX[/URL] are bundled -- run [COLOR=#6cb4ff]/teamsapi install betterteams[/COLOR] (or [COLOR=#6cb4ff]towny[/COLOR] / [COLOR=#6cb4ff]kingdomsx[/COLOR]) in-game, or let TeamsAPI provision them automatically to [COLOR=#6cb4ff]plugins/TeamsAPI/extensions/[/COLOR].
 [*]Restart the server.
 [/LIST]
 
@@ -78,7 +79,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
     <scope>provided</scope>
 </dependency>
 [/CODE]
@@ -90,7 +91,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:2.1.0'
+    compileOnly 'com.github.ez-plugins:teams-api:2.2.0'
 }
 [/CODE]
 [/SPOILER]
@@ -305,6 +306,8 @@ TeamsAPI.unregisterSubcommand(mySubcommand);
 [*][COLOR=#6cb4ff]/teamsapi info[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.admin[/COLOR] (default: op)[/COLOR] -- Full internal diagnostic
 [*][COLOR=#6cb4ff]/teamsapi power status[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.power[/COLOR] (default: op)[/COLOR] -- Sender's current and max power
 [*][COLOR=#6cb4ff]/teamsapi power buy <n>[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.power.buy[/COLOR] (default: disabled)[/COLOR] -- Disabled by default; enable with [COLOR=#ffd700]power-shop.enabled: true[/COLOR] in config.yml. Requires Vault.
+[*][COLOR=#6cb4ff]/teamsapi install <extension>[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.install[/COLOR] (default: op)[/COLOR] -- Copies a bundled extension JAR to [COLOR=#6cb4ff]plugins/TeamsAPI/extensions/[/COLOR]. Valid names: [COLOR=#ffd700]betterteams[/COLOR], [COLOR=#ffd700]towny[/COLOR], [COLOR=#ffd700]kingdomsx[/COLOR].
+[*][COLOR=#6cb4ff]/teamsapi load <file>.jar[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.load[/COLOR] (default: op)[/COLOR] -- Loads and enables an extension from [COLOR=#6cb4ff]plugins/TeamsAPI/extensions/[/COLOR] without a server restart.
 [/LIST]
 
 [SIZE=4][B]Events[/B][/SIZE]

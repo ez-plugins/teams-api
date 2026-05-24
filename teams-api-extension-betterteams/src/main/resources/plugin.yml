@@ -1,0 +1,10 @@
+name: TeamsAPIBetterTeamsExtension
+version: ${project.version}
+main: com.skyblockexp.teamsapi.extension.betterteams.BetterTeamsExtensionPlugin
+api-version: '1.16'
+folia-supported: true
+description: TeamsAPI extension provider for BetterTeams.
+author: ez-plugins
+website: https://github.com/ez-plugins/teams-api
+depend: [TeamsAPI]
+softdepend: [BetterTeams]

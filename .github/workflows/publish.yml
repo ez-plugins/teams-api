@@ -59,6 +59,24 @@ jobs:
           JAR=$(find teams-api-bungeecord/target -maxdepth 1 -name "*.jar" ! -name "original-*.jar" | head -1)
           echo "path=$JAR" >> "$GITHUB_OUTPUT"
 
+      - name: Locate BetterTeams extension JAR
+        id: ext_betterteams_jar
+        run: |
+          JAR=$(find teams-api-extension-betterteams/target -maxdepth 1 -name "*.jar" ! -name "original-*.jar" | head -1)
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+
+      - name: Locate Towny extension JAR
+        id: ext_towny_jar
+        run: |
+          JAR=$(find teams-api-extension-towny/target -maxdepth 1 -name "*.jar" ! -name "original-*.jar" | head -1)
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+
+      - name: Locate KingdomsX extension JAR
+        id: ext_kingdomsx_jar
+        run: |
+          JAR=$(find teams-api-extension-kingdomsx/target -maxdepth 1 -name "*.jar" ! -name "original-*.jar" | head -1)
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+
       # ── Version / changelog ────────────────────────────────────────────────
       - name: Extract version from tag
         id: version
@@ -119,6 +137,9 @@ jobs:
             ${{ steps.plugin_jar.outputs.path }}
             ${{ steps.velocity_jar.outputs.path }}
             ${{ steps.bungee_jar.outputs.path }}
+            ${{ steps.ext_betterteams_jar.outputs.path }}
+            ${{ steps.ext_towny_jar.outputs.path }}
+            ${{ steps.ext_kingdomsx_jar.outputs.path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -136,6 +157,7 @@ jobs:
                   'version_suffix':  '',
                   'name_suffix':     '',
                   'jar_env':         'JAR_PATH',
+                  'extra_jar_env':   'EXTRA_JAR_PATHS',
               },
               'velocity': {
                   'loaders':         ['velocity'],
@@ -161,6 +183,11 @@ jobs:
           token     = os.environ['MODRINTH_TOKEN']
           project   = os.environ['MODRINTH_PROJECT_ID']
           jar       = os.environ[cfg['jar_env']]
+          extra_jars = []
+          if cfg.get('extra_jar_env'):
+              raw = os.environ.get(cfg['extra_jar_env'], '').strip()
+              if raw:
+                  extra_jars = [entry for entry in raw.split(':') if entry]
 
           full    = open('CHANGELOG.md').read()
           ver_sec = re.search(rf'## \[{re.escape(version)}\](.*?)(?=^## \[|\Z)', full, re.S | re.M)
@@ -181,6 +208,10 @@ jobs:
               '26.1', '26.1.1', '26.1.2',
           ]
 
+          file_parts = ['file']
+          for index, _ in enumerate(extra_jars, start=1):
+              file_parts.append(f'file{index}')
+
           payload = {
               'name':           'TeamsAPI ' + version + cfg['name_suffix'],
               'version_number': version + cfg['version_suffix'],
@@ -191,7 +222,7 @@ jobs:
               'loaders':        cfg['loaders'],
               'featured':       True,
               'project_id':     project,
-              'file_parts':     ['file'],
+              'file_parts':     file_parts,
               'primary_file':   'file',
           }
 
@@ -199,13 +230,17 @@ jobs:
               json.dump(payload, f)
               payload_file = f.name
 
-          result = subprocess.run([
+          command = [
               'curl', '--fail', '-s',
               '-H', f'Authorization: {token}',
               '-F', f'data=@{payload_file};type=application/json',
               '-F', f'file=@{jar};type=application/java-archive',
-              'https://api.modrinth.com/v2/version',
-          ], capture_output=True, text=True)
+          ]
+          for index, extra_jar in enumerate(extra_jars, start=1):
+              command.extend(['-F', f'file{index}=@{extra_jar};type=application/java-archive'])
+          command.append('https://api.modrinth.com/v2/version')
+
+          result = subprocess.run(command, capture_output=True, text=True)
           print(result.stdout)
           if result.returncode != 0:
               print(result.stderr, file=sys.stderr)
@@ -217,6 +252,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
           JAR_PATH: ${{ steps.plugin_jar.outputs.path }}
+          EXTRA_JAR_PATHS: ${{ steps.ext_betterteams_jar.outputs.path }}:${{ steps.ext_towny_jar.outputs.path }}:${{ steps.ext_kingdomsx_jar.outputs.path }}
         run: python3 /tmp/modrinth_upload.py plugin
 
       - name: Upload Velocity release to Modrinth

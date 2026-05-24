@@ -1,0 +1,43 @@
+name: Extensions CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  extension-build:
+    name: Build extension modules
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - teams-api-extension-betterteams
+          - teams-api-extension-towny
+          - teams-api-extension-kingdomsx
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Purge stale JitPack artifacts from Maven cache
+        run: rm -rf ~/.m2/repository/com/github
+
+      - name: Build extension module
+        run: mvn -B -ntp -pl ${{ matrix.module }} -am verify
+
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}
+          path: ${{ matrix.module }}/target/*.jar
+          if-no-files-found: error

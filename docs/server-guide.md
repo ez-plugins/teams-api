@@ -70,6 +70,9 @@ TeamsAPI needs a team plugin that registers itself as a provider. Without one,
 TeamsAPI loads successfully but has no data to serve. Check the documentation
 of your team plugin to confirm it supports TeamsAPI.
 
+You can check currently known providers and extension download links in the
+[Provider Catalog](provider-catalog).
+
 ### Step 4: (Re)start the server
 
 Restart the server. TeamsAPI loads before your team plugin finishes enabling
@@ -135,6 +138,15 @@ backward-compatible. Existing team plugins and consumer plugins do not need to
 be updated when you update TeamsAPI unless their own documentation says
 otherwise.
 
+## Extension management
+
+TeamsAPI creates `plugins/TeamsAPI/extensions/` and provisions official extension
+JARs there by default.
+
+- Install an extension from release assets: place the JAR in `plugins/TeamsAPI/extensions/`.
+- Install in-game: `/teamsapi install <extension>` (`betterteams`, `towny`, `kingdomsx`).
+- Load at runtime without restart: `/teamsapi load <file>.jar`.
+
 ## Troubleshooting
 
 ### TeamsAPI loads but no team features work
@@ -193,6 +205,8 @@ Yes. TeamsAPI provides the `/teamsapi` command for diagnostic and status checks.
 | `/teamsapi info` | `teamsapi.admin` | op | Detailed internal diagnostic: all registered service types, registered subcommands, plugin version. |
 | `/teamsapi power status` | `teamsapi.power` | op | Shows the sender's current and maximum power. |
 | `/teamsapi power buy <amount>` | `teamsapi.power.buy` | disabled | Disabled by default. Enable with `power-shop.enabled: true` in `config.yml`. Requires Vault. |
+| `/teamsapi install <extension>` | `teamsapi.install` | op | Downloads official extension jars into `plugins/TeamsAPI/extensions/`. |
+| `/teamsapi load <file>.jar` | `teamsapi.load` | op | Loads and enables an extension from `plugins/TeamsAPI/extensions/` without restart. |
 
 Provider plugins may also register additional subcommands that appear in this list
 and can be run as `/teamsapi <name>`.

@@ -24,6 +24,7 @@ consumer plugin keeps working without a recompile.
 
 ## Features
 
+- **Official extensions**: ready-to-use provider bridges for [BetterTeams](https://www.spigotmc.org/resources/betterteams.17664/), [Towny Advanced](https://modrinth.com/plugin/towny), and [KingdomsX](https://www.spigotmc.org/resources/kingdomsx.77782/), bundled inside the main JAR. Install in-game with `/teamsapi install <name>`.
 - **Provider-agnostic**: works with any team plugin that ships a `TeamsService` implementation.
 - **Graceful fallback**: if no provider is present, `TeamsAPI.isAvailable()` returns `false`; consumers can disable their team features cleanly instead of crashing.
 - **Read-only snapshots**: `Team` and `TeamMember` are immutable interfaces; providers own the backing data.
@@ -57,7 +58,12 @@ consumer plugin keeps working without a recompile.
 1. Download `teams-api-plugin-VERSION.jar` from the **Files** tab of this listing or
    from [GitHub Releases](https://github.com/ez-plugins/teams-api/releases).
 2. Drop it into your server's `plugins/` directory.
-3. Install a compatible team plugin that provides a `TeamsService` implementation.
+3. Install a compatible team plugin. Official extensions for
+   [BetterTeams](https://www.spigotmc.org/resources/betterteams.17664/),
+   [Towny Advanced](https://modrinth.com/plugin/towny), and
+   [KingdomsX](https://www.spigotmc.org/resources/kingdomsx.77782/) are bundled
+   inside TeamsAPI. Run `/teamsapi install betterteams` (or `towny` / `kingdomsx`)
+   in-game, or let TeamsAPI provision them automatically to `plugins/TeamsAPI/extensions/`.
 4. Restart the server.
 
 TeamsAPI has no configuration files.
@@ -79,7 +85,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -91,7 +97,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:2.1.0'
+    compileOnly 'com.github.ez-plugins:teams-api:2.2.0'
 }
 ```
 
@@ -358,6 +364,8 @@ TeamsAPI.unregisterSubcommand(mySubcommand);
 | `/teamsapi info` | `teamsapi.admin` | op | Full internal diagnostic |
 | `/teamsapi power status` | `teamsapi.power` | op | Sender's current and max power |
 | `/teamsapi power buy <n>` | `teamsapi.power.buy` | disabled | Disabled by default; enable with `power-shop.enabled: true` in `config.yml`. Requires Vault. |
+| `/teamsapi install <extension>` | `teamsapi.install` | op | Copies a bundled extension JAR to `plugins/TeamsAPI/extensions/`. Valid names: `betterteams`, `towny`, `kingdomsx`. |
+| `/teamsapi load <file>.jar` | `teamsapi.load` | op | Loads and enables an extension from `plugins/TeamsAPI/extensions/` without a server restart. |
 
 ### Events
 

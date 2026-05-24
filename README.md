@@ -44,7 +44,7 @@ Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -56,7 +56,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:2.1.0'
+    compileOnly 'com.github.ez-plugins:teams-api:2.2.0'
 }
 ```
 
@@ -295,9 +295,18 @@ exposes `getDefaultNature()` and `getNature()`; server or provider code may call
 (for example treating `TRUCE` as `NEUTRAL`). `isFriendly()` and `isHostile()` are
 kept unchanged for backwards compatibility.
 
+**Optional power shop**
+
 > **Vault (optional):** `plugin.yml` declares `softdepend: [Vault]`. When Vault is
 > installed the built-in power shop (`/teamsapi power buy`) can charge players.
 > TeamsAPI loads normally without Vault; the shop is simply disabled.
+
+**TeamsAPI extensions**
+
+> **Extensions:** TeamsAPI ships official extension JARs by default and provisions
+> them into `plugins/TeamsAPI/extensions/` on startup. You can also download extension
+> JARs from GitHub Releases/Modrinth, install via `/teamsapi install <extension>`, and
+> load without restart using `/teamsapi load <file>.jar`.
 
 Any plugin can register a `TeamsSubcommand` via `TeamsAPI.registerSubcommand()`. Team
 plugins call `TeamsAPI.getSubcommands()` in their own command executor to dispatch them,
@@ -442,6 +451,9 @@ mvn -q -DskipTests package
 |--------|-------------|
 | `teams-api/` | Public API: interfaces, models, and events. Depend on this. |
 | `teams-api-plugin/` | Bukkit plugin packaging. Server owners install this JAR. |
+| `teams-api-extension-betterteams/` | BetterTeams provider extension (installable bridge module). |
+| `teams-api-extension-towny/` | Towny provider extension (installable bridge module). |
+| `teams-api-extension-kingdomsx/` | KingdomsX provider extension (installable bridge module). |
 | `teams-api-velocity/` | Velocity proxy plugin. Bridges team queries to backend servers. Supports Redis for multi-proxy setups. |
 | `teams-api-bungeecord/` | BungeeCord / Waterfall proxy plugin. Mirrors the Velocity bridge. Supports Redis for multi-proxy setups. |
 

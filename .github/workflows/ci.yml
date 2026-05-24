@@ -116,3 +116,24 @@ jobs:
           name: teams-api-bungeecord
           path: teams-api-bungeecord/target/teams-api-bungeecord-*.jar
           if-no-files-found: error
+
+      - name: Upload BetterTeams extension JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: teams-api-extension-betterteams
+          path: teams-api-extension-betterteams/target/teams-api-extension-betterteams-*.jar
+          if-no-files-found: error
+
+      - name: Upload Towny extension JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: teams-api-extension-towny
+          path: teams-api-extension-towny/target/teams-api-extension-towny-*.jar
+          if-no-files-found: error
+
+      - name: Upload KingdomsX extension JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: teams-api-extension-kingdomsx
+          path: teams-api-extension-kingdomsx/target/teams-api-extension-kingdomsx-*.jar
+          if-no-files-found: error

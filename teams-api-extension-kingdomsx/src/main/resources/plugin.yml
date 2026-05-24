@@ -1,0 +1,10 @@
+name: TeamsAPIKingdomsXExtension
+version: ${project.version}
+main: com.skyblockexp.teamsapi.extension.kingdomsx.KingdomsXExtensionPlugin
+api-version: '1.16'
+folia-supported: true
+description: TeamsAPI extension provider for KingdomsX.
+author: ez-plugins
+website: https://github.com/ez-plugins/teams-api
+depend: [TeamsAPI]
+softdepend: [Kingdoms]
