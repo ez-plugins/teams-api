@@ -11,7 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   package. Each `TeamRelation` constant carries a built-in default nature which may
   be queried with `getDefaultNature()`.
 - Consumer override support: `TeamRelation#setNatureOverride(RelationNature)` and
-  `TeamRelation#getNature()` — allows server or provider code to re-categorise a
+  `TeamRelation#getNature()` - allows server or provider code to re-categorise a
   relation at runtime. Passing `null` to `setNatureOverride` clears the override
   and restores the builtin default. Overrides are visible JVM-wide because enum
   constants are singletons.
