@@ -44,7 +44,7 @@ Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -56,7 +56,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:2.0.0'
+    compileOnly 'com.github.ez-plugins:teams-api:2.1.0'
 }
 ```
 
@@ -286,7 +286,14 @@ public void onDisable() {
 }
 ```
 
-`TeamRelation` values (lowest → highest hostility): `ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY`.
+`TeamRelation` values (lowest → highest hostility): `MEMBER`, `ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY`.
+
+Note: `TeamRelation` now includes an optional classification layer via the
+`RelationNature` enum (`FRIENDLY`, `NEUTRAL`, `HOSTILE`). Each relation constant
+exposes `getDefaultNature()` and `getNature()`; server or provider code may call
+`setNatureOverride(RelationNature)` during initialisation to re-classify relations
+(for example treating `TRUCE` as `NEUTRAL`). `isFriendly()` and `isHostile()` are
+kept unchanged for backwards compatibility.
 
 > **Vault (optional):** `plugin.yml` declares `softdepend: [Vault]`. When Vault is
 > installed the built-in power shop (`/teamsapi power buy`) can charge players.

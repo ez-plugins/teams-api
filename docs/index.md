@@ -9,7 +9,7 @@ permalink: /
 # TeamsAPI
 
 [![JitPack](https://jitpack.io/v/ez-plugins/teams-api.svg)](https://jitpack.io/#ez-plugins/teams-api)
-[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-1.7.0-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
+[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-2.1.0-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
 
 **TeamsAPI** is a passive bridge plugin for Paper, Spigot, Purpur, and Folia
 servers running Minecraft 1.16+, modelled on [Vault](https://github.com/MilkBowl/VaultAPI).
@@ -64,7 +64,7 @@ backend server directly.
 <dependency>
   <groupId>com.github.ez-plugins</groupId>
   <artifactId>teams-api</artifactId>
-  <version>1.7.0</version>
+  <version>2.1.0</version>
   <scope>provided</scope>
 </dependency>
 ```
