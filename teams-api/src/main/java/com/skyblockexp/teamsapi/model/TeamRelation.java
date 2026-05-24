@@ -21,25 +21,27 @@ package com.skyblockexp.teamsapi.model;
  * to query and manage relations.</p>
  *
  * <p>Each constant carries a human-friendly display name, a legacy Minecraft color
- * code character (for use with the {@code §} prefix in chat), and a default hex
- * color string for Adventure / MiniMessage consumers.</p>
+ * code character (for use with the {@code §} prefix in chat), a default hex
+ * color string for Adventure / MiniMessage consumers, and a {@link RelationNature}
+ * that categorises the relation as friendly, neutral, or hostile. The nature may be
+ * overridden per-constant via {@link #setNatureOverride(RelationNature)}.</p>
  */
 public enum TeamRelation {
 
     /** The two teams are formal allies — mutual benefits apply. */
-    ALLY("Ally", 'b', "#55FFFF", 0),
+    ALLY("Ally", 'b', "#55FFFF", 0, RelationNature.FRIENDLY),
 
     /** The two teams have agreed to a temporary truce — no active hostility. */
-    TRUCE("Truce", 'e', "#FFFF55", 1),
+    TRUCE("Truce", 'e', "#FFFF55", 1, RelationNature.FRIENDLY),
 
     /**
      * No formal relation has been set; neither friendly nor hostile.
      * This is the default state returned when no explicit relation exists.
      */
-    NEUTRAL("Neutral", '7', "#AAAAAA", 2),
+    NEUTRAL("Neutral", '7', "#AAAAAA", 2, RelationNature.NEUTRAL),
 
     /** The two teams are actively hostile toward each other. */
-    ENEMY("Enemy", 'c', "#FF5555", 3),
+    ENEMY("Enemy", 'c', "#FF5555", 3, RelationNature.HOSTILE),
 
     /**
      * The two teams are the same team — the players are teammates.
@@ -53,7 +55,7 @@ public enum TeamRelation {
      * constants. Use {@link #isMoreHostileThan(TeamRelation)} for hostility comparisons
      * rather than {@link #ordinal()}.</p>
      */
-    MEMBER("Member", 'a', "#55FF55", -1);
+    MEMBER("Member", 'a', "#55FF55", -1, RelationNature.FRIENDLY);
 
     // -------------------------------------------------------------------------
     // Fields
@@ -86,6 +88,23 @@ public enum TeamRelation {
      */
     private final int hostilityLevel;
 
+    /**
+     * The default nature category assigned to this relation constant at compile time.
+     *
+     * <p>This value is never changed by {@link #setNatureOverride(RelationNature)}; use
+     * {@link #getDefaultNature()} to retrieve it regardless of any active override.</p>
+     */
+    private final RelationNature defaultNature;
+
+    /**
+     * Optional consumer-supplied nature override for this relation constant.
+     *
+     * <p>When non-{@code null}, {@link #getNature()} returns this value instead of the
+     * default. Set to {@code null} via {@link #setNatureOverride(RelationNature)} to
+     * reset to the built-in default.</p>
+     */
+    private volatile RelationNature nature;
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -97,13 +116,16 @@ public enum TeamRelation {
      * @param legacyColorCode the legacy Minecraft color code character (e.g. {@code 'a'} for green)
      * @param defaultHexColor the default hex color string in {@code #RRGGBB} format
      * @param hostilityLevel  the explicit hostility level used for ordering comparisons
+     * @param defaultNature   the default {@link RelationNature} for this constant; must not be {@code null}
      */
     TeamRelation(final String displayName, final char legacyColorCode,
-            final String defaultHexColor, final int hostilityLevel) {
+            final String defaultHexColor, final int hostilityLevel,
+            final RelationNature defaultNature) {
         this.displayName = displayName;
         this.legacyColorCode = legacyColorCode;
         this.defaultHexColor = defaultHexColor;
         this.hostilityLevel = hostilityLevel;
+        this.defaultNature = defaultNature;
     }
 
     // -------------------------------------------------------------------------
@@ -207,4 +229,53 @@ public enum TeamRelation {
     public boolean isMoreHostileThan(final TeamRelation other) {
         return this.hostilityLevel > other.hostilityLevel;
     }
+
+    // -------------------------------------------------------------------------
+    // Nature helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the default {@link RelationNature} built into this constant.
+     *
+     * <p>This value is set at compile time and is never affected by
+     * {@link #setNatureOverride(RelationNature)}. It reflects the semantic
+     * category that this relation represents by default.</p>
+     *
+     * @return the default nature; never {@code null}
+     */
+    public RelationNature getDefaultNature() {
+        return defaultNature;
+    }
+
+    /**
+     * Returns the effective {@link RelationNature} for this relation.
+     *
+     * <p>If a consumer override is set via {@link #setNatureOverride(RelationNature)},
+     * that value is returned. Otherwise the default nature built into this constant
+     * is returned.</p>
+     *
+     * @return the effective nature; never {@code null}
+     */
+    public RelationNature getNature() {
+        final RelationNature override = nature;
+        return override != null ? override : defaultNature;
+    }
+
+    /**
+     * Sets a consumer-supplied override for the {@link RelationNature} of this constant.
+     *
+     * <p>Passing {@code null} clears any existing override and restores the built-in
+     * default returned by {@link #getDefaultNature()}.</p>
+     *
+     * <p>Because {@link TeamRelation} constants are JVM singletons, this override is
+     * visible server-wide. Providers or server administrators may call this during
+     * initialisation to re-categorise relations (e.g. treating {@link #TRUCE} as
+     * {@link RelationNature#NEUTRAL}).</p>
+     *
+     * @param nature the override nature, or {@code null} to restore the default
+     */
+    public void setNatureOverride(final RelationNature nature) {
+        this.nature = nature;
+    }
+
 }

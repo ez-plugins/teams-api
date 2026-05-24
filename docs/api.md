@@ -413,6 +413,31 @@ Helper methods:
 | `isHostile()` | `boolean` | Returns `true` for `ENEMY`. |
 | `isMoreHostileThan(other)` | `boolean` | Returns `true` if this relation has a higher hostility level than `other`. Uses a dedicated field — not `ordinal()`. |
 
+Additional `RelationNature` helpers:
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getDefaultNature()` | `RelationNature` | Returns the compile-time default nature assigned to this relation constant. |
+| `getNature()` | `RelationNature` | Returns the effective nature — either the consumer-supplied override (if set) or the default. |
+| `setNatureOverride(nature)` | `void` | Sets or clears (if `null`) a JVM-wide override for the relation's nature. |
+
+## `RelationNature` (enum)
+
+Classifies the broad nature of a `TeamRelation` for server-level policy decisions
+(e.g. whether to allow PvP, display a friendly badge, or apply protections).
+
+| Constant | Description |
+|----------|-------------|
+| `FRIENDLY` | Friendly relations; typical defaults: `MEMBER`, `ALLY`, `TRUCE`. |
+| `NEUTRAL`  | No special treatment. |
+| `HOSTILE`  | Hostile relations; typical default: `ENEMY`. |
+
+Helper methods:
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getDisplayName()` | `String` | Human-friendly name for the nature (e.g. "Friendly"). |
+
 ## `TeamNotificationType` (enum)
 
 Built-in notification categories for `TeamsNotificationService`.
