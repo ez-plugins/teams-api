@@ -4,7 +4,7 @@ main: com.skyblockexp.teamsapi.TeamsApiPlugin
 api-version: '1.16'
 folia-supported: true
 description: >
-  Universal Teams API — a timeless bridge between team plugins and the plugins that
+  Universal Teams API - a timeless bridge between team plugins and the plugins that
   depend on them. Install this plugin alongside any TeamsAPI-compatible team plugin.
 author: ez-plugins
 website: https://github.com/ez-plugins/teams-api
@@ -13,7 +13,7 @@ softdepend: [Vault]
 commands:
   teamsapi:
     description: TeamsAPI admin command.
-    usage: /teamsapi [version|status|info|power [status|buy <amount>]]
+    usage: /teamsapi [version|status|info|power [status|buy <amount>]|install <extension>|load <file>]
     permission: teamsapi.use
 
 permissions:
@@ -24,11 +24,17 @@ permissions:
     description: Access to basic /teamsapi commands (version, status, help).
     default: true
   teamsapi.status:
-    description: Access to /teamsapi status — shows active provider and services.
+    description: Access to /teamsapi status - shows active provider and services.
     default: true
   teamsapi.power:
     description: Access to /teamsapi power subcommands (status and buy).
     default: op
   teamsapi.power.buy:
-    description: Access to /teamsapi power buy — purchase power with Vault economy.
+    description: Access to /teamsapi power buy - purchase power with Vault economy.
+    default: op
+  teamsapi.install:
+    description: Access to /teamsapi install - download TeamsAPI extensions.
+    default: op
+  teamsapi.load:
+    description: Access to /teamsapi load - load a TeamsAPI extension JAR from the extensions folder.
     default: op

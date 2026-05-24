@@ -9,7 +9,7 @@ permalink: /
 # TeamsAPI
 
 [![JitPack](https://jitpack.io/v/ez-plugins/teams-api.svg)](https://jitpack.io/#ez-plugins/teams-api)
-[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-2.1.0-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
+[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-2.2.0-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
 
 **TeamsAPI** is a passive bridge plugin for Paper, Spigot, Purpur, and Folia
 servers running Minecraft 1.16+, modelled on [Vault](https://github.com/MilkBowl/VaultAPI).
@@ -45,7 +45,13 @@ backend server directly.
   messaging channel — no direct backend connection required
 - **BungeeCord bridge**: proxy-side async API (`BungeeTeamsService`) for BungeeCord
   and Waterfall — mirrors the Velocity bridge over the same protocol
-- **Multi-platform**: Paper, Spigot, Purpur, and Folia — MC 1.16 through latest
+- **Official extensions**: bundled bridge modules for
+  [BetterTeams](https://www.spigotmc.org/resources/betterteams.17664/),
+  [Towny Advanced](https://modrinth.com/plugin/towny), and
+  [KingdomsX](https://www.spigotmc.org/resources/kingdomsx.77782/) -
+  install via `/teamsapi install <extension>` or place the JAR in
+  `plugins/TeamsAPI/extensions/`
+- **Multi-platform**: Paper, Spigot, Purpur, and Folia (MC 1.16 through latest)
 - **Java Multi-Release JAR**: base bytecode targets Java 17; optimised class variants
   are provided for Java 25
 
@@ -64,7 +70,7 @@ backend server directly.
 <dependency>
   <groupId>com.github.ez-plugins</groupId>
   <artifactId>teams-api</artifactId>
-  <version>2.1.0</version>
+  <version>2.2.0</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -109,6 +115,7 @@ public void onEnable() {
 | [Provider Guide](provider-guide) | Best entry point for team plugin developers |
 | [Provider Tutorial (Step-by-step)](provider-tutorial) | Simple guide to implement TeamsAPI in your team/faction plugin |
 | [Team Provider](provider-teams) | Implement and register `TeamsService` |
+| [Provider Catalog](provider-catalog) | Available providers/extensions, download links, and feature matrix |
 | [Custom Subcommands](provider-subcommands) | Dispatch third-party TeamsAPI subcommands |
 | [Invite Provider](provider-invites) | Implement and register `TeamsInviteService` |
 | [Warp Provider](provider-warps) | Implement and register `TeamsWarpService` |

@@ -3,6 +3,74 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.0]
+
+TeamsAPI now ships official extensions for three popular team plugins. Drop the
+extension JAR in your `plugins/` folder alongside the team plugin and TeamsAPI
+will automatically pick it up as a provider. No code changes needed.
+
+### New: official provider extensions
+
+TeamsAPI `2.2.0` introduces three ready-to-use provider extensions. Each is
+bundled inside the main `teams-api-plugin` JAR and provisioned automatically to
+`plugins/TeamsAPI/extensions/` on first startup.
+
+**[BetterTeams](https://www.spigotmc.org/resources/betterteams.17664/)
+extension** (`teams-api-extension-betterteams`)
+
+- Exposes teams, members, invites, warps, and ally/neutral relations through
+  TeamsAPI.
+- Invite support: `invitePlayer` and `declineInvite` work for offline players;
+  `acceptInvite` requires the invitee to be online at the time of the call.
+- Relation support covers `ALLY` and `NEUTRAL`; BetterTeams does not model
+  enemies or truces.
+- `MEMBER`, `ALLY`, and `NEUTRAL` relation constants are supported.
+
+**[Towny Advanced](https://modrinth.com/plugin/towny) extension**
+(`teams-api-extension-towny`)
+
+- Maps Towny towns to teams, residents to members, and nation relationships
+  (ally/enemy) to TeamsAPI relation constants.
+- Claim lookup fully supported; claim and unclaim mutations are not exposed
+  (Towny manages its own chunk lifecycle).
+- `MEMBER`, `ALLY`, `ENEMY`, and `NEUTRAL` relation constants are supported;
+  `TRUCE` is normalized to `NEUTRAL`.
+
+**[KingdomsX](https://www.spigotmc.org/resources/kingdomsx.77782/) extension**
+(`teams-api-extension-kingdomsx`)
+
+- Maps KingdomsX kingdoms to teams, members to members, and diplomatic
+  relations to TeamsAPI constants.
+- Claim lookup supported; mutations return `false` (require a live
+  `KingdomPlayer` context not available through TeamsAPI).
+- Power read-only; `getPlayerMaxPower` and `getTeamMaxPower` always return
+  `0.0` (KingdomsX does not expose a per-player power ceiling in its public
+  API).
+- `MEMBER`, `ALLY`, `TRUCE`, `ENEMY`, and `NEUTRAL` relation constants are
+  supported; relations are applied symmetrically.
+
+### New: extension management commands
+
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/teamsapi install <extension>` | `teamsapi.install` (op) | Copies a bundled extension JAR to `plugins/TeamsAPI/extensions/`. Valid names: `betterteams`, `towny`, `kingdomsx`. |
+| `/teamsapi load <file>.jar` | `teamsapi.load` (op) | Loads and enables an extension from `plugins/TeamsAPI/extensions/` without a server restart. |
+
+### Installation quick-start
+
+1. The extension JARs are pre-bundled. TeamsAPI copies them to
+   `plugins/TeamsAPI/extensions/` on startup automatically. Nothing to
+   download for first-time setup.
+2. Run `/teamsapi install betterteams` (or `towny` / `kingdomsx`) to stage the
+   extension for the next restart, **or** run `/teamsapi load
+   teams-api-extension-betterteams-2.2.0.jar` to activate it immediately
+   without a restart.
+3. Install the matching team plugin if it is not already present, then restart
+   (or reload) the server.
+
+Full details and a feature matrix are in the
+[Provider Catalog](https://ez-plugins.github.io/teams-api/provider-catalog.html).
+
 ## [2.1.0]
 
 ### Added

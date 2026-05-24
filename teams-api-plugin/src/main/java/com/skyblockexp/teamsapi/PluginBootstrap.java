@@ -7,11 +7,18 @@ import com.skyblockexp.teamsapi.model.Team;
 import com.skyblockexp.teamsapi.model.TeamMember;
 import com.skyblockexp.teamsapi.model.TeamRole;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,7 +31,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServiceRegisterEvent;
 import org.bukkit.event.server.ServiceUnregisterEvent;
+import org.bukkit.plugin.InvalidDescriptionException;
+import org.bukkit.plugin.InvalidPluginException;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.UnknownDependencyException;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 /**
@@ -36,6 +49,15 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
  * {@link #stop} from {@link TeamsApiPlugin#onDisable}.</p>
  */
 final class PluginBootstrap implements Listener, PluginMessageListener {
+
+    /** Supported installable extension IDs mapped to artifact names. */
+    private static final Map<String, String> INSTALLABLE_EXTENSIONS = buildInstallableExtensions();
+
+    /** Directory name under the TeamsAPI data folder where extension jars are stored. */
+    private static final String EXTENSIONS_DIR_NAME = "extensions";
+
+    /** Resource directory in the TeamsAPI jar containing bundled extension jars. */
+    private static final String BUNDLED_EXTENSIONS_RESOURCE_DIR = "bundled-extensions/";
 
     /** Handler for passive power regen; {@code null} when disabled in config. */
     private PassivePowerHandler passiveHandler;
@@ -80,6 +102,8 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
         }
 
         plugin.saveDefaultConfig();
+        ensureExtensionsDirectory();
+        provisionBundledExtensions();
         startOptionalFeatures(plugin);
     }
 
@@ -247,6 +271,14 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
             handlePowerCommand(sender, args);
             return true;
         }
+        if (args[0].equalsIgnoreCase("install")) {
+            handleInstallCommand(sender, args);
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("load")) {
+            handleLoadCommand(sender, args);
+            return true;
+        }
 
         for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
             if (sub.getName().equalsIgnoreCase(args[0])) {
@@ -293,6 +325,14 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
         if (args[0].equalsIgnoreCase("power") && args.length == 2) {
             return filterByPrefix(buildPowerCompletions(sender), args[1]);
         }
+        if (args[0].equalsIgnoreCase("install") && args.length == 2
+                && sender.hasPermission("teamsapi.install")) {
+            return filterByPrefix(new ArrayList<>(INSTALLABLE_EXTENSIONS.keySet()), args[1]);
+        }
+        if (args[0].equalsIgnoreCase("load") && args.length == 2
+                && sender.hasPermission("teamsapi.load")) {
+            return filterByPrefix(listExtensionJarFileNames(), args[1]);
+        }
         for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
             if (sub.getName().equalsIgnoreCase(args[0])) {
                 final String perm = sub.getPermission();
@@ -324,6 +364,12 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
         }
         if (sender.hasPermission("teamsapi.power")) {
             completions.add("power");
+        }
+        if (sender.hasPermission("teamsapi.install")) {
+            completions.add("install");
+        }
+        if (sender.hasPermission("teamsapi.load")) {
+            completions.add("load");
         }
         for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
             final String perm = sub.getPermission();
@@ -388,6 +434,12 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
         }
         if (sender.hasPermission("teamsapi.power.buy")) {
             sender.sendMessage("  /teamsapi power buy <n>    - Purchase power (requires Vault)");
+        }
+        if (sender.hasPermission("teamsapi.install")) {
+            sender.sendMessage("  /teamsapi install <ext>    - Install TeamsAPI extension (restart required)");
+        }
+        if (sender.hasPermission("teamsapi.load")) {
+            sender.sendMessage("  /teamsapi load <file>      - Load extension from plugins/TeamsAPI/extensions");
         }
         for (final TeamsSubcommand sub : TeamsAPI.getSubcommands()) {
             final String perm = sub.getPermission();
@@ -476,6 +528,227 @@ final class PluginBootstrap implements Listener, PluginMessageListener {
             return;
         }
         sender.sendMessage("[TeamsAPI] Successfully purchased " + amount + " power.");
+    }
+
+    /**
+     * Handles {@code /teamsapi install <extension>} by downloading the extension JAR
+     * into the TeamsAPI extensions directory.
+     *
+     * @param sender the command sender
+     * @param args   command arguments
+     */
+    private static void handleInstallCommand(final CommandSender sender, final String[] args) {
+        if (!sender.hasPermission("teamsapi.install")) {
+            sender.sendMessage("[TeamsAPI] You do not have permission to install extensions.");
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("[TeamsAPI] Usage: /teamsapi install <extension>");
+            sender.sendMessage("[TeamsAPI] Available: " + String.join(", ", INSTALLABLE_EXTENSIONS.keySet()));
+            return;
+        }
+
+        final String extensionId = args[1].toLowerCase();
+        if (!INSTALLABLE_EXTENSIONS.containsKey(extensionId)) {
+            sender.sendMessage("[TeamsAPI] Unknown extension '" + args[1] + "'.");
+            sender.sendMessage("[TeamsAPI] Available: " + String.join(", ", INSTALLABLE_EXTENSIONS.keySet()));
+            return;
+        }
+
+        final String artifactName = INSTALLABLE_EXTENSIONS.get(extensionId);
+        final String version = PluginRegistry.getPlugin().getDescription().getVersion();
+        final String fileName = artifactName + "-" + version + ".jar";
+        final String url = "https://github.com/ez-plugins/teams-api/releases/download/v"
+            + version + "/" + fileName;
+        final Path destination = getExtensionsDirectory().resolve(fileName);
+        ensureExtensionsDirectory();
+
+        try (var stream = new java.net.URL(url).openStream()) {
+            Files.copy(stream, destination, StandardCopyOption.REPLACE_EXISTING);
+            sender.sendMessage("[TeamsAPI] Installed extension '" + extensionId + "' to " + destination + ".");
+            sender.sendMessage("[TeamsAPI] Load it with: /teamsapi load " + fileName);
+        }
+        catch (java.io.IOException exception) {
+            sender.sendMessage("[TeamsAPI] Failed to download extension from: " + url);
+            sender.sendMessage("[TeamsAPI] Error: " + exception.getMessage());
+        }
+    }
+
+    /**
+     * Handles {@code /teamsapi load <file>} by loading and enabling an extension JAR from
+     * the TeamsAPI extensions directory.
+     *
+     * @param sender the command sender
+     * @param args   command arguments
+     */
+    private static void handleLoadCommand(final CommandSender sender, final String[] args) {
+        if (!sender.hasPermission("teamsapi.load")) {
+            sender.sendMessage("[TeamsAPI] You do not have permission to load extensions.");
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("[TeamsAPI] Usage: /teamsapi load <file>");
+            return;
+        }
+        if (args[1].contains("/") || args[1].contains("\\") || args[1].contains("..")) {
+            sender.sendMessage("[TeamsAPI] Invalid extension filename.");
+            return;
+        }
+        if (!args[1].toLowerCase().endsWith(".jar")) {
+            sender.sendMessage("[TeamsAPI] Extension file must be a .jar.");
+            return;
+        }
+
+        ensureExtensionsDirectory();
+        final Path candidate = getExtensionsDirectory().resolve(args[1]).normalize();
+        if (!candidate.startsWith(getExtensionsDirectory())) {
+            sender.sendMessage("[TeamsAPI] Invalid extension path.");
+            return;
+        }
+        if (!Files.exists(candidate) || !Files.isRegularFile(candidate)) {
+            sender.sendMessage("[TeamsAPI] Extension file not found: " + args[1]);
+            return;
+        }
+
+        final String pluginName = readPluginName(candidate);
+        if (pluginName == null) {
+            sender.sendMessage("[TeamsAPI] Invalid extension JAR: missing plugin.yml name.");
+            return;
+        }
+        if (Bukkit.getPluginManager().getPlugin(pluginName) != null) {
+            sender.sendMessage("[TeamsAPI] Extension '" + pluginName + "' is already loaded.");
+            return;
+        }
+
+        try {
+            final PluginManager manager = Bukkit.getPluginManager();
+            final Plugin loaded = manager.loadPlugin(candidate.toFile());
+            manager.enablePlugin(loaded);
+            sender.sendMessage("[TeamsAPI] Loaded extension '" + loaded.getName() + "' from " + candidate + ".");
+        }
+        catch (UnknownDependencyException exception) {
+            sender.sendMessage("[TeamsAPI] Missing dependency: " + exception.getMessage());
+        }
+        catch (InvalidDescriptionException exception) {
+            sender.sendMessage("[TeamsAPI] Invalid plugin description in " + args[1] + ".");
+        }
+        catch (InvalidPluginException exception) {
+            sender.sendMessage("[TeamsAPI] Invalid plugin: " + exception.getMessage());
+        }
+        catch (Throwable throwable) {
+            sender.sendMessage("[TeamsAPI] Failed to load extension: " + throwable.getMessage());
+        }
+    }
+
+    /**
+     * Returns the extensions directory path for TeamsAPI.
+     *
+     * @return path to {@code plugins/TeamsAPI/extensions}
+     */
+    private static Path getExtensionsDirectory() {
+        return PluginRegistry.getPlugin().getDataFolder().toPath().resolve(EXTENSIONS_DIR_NAME);
+    }
+
+    /**
+     * Ensures the TeamsAPI extensions directory exists.
+     */
+    private static void ensureExtensionsDirectory() {
+        final Path extensionsDirectory = getExtensionsDirectory();
+        try {
+            Files.createDirectories(extensionsDirectory);
+        }
+        catch (IOException exception) {
+            PluginRegistry.getLogger().warning(
+                "Failed to create extensions directory: " + extensionsDirectory + " (" + exception.getMessage() + ")");
+        }
+    }
+
+    /**
+     * Copies bundled extension jars from the TeamsAPI plugin jar into the extensions
+     * directory when those files do not already exist.
+     */
+    private static void provisionBundledExtensions() {
+        final String version = PluginRegistry.getPlugin().getDescription().getVersion();
+        for (final String artifactName : INSTALLABLE_EXTENSIONS.values()) {
+            final String fileName = artifactName + "-" + version + ".jar";
+            final Path destination = getExtensionsDirectory().resolve(fileName);
+            if (Files.exists(destination)) {
+                continue;
+            }
+            final String resourcePath = BUNDLED_EXTENSIONS_RESOURCE_DIR + fileName;
+            try (InputStream stream = PluginRegistry.getPlugin().getResource(resourcePath)) {
+                if (stream == null) {
+                    continue;
+                }
+                Files.copy(stream, destination, StandardCopyOption.REPLACE_EXISTING);
+                PluginRegistry.getLogger().info("Provisioned bundled extension: " + fileName);
+            }
+            catch (IOException exception) {
+                PluginRegistry.getLogger().warning(
+                    "Failed to provision bundled extension " + fileName + ": " + exception.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Lists extension jar file names present in the TeamsAPI extensions directory.
+     *
+     * @return mutable list of extension jar file names
+     */
+    private static List<String> listExtensionJarFileNames() {
+        final Path extensionsDirectory = getExtensionsDirectory();
+        final List<String> fileNames = new ArrayList<>();
+        try {
+            Files.createDirectories(extensionsDirectory);
+            try (var stream = Files.list(extensionsDirectory)) {
+                stream.filter(Files::isRegularFile)
+                    .map(Path::getFileName)
+                    .map(Path::toString)
+                    .filter(name -> name.toLowerCase().endsWith(".jar"))
+                    .sorted()
+                    .forEach(fileNames::add);
+            }
+        }
+        catch (IOException exception) {
+            PluginRegistry.getLogger().warning(
+                "Failed to list extensions in " + extensionsDirectory + ": " + exception.getMessage());
+        }
+        return fileNames;
+    }
+
+    /**
+     * Reads the plugin name from the extension jar's {@code plugin.yml}.
+     *
+     * @param jarPath path to the jar file
+     * @return plugin name or {@code null} when unreadable/invalid
+     */
+    private static String readPluginName(final Path jarPath) {
+        try (java.util.jar.JarFile jarFile = new java.util.jar.JarFile(jarPath.toFile())) {
+            final java.util.jar.JarEntry pluginYml = jarFile.getJarEntry("plugin.yml");
+            if (pluginYml == null) {
+                return null;
+            }
+            try (InputStream stream = jarFile.getInputStream(pluginYml)) {
+                final PluginDescriptionFile description = new PluginDescriptionFile(stream);
+                return description.getName();
+            }
+        }
+        catch (IOException | InvalidDescriptionException exception) {
+            return null;
+        }
+    }
+
+    /**
+     * Builds the installable extension map.
+     *
+     * @return extension map
+     */
+    private static Map<String, String> buildInstallableExtensions() {
+        final Map<String, String> extensions = new LinkedHashMap<>();
+        extensions.put("betterteams", "teams-api-extension-betterteams");
+        extensions.put("towny", "teams-api-extension-towny");
+        extensions.put("kingdomsx", "teams-api-extension-kingdomsx");
+        return Collections.unmodifiableMap(extensions);
     }
 
     /**

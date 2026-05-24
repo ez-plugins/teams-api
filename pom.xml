@@ -6,7 +6,7 @@
 
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api-parent</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
     <packaging>pom</packaging>
     <name>TeamsAPI Parent</name>
     <description>Universal Teams API for Minecraft: bridges team plugins with a clean, timeless interface.</description>
@@ -15,6 +15,9 @@
     <modules>
         <module>teams-api</module>
         <module>teams-api-plugin</module>
+        <module>teams-api-extension-betterteams</module>
+        <module>teams-api-extension-towny</module>
+        <module>teams-api-extension-kingdomsx</module>
         <module>teams-api-velocity</module>
         <module>teams-api-bungeecord</module>
     </modules>
@@ -29,6 +32,8 @@
         <bungee.version>1.21-R0.4</bungee.version>
         <!-- Allow CI to override Paper API version via -Dpaper.version -->
         <paper.version>26.1.2.build.57-stable</paper.version>
+        <betterteams.version>5.1.2</betterteams.version>
+        <kingdomsx.version>1.17.18.1-BETA</kingdomsx.version>
         <mockbukkit.groupId>org.mockbukkit.mockbukkit</mockbukkit.groupId>
         <mockbukkit.artifactId>mockbukkit-v26.1.2</mockbukkit.artifactId>
         <mockbukkit.version>4.113.0</mockbukkit.version>
