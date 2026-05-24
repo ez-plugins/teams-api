@@ -295,9 +295,13 @@ exposes `getDefaultNature()` and `getNature()`; server or provider code may call
 (for example treating `TRUCE` as `NEUTRAL`). `isFriendly()` and `isHostile()` are
 kept unchanged for backwards compatibility.
 
+**Optional power shop**
+
 > **Vault (optional):** `plugin.yml` declares `softdepend: [Vault]`. When Vault is
 > installed the built-in power shop (`/teamsapi power buy`) can charge players.
 > TeamsAPI loads normally without Vault; the shop is simply disabled.
+
+**TeamsAPI extensions**
 
 > **Extensions:** TeamsAPI ships official extension JARs by default and provisions
 > them into `plugins/TeamsAPI/extensions/` on startup. You can also download extension
