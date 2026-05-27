@@ -13,11 +13,11 @@ Implemented in our refactored Factions fork: [https://modrinth.com/plugin/pvpind
 
 ![Teams API connect your plugin with team plugins](https://i.ibb.co/VpzgC9SK/teams-api-header.png)
 
-- **Providers** -- faction, clan, guild, or custom team plugins `implement TeamsService`
+- **Providers** - faction, clan, guild, or custom team plugins `implement TeamsService`
   and register with TeamsAPI during `onEnable()`.
-- **Consumers** -- scoreboard plugins, chat formatters, quest plugins, or any plugin that
+- **Consumers** - scoreboard plugins, chat formatters, quest plugins, or any plugin that
   needs team data call `TeamsAPI.getService()` and use the returned interface.
-- **Server owners** -- install `TeamsAPI.jar` and one compatible team plugin. Done.
+- **Server owners** - install `TeamsAPI.jar` and one compatible team plugin. Done.
 
 No two plugins need to know about each other. When the team plugin changes, every
 consumer plugin keeps working without a recompile.
@@ -419,10 +419,10 @@ All events live in `com.skyblockexp.teamsapi.event`. Providers are encouraged bu
 
 ## Links
 
-- [GitHub](https://github.com/ez-plugins/teams-api) -- source code & issue tracker
-- [Developer Guide](https://ez-plugins.github.io/teams-api/developer-guide.html) -- full integration walkthrough
-- [API Reference](https://ez-plugins.github.io/teams-api/api.html) -- complete method tables
-- [JitPack](https://jitpack.io/#ez-plugins/teams-api) -- Maven / Gradle dependency
+- [GitHub](https://github.com/ez-plugins/teams-api) - source code & issue tracker
+- [Developer Guide](https://ez-plugins.github.io/teams-api/developer-guide.html) - full integration walkthrough
+- [API Reference](https://ez-plugins.github.io/teams-api/api.html) - complete method tables
+- [JitPack](https://jitpack.io/#ez-plugins/teams-api) - Maven / Gradle dependency
 
 ---
 
