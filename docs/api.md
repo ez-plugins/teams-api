@@ -50,6 +50,16 @@ Entry point for all API interactions. All methods are static.
 | `registerWarpProvider(plugin, service, priority)` | Registers a warp provider at the given priority. |
 | `unregisterWarpProvider(service)` | Unregisters a warp provider from Bukkit's ServicesManager. |
 
+**Chest service**
+
+| Method | Description |
+|--------|-------------|
+| `getChestService()` | Returns the active `TeamsChestService`, or `null` if none is registered. |
+| `isChestAvailable()` | Returns `true` when a chest provider is registered. |
+| `registerChestProvider(plugin, service)` | Registers a chest provider at `ServicePriority.Normal`. |
+| `registerChestProvider(plugin, service, priority)` | Registers a chest provider at the given priority. |
+| `unregisterChestProvider(service)` | Unregisters a chest provider from Bukkit's ServicesManager. |
+
 **Claim service**
 
 | Method | Description |
@@ -207,6 +217,24 @@ Existing `TeamsService` implementations are not required to support it.
 | `isSafeZone(worldName, chunkX, chunkZ)` | `boolean` | Default method. Returns `true` when `getTerritoryTypeAt(...) == SAFE_ZONE`. |
 | `isWarZone(worldName, chunkX, chunkZ)` | `boolean` | Default method. Returns `true` when `getTerritoryTypeAt(...) == WAR_ZONE`. |
 | `getTeamMaxClaims(teamId)` | `int` | Maximum chunks the team may claim. `-1` means no limit. |
+
+## `TeamsChestService` (interface)
+
+Optional extension service for team chest management. Providers that support
+team chest access register an implementation via `TeamsAPI.registerChestProvider()`.
+Existing `TeamsService` implementations are not required to support it.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getChestIds(teamId)` | `Collection<String>` | Returns all chest identifiers available for the team. Single-chest providers may return only `default`. |
+| `getContents(teamId)` | `Collection<ItemStack>` | Returns the default chest contents as a read-only snapshot. Never `null`; empty if the chest is empty or unavailable. |
+| `getContents(teamId, chestId)` | `Collection<ItemStack>` | Returns contents for a specific chest identifier. |
+| `setContents(teamId, contents)` | `boolean` | Replaces the default chest contents with the provided snapshot. |
+| `setContents(teamId, chestId, contents)` | `boolean` | Replaces contents for a specific chest identifier. |
+| `addItem(teamId, item)` | `boolean` | Attempts to add one item stack to the default chest. |
+| `addItem(teamId, chestId, item)` | `boolean` | Attempts to add one item stack to a specific chest identifier. |
+| `removeItem(teamId, item)` | `boolean` | Attempts to remove one matching item stack from the default chest. |
+| `removeItem(teamId, chestId, item)` | `boolean` | Attempts to remove one matching item stack from a specific chest identifier. |
 
 ## `TeamsPowerService` (interface)
 
@@ -537,6 +565,15 @@ All concrete events implement `Cancellable`.
 | `TeamRelationChangeEvent` | Yes | `getTeam()` (source), `getTargetTeam()`, `getInitiatorUUID()`, `getOldRelation()`, `getNewRelation()`, `setNewRelation(relation)` |
 
 ## Migration notes
+
+### 2.3.0
+
+Non-breaking addition. No changes required for existing providers or consumers.
+
+- New optional `TeamsChestService` interface for team chest management.
+- New `TeamsAPI` static methods: `getChestService()`, `isChestAvailable()`,
+  `registerChestProvider(...)`, and `unregisterChestProvider(...)`.
+- `TeamsAPI.API_VERSION` bumped from `2.2.0` to `2.3.0`.
 
 ### 2.0.0
 

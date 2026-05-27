@@ -161,6 +161,9 @@ if (TeamsAPI.isInviteAvailable()) {
 if (TeamsAPI.isWarpAvailable()) {
     // use TeamsAPI.getWarpService()
 }
+if (TeamsAPI.isChestAvailable()) {
+    // use TeamsAPI.getChestService()
+}
 if (TeamsAPI.isClaimAvailable()) {
     // use TeamsAPI.getClaimService()
 }

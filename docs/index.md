@@ -9,7 +9,7 @@ permalink: /
 # TeamsAPI
 
 [![JitPack](https://jitpack.io/v/ez-plugins/teams-api.svg)](https://jitpack.io/#ez-plugins/teams-api)
-[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-2.2.0-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
+[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-2.3.0-blue?logo=github)](https://github.com/ez-plugins/teams-api/packages)
 
 **TeamsAPI** is a passive bridge plugin for Paper, Spigot, Purpur, and Folia
 servers running Minecraft 1.16+, modelled on [Vault](https://github.com/MilkBowl/VaultAPI).
@@ -33,6 +33,8 @@ backend server directly.
   independently of the core team service
 - **Optional warp support**: register a `TeamsWarpService` to manage named team warps
   independently of the core team service
+- **Optional team chest support**: register a `TeamsChestService` to expose team
+  chest contents and item add/remove operations
 - **Optional claim support**: register a `TeamsClaimService` for chunk claims, including
   SafeZone and WarZone territory typing
 - **Optional power support**: register a `TeamsPowerService` to expose team/player power
@@ -70,7 +72,7 @@ backend server directly.
 <dependency>
   <groupId>com.github.ez-plugins</groupId>
   <artifactId>teams-api</artifactId>
-  <version>2.2.0</version>
+  <version>2.3.0</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -103,6 +105,7 @@ public void onEnable() {
 |------|----------------|
 | [Consumer Guide](consumer-guide) | Best entry point for addon plugin developers |
 | [Consumer Tutorial (Bukkit)](consumer-tutorial-bukkit) | Build a Bukkit consumer plugin step-by-step |
+| [Consumer Team Chests](consumer-chests) | Read contents and add/remove team chest items |
 | [Consumer Tutorial (Proxy)](consumer-tutorial-proxy) | Build a Velocity/Bungee consumer plugin step-by-step |
 | [Registering Subcommands](consumer-subcommands) | Register addon subcommands for provider command dispatch |
 | [Velocity Guide](velocity) | Proxy bridge setup and consumer API behavior (Velocity) |
@@ -119,6 +122,7 @@ public void onEnable() {
 | [Custom Subcommands](provider-subcommands) | Dispatch third-party TeamsAPI subcommands |
 | [Invite Provider](provider-invites) | Implement and register `TeamsInviteService` |
 | [Warp Provider](provider-warps) | Implement and register `TeamsWarpService` |
+| [Chest Provider](provider-chests) | Implement and register `TeamsChestService` |
 | [Optional Integration & Shading](provider-optional-integration) | Keep TeamsAPI support optional and avoid classpath conflicts |
 
 ### Shared reference
