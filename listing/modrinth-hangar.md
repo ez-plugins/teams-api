@@ -31,6 +31,7 @@ consumer plugin keeps working without a recompile.
 - **Role hierarchy**: built-in `OWNER > ADMIN > MEMBER` with `outranks()` and `canManage()` helpers.
 - **Optional invite service**: providers can expose `TeamsInviteService` for invitation workflows.
 - **Optional warp service**: providers can expose `TeamsWarpService` for named team warps.
+- **Optional chest service**: providers can expose `TeamsChestService` for team chest contents and add/remove operations.
 - **Optional claim service**: providers can expose `TeamsClaimService` for chunk-claim management, including SafeZone and WarZone territory support.
 - **Optional power service**: providers can expose `TeamsPowerService` for player and team power values.
 - **Optional power-history service**: providers can expose `TeamsPowerHistoryService`
@@ -85,7 +86,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -97,7 +98,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:2.2.0'
+    compileOnly 'com.github.ez-plugins:teams-api:2.3.0'
 }
 ```
 
@@ -206,6 +207,28 @@ TeamsAPI.registerWarpProvider(this, warpService);
 | `getWarps(teamId)` | `Collection<TeamWarp>` | Returns all warps for a team |
 
 Consumers check availability with `TeamsAPI.isWarpAvailable()` before calling `TeamsAPI.getWarpService()`.
+
+### Chest service (optional)
+
+Register alongside `TeamsService` if your plugin supports team chest operations:
+
+```java
+TeamsAPI.registerChestProvider(this, chestService);
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getChestIds(teamId)` | `Collection<String>` | Returns available chest identifiers for the team |
+| `getContents(teamId)` | `Collection<ItemStack>` | Returns the default chest contents |
+| `getContents(teamId, chestId)` | `Collection<ItemStack>` | Returns contents for a specific chest identifier |
+| `setContents(teamId, contents)` | `boolean` | Replaces the default chest contents |
+| `setContents(teamId, chestId, contents)` | `boolean` | Replaces contents for a specific chest identifier |
+| `addItem(teamId, item)` | `boolean` | Adds one item stack to the default chest |
+| `addItem(teamId, chestId, item)` | `boolean` | Adds one item stack to a specific chest identifier |
+| `removeItem(teamId, item)` | `boolean` | Removes one matching item stack from the default chest |
+| `removeItem(teamId, chestId, item)` | `boolean` | Removes one matching item stack from a specific chest identifier |
+
+Consumers check availability with `TeamsAPI.isChestAvailable()` before calling `TeamsAPI.getChestService()`.
 
 ### Claim service (optional)
 

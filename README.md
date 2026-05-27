@@ -44,7 +44,7 @@ Your Plugin (consumer)  ->  TeamsAPI (bridge)  ->  Team Plugin (provider)
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -56,7 +56,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:2.2.0'
+    compileOnly 'com.github.ez-plugins:teams-api:2.3.0'
 }
 ```
 
@@ -143,6 +143,37 @@ public void onEnable() {
 public void onDisable() {
     TeamsAPI.unregisterProvider(teamsService);
     TeamsAPI.unregisterWarpProvider(warpService);
+}
+```
+
+### Team chest service (optional)
+
+If the active team plugin supports team chest operations, a `TeamsChestService`
+is available:
+
+```java
+if (TeamsAPI.isChestAvailable()) {
+    TeamsChestService chests = TeamsAPI.getChestService();
+    Collection<String> chestIds = chests.getChestIds(teamId);
+    Collection<ItemStack> defaultContents = chests.getContents(teamId);
+    Collection<ItemStack> vaultContents = chests.getContents(teamId, "vault");
+    boolean replaced = chests.setContents(teamId, "vault", vaultContents);
+}
+```
+
+Providers that support team chests register the service alongside `TeamsService`:
+
+```java
+@Override
+public void onEnable() {
+    TeamsAPI.registerProvider(this, teamsService);
+    TeamsAPI.registerChestProvider(this, chestService);
+}
+
+@Override
+public void onDisable() {
+    TeamsAPI.unregisterProvider(teamsService);
+    TeamsAPI.unregisterChestProvider(chestService);
 }
 ```
 

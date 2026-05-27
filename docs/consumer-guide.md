@@ -13,6 +13,7 @@ Recommended reading order:
 
 1. [Consumer Tutorial (Bukkit)](consumer-tutorial-bukkit)
 2. [Registering Subcommands](consumer-subcommands)
-3. [Consumer Tutorial (Proxy)](consumer-tutorial-proxy)
-4. [Velocity Guide](velocity) or [BungeeCord Guide](bungeecord)
-5. [API Reference](api)
+3. [Consumer Team Chests](consumer-chests)
+4. [Consumer Tutorial (Proxy)](consumer-tutorial-proxy)
+5. [Velocity Guide](velocity) or [BungeeCord Guide](bungeecord)
+6. [API Reference](api)

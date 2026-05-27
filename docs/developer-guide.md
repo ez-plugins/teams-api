@@ -47,8 +47,8 @@ Consumers depend only on the `teams-api` artifact and never import classes from
 the team plugin directly. Providers register and unregister themselves through
 `TeamsAPI.registerProvider(...)`.
 
-The optional services (`TeamsInviteService`, `TeamsWarpService`, `TeamsClaimService`,
-and `TeamsPowerService`) follow the same pattern: each is registered and looked up
+The optional services (`TeamsInviteService`, `TeamsWarpService`, `TeamsChestService`,
+`TeamsClaimService`, and `TeamsPowerService`) follow the same pattern: each is registered and looked up
 independently from the core service. A provider plugin can implement any combination.
 
 ## Installation (server owners)
@@ -208,6 +208,29 @@ private void handleWarpCommand(Player player, UUID teamId, String warpName) {
 
 ### 6. Use the claim service (optional)
 
+### 6. Use the chest service (optional)
+
+The chest service is registered separately from the core service. Always check
+`TeamsAPI.isChestAvailable()` before using it.
+
+```java
+private void handleChestSummary(Player player, UUID teamId, ItemStack sample) {
+    if (!TeamsAPI.isChestAvailable()) {
+        player.sendMessage("The active team plugin does not support team chests.");
+        return;
+    }
+    TeamsChestService chests = TeamsAPI.getChestService();
+    Collection<String> chestIds = chests.getChestIds(teamId);
+    Collection<ItemStack> contents = chests.getContents(teamId, "vault");
+    boolean replaced = chests.setContents(teamId, "vault", contents);
+    boolean added = chests.addItem(teamId, "vault", sample);
+    player.sendMessage("Chests: " + chestIds.size() + ", vault items: " + contents.size()
+        + " (replace result: " + replaced + ", add result: " + added + ")");
+}
+```
+
+### 7. Use the claim service (optional)
+
 The claim service is registered separately from the core service. Always check
 `TeamsAPI.isClaimAvailable()` before using it.
 
@@ -244,7 +267,7 @@ if (type == ClaimTerritoryType.WAR_ZONE) {
 }
 ```
 
-### 7. Use the power service (optional)
+### 8. Use the power service (optional)
 
 The power service is registered separately from the core service. Always check
 `TeamsAPI.isPowerAvailable()` before using it.
@@ -262,7 +285,7 @@ private void handlePowerCommand(Player player, UUID teamId) {
 }
 ```
 
-### 8. Use the relation service (optional)
+### 9. Use the relation service (optional)
 
 The relation service is registered separately from the core service. Always check
 `TeamsAPI.isRelationAvailable()` before using it.
@@ -284,7 +307,7 @@ private void handleRelationQuery(Player player, UUID myTeamId, UUID theirTeamId)
 }
 ```
 
-### 9. Register a custom subcommand (providers)
+### 10. Register a custom subcommand (providers)
 
 Providers can expose additional commands under `/teamsapi <name>` without
 shipping a separate Bukkit command. See the dedicated
@@ -457,6 +480,7 @@ backward-compatible features. Patch bumps are bug fixes only.
 - [Team Provider](provider-teams): implementing `TeamsService` in your team plugin
 - [Invite Provider](provider-invites): implementing `TeamsInviteService` for invitation support
 - [Warp Provider](provider-warps): implementing `TeamsWarpService` for warp support
+- [Chest Provider](provider-chests): implementing `TeamsChestService` for team chest support
 - [Velocity Guide](velocity): using `teams-api-velocity` on a Velocity proxy
 - [API Reference](api): interface and model overview
 - [GitHub repository](https://github.com/ez-plugins/teams-api)

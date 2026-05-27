@@ -29,6 +29,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [*][B]Role hierarchy[/B] -- built-in [COLOR=#ffd700]OWNER[/COLOR] > [COLOR=#ffd700]ADMIN[/COLOR] > [COLOR=#ffd700]MEMBER[/COLOR] with [COLOR=#6cb4ff]outranks()[/COLOR] and [COLOR=#6cb4ff]canManage()[/COLOR] helpers.
 [*][B]Optional invite service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsInviteService[/COLOR] for invitation workflows.
 [*][B]Optional warp service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsWarpService[/COLOR] for named team warps.
+[*][B]Optional chest service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsChestService[/COLOR] for team chest contents and add/remove operations.
 [*][B]Optional claim service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsClaimService[/COLOR] for chunk-claim management, including SafeZone and WarZone support.
 [*][B]Optional power service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerService[/COLOR] for player and team power values.
 [*][B]Optional power-history service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerHistoryService[/COLOR] for reading and managing player/team power-history entries.
@@ -79,7 +80,7 @@ No two plugins need to know about each other. When the team plugin changes, ever
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
     <scope>provided</scope>
 </dependency>
 [/CODE]
@@ -91,7 +92,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:2.2.0'
+    compileOnly 'com.github.ez-plugins:teams-api:2.3.0'
 }
 [/CODE]
 [/SPOILER]
@@ -186,6 +187,20 @@ public void onDisable() {
 [*][COLOR=#6cb4ff]removeWarp(teamId, name)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Deletes a warp by name
 [*][COLOR=#6cb4ff]getWarp(teamId, name)[/COLOR] -> [COLOR=#ffd700]Optional<TeamWarp>[/COLOR] -- Looks up a warp by name
 [*][COLOR=#6cb4ff]getWarps(teamId)[/COLOR] -> [COLOR=#ffd700]Collection<TeamWarp>[/COLOR] -- Returns all warps for a team
+[/LIST]
+
+[SIZE=4][B]Chest service (optional)[/B][/SIZE]
+
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isChestAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getChestService()[/COLOR].[/COLOR]
+
+[LIST]
+[*][COLOR=#6cb4ff]getChestIds(teamId)[/COLOR] -> [COLOR=#ffd700]Collection<String>[/COLOR] -- Returns available chest identifiers for the team
+[*][COLOR=#6cb4ff]getContents(teamId)[/COLOR] -> [COLOR=#ffd700]Collection<ItemStack>[/COLOR] -- Returns the default chest contents
+[*][COLOR=#6cb4ff]getContents(teamId, chestId)[/COLOR] -> [COLOR=#ffd700]Collection<ItemStack>[/COLOR] -- Returns contents for a specific chest identifier`r`n[*][COLOR=#6cb4ff]setContents(teamId, contents)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Replaces the default chest contents`r`n[*][COLOR=#6cb4ff]setContents(teamId, chestId, contents)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Replaces contents for a specific chest identifier
+[*][COLOR=#6cb4ff]addItem(teamId, item)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Adds one item stack to the default chest
+[*][COLOR=#6cb4ff]addItem(teamId, chestId, item)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Adds one item stack to a specific chest identifier
+[*][COLOR=#6cb4ff]removeItem(teamId, item)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes one matching item stack from the default chest
+[*][COLOR=#6cb4ff]removeItem(teamId, chestId, item)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes one matching item stack from a specific chest identifier
 [/LIST]
 
 [SIZE=4][B]Claim service (optional)[/B][/SIZE]
