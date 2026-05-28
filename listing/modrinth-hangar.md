@@ -13,11 +13,11 @@ Implemented in our refactored Factions fork: [https://modrinth.com/plugin/pvpind
 
 ![Teams API connect your plugin with team plugins](https://i.ibb.co/VpzgC9SK/teams-api-header.png)
 
-- **Providers** - faction, clan, guild, or custom team plugins `implement TeamsService`
+- **Providers** -- faction, clan, guild, or custom team plugins `implement TeamsService`
   and register with TeamsAPI during `onEnable()`.
-- **Consumers** - scoreboard plugins, chat formatters, quest plugins, or any plugin that
+- **Consumers** -- scoreboard plugins, chat formatters, quest plugins, or any plugin that
   needs team data call `TeamsAPI.getService()` and use the returned interface.
-- **Server owners** - install `TeamsAPI.jar` and one compatible team plugin. Done.
+- **Server owners** -- install `TeamsAPI.jar` and one compatible team plugin. Done.
 
 No two plugins need to know about each other. When the team plugin changes, every
 consumer plugin keeps working without a recompile.
@@ -28,10 +28,9 @@ consumer plugin keeps working without a recompile.
 - **Provider-agnostic**: works with any team plugin that ships a `TeamsService` implementation.
 - **Graceful fallback**: if no provider is present, `TeamsAPI.isAvailable()` returns `false`; consumers can disable their team features cleanly instead of crashing.
 - **Read-only snapshots**: `Team` and `TeamMember` are immutable interfaces; providers own the backing data.
-- **Role hierarchy**: built-in `OWNER > ADMIN > MEMBER` with `outranks()` and `canManage()` helpers.
+- **Role hierarchy**: built-in `OWNER > ADMIN > MEMBER` with `outranks()`, `canManage()`, and customisable display prefixes (`getPrefix()` / `setPrefixOverride()`).
 - **Optional invite service**: providers can expose `TeamsInviteService` for invitation workflows.
 - **Optional warp service**: providers can expose `TeamsWarpService` for named team warps.
-- **Optional chest service**: providers can expose `TeamsChestService` for team chest contents and add/remove operations.
 - **Optional claim service**: providers can expose `TeamsClaimService` for chunk-claim management, including SafeZone and WarZone territory support.
 - **Optional power service**: providers can expose `TeamsPowerService` for player and team power values.
 - **Optional power-history service**: providers can expose `TeamsPowerHistoryService`
@@ -86,7 +85,7 @@ Add the API artifact to your project via [JitPack](https://jitpack.io/#ez-plugin
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>2.3.0</version>
+    <version>2.4.0</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -98,7 +97,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:2.3.0'
+    compileOnly 'com.github.ez-plugins:teams-api:2.4.0'
 }
 ```
 
@@ -207,28 +206,6 @@ TeamsAPI.registerWarpProvider(this, warpService);
 | `getWarps(teamId)` | `Collection<TeamWarp>` | Returns all warps for a team |
 
 Consumers check availability with `TeamsAPI.isWarpAvailable()` before calling `TeamsAPI.getWarpService()`.
-
-### Chest service (optional)
-
-Register alongside `TeamsService` if your plugin supports team chest operations:
-
-```java
-TeamsAPI.registerChestProvider(this, chestService);
-```
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `getChestIds(teamId)` | `Collection<String>` | Returns available chest identifiers for the team |
-| `getContents(teamId)` | `Collection<ItemStack>` | Returns the default chest contents |
-| `getContents(teamId, chestId)` | `Collection<ItemStack>` | Returns contents for a specific chest identifier |
-| `setContents(teamId, contents)` | `boolean` | Replaces the default chest contents |
-| `setContents(teamId, chestId, contents)` | `boolean` | Replaces contents for a specific chest identifier |
-| `addItem(teamId, item)` | `boolean` | Adds one item stack to the default chest |
-| `addItem(teamId, chestId, item)` | `boolean` | Adds one item stack to a specific chest identifier |
-| `removeItem(teamId, item)` | `boolean` | Removes one matching item stack from the default chest |
-| `removeItem(teamId, chestId, item)` | `boolean` | Removes one matching item stack from a specific chest identifier |
-
-Consumers check availability with `TeamsAPI.isChestAvailable()` before calling `TeamsAPI.getChestService()`.
 
 ### Claim service (optional)
 
@@ -411,18 +388,58 @@ All events live in `com.skyblockexp.teamsapi.event`. Providers are encouraged bu
 
 ### Roles
 
-| Role | Priority | Description |
-|------|----------|-------------|
-| `OWNER` | 100 | Full control; cannot be removed by others |
-| `ADMIN` | 50 | Can manage members with a lower priority |
-| `MEMBER` | 10 | Regular team member |
+| Role | Priority | Default prefix | Description |
+|------|----------|----------------|-------------|
+| `OWNER` | 100 | `Owner` | Full control; cannot be removed by others |
+| `ADMIN` | 50 | `Admin` | Can manage members with a lower priority |
+| `MEMBER` | 10 | `Member` | Regular team member |
+
+Role prefixes are safe defaults that consumers can override at runtime:
+
+```java
+// Customise a single role's label server-wide
+TeamRole.OWNER.setPrefixOverride("Leader");
+
+// Bulk-apply overrides from a map
+TeamRole.applyPrefixes(Map.of(
+    TeamRole.OWNER,  "Leader",
+    TeamRole.ADMIN,  "Officer",
+    TeamRole.MEMBER, "Recruit"
+));
+
+// Read effective prefix (override if set, otherwise default)
+String prefix = role.getPrefix();
+
+// Always read the built-in default, ignoring any override
+String defaultPrefix = role.getDefaultPrefix();
+
+// Clear all overrides at once
+TeamRole.resetAllPrefixes();
+```
+
+Providers that expose roles beyond `OWNER / ADMIN / MEMBER` register them in
+the server-wide custom role registry:
+
+```java
+// Provider: register a Co-Owner rank
+TeamRoleDefinition coOwner = new TeamRoleDefinition("co_owner", 75, "Co-Owner");
+TeamsAPI.registerCustomRole(this, coOwner);
+
+// Consumer: look up or list custom roles
+Optional<TeamRoleDefinition> role = TeamsAPI.getCustomRole("co_owner");
+Collection<TeamRoleDefinition> all = TeamsAPI.getCustomRoles(); // sorted by priority desc
+```
+
+`TeamMember.getRoleDefinition()` returns a `TeamRoleDefinition` for the member's
+current role, making it easy to display the correct prefix for both built-in and
+custom roles.
 
 ## Links
 
-- [GitHub](https://github.com/ez-plugins/teams-api) - source code & issue tracker
-- [Developer Guide](https://ez-plugins.github.io/teams-api/developer-guide.html) - full integration walkthrough
-- [API Reference](https://ez-plugins.github.io/teams-api/api.html) - complete method tables
-- [JitPack](https://jitpack.io/#ez-plugins/teams-api) - Maven / Gradle dependency
+- [GitHub](https://github.com/ez-plugins/teams-api) -- source code & issue tracker
+- [Developer Guide](https://ez-plugins.github.io/teams-api/developer-guide.html) -- full integration walkthrough
+- [API Reference](https://ez-plugins.github.io/teams-api/api.html) -- complete method tables
+- [JitPack](https://jitpack.io/#ez-plugins/teams-api) -- Maven / Gradle dependency
 
 ---
 

@@ -12,8 +12,9 @@ This section is for addon plugin developers who want to read or react to team da
 Recommended reading order:
 
 1. [Consumer Tutorial (Bukkit)](consumer-tutorial-bukkit)
-2. [Registering Subcommands](consumer-subcommands)
-3. [Consumer Team Chests](consumer-chests)
-4. [Consumer Tutorial (Proxy)](consumer-tutorial-proxy)
-5. [Velocity Guide](velocity) or [BungeeCord Guide](bungeecord)
-6. [API Reference](api)
+2. [Working with Roles](consumer-roles)
+3. [Registering Subcommands](consumer-subcommands)
+4. [Consumer Team Chests](consumer-chests)
+5. [Consumer Tutorial (Proxy)](consumer-tutorial-proxy)
+6. [Velocity Guide](velocity) or [BungeeCord Guide](bungeecord)
+7. [API Reference](api)
