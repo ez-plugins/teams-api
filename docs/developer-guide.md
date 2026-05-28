@@ -51,6 +51,57 @@ The optional services (`TeamsInviteService`, `TeamsWarpService`, `TeamsChestServ
 `TeamsClaimService`, and `TeamsPowerService`) follow the same pattern: each is registered and looked up
 independently from the core service. A provider plugin can implement any combination.
 
+## Repository layout
+
+The repository contains several Maven modules, each with a distinct role:
+
+```text
+teams-api/                          # API artifact — the only compile-time dependency
+  src/main/java/
+    com/skyblockexp/teamsapi/
+      api/                          # TeamsAPI facade + all service interfaces
+      model/                        # Team, TeamMember, TeamRole, TeamRelation, …
+      event/                        # TeamEvent base + all concrete event classes
+  src/test/java/                    # Unit tests for the API module
+
+teams-api-plugin/                   # Bukkit plugin — ships as TeamsAPI.jar
+  src/main/java/
+    TeamsApiPlugin.java             # Plugin entry point (passive bootstrap only)
+  src/main/resources/
+    plugin.yml                      # Declares /teamsapi command
+    extensions/                     # Bundled extension JARs (provisioned on startup)
+
+teams-api-extension-betterteams/    # Provider bridge for BetterTeams
+teams-api-extension-towny/          # Provider bridge for Towny Advanced
+teams-api-extension-kingdomsx/      # Provider bridge for KingdomsX
+
+teams-api-velocity/                 # Velocity proxy bridge (experimental)
+teams-api-bungeecord/               # BungeeCord/Waterfall proxy bridge (experimental)
+
+docs/                               # Jekyll-based documentation site
+  consumer-guide.md                 # Entry point for consumer plugin developers
+  consumer-tutorial-bukkit.md       # Step-by-step Bukkit consumer tutorial
+  consumer-roles.md                 # Working with TeamRole: reading, comparing, prefixes
+  provider-guide.md                 # Entry point for team plugin developers
+  provider-tutorial.md              # Step-by-step provider tutorial
+  api.md                            # Complete API reference (all interfaces and enums)
+  developer-guide.md                # Architecture overview (this file)
+
+listing/                            # Marketplace listing descriptions
+  modrinth-hangar.md                # Modrinth / Hangar listing (Markdown)
+  spigotmc.bbcode                   # SpigotMC listing (BBCode)
+
+libs/                               # Test-fixture JARs used in CI smoke tests
+```
+
+### Package roles
+
+| Package | Purpose |
+|---------|---------|
+| `api`   | Public entry-points (`TeamsAPI` facade, all `Teams*Service` interfaces). No implementation logic. |
+| `model` | Read-only data interfaces and enums. No Bukkit state. |
+| `event` | Bukkit event classes. Each concrete event owns its `HandlerList`. |
+
 ## Installation (server owners)
 
 1. Download `teams-api-plugin-VERSION.jar` from the [Releases page](https://github.com/ez-plugins/teams-api/releases).

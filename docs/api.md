@@ -373,6 +373,7 @@ A read-only record of a player's membership.
 | `getPlayerUUID()` | `UUID` | The player's UUID. |
 | `getRole()` | `TeamRole` | The role the player holds in the team. |
 | `getJoinedAt()` | `Instant` | When the player joined; may be `Instant.EPOCH` if unsupported. |
+| `getRoleDefinition()` | `TeamRoleDefinition` | Default method. Returns a `TeamRoleDefinition` wrapping the member's current built-in role. Providers that register custom roles should override this to return the precise custom definition. |
 
 ## `TeamWarp` (interface)
 
@@ -424,11 +425,11 @@ Hostility ordering (lowest → highest): `MEMBER < ALLY < TRUCE < NEUTRAL < ENEM
 
 | Constant  | Ordinal | Display name | Legacy color  | Hex color | Description |
 |-----------|---------|-------------|---------------|-----------|-------------|
-| `ALLY`    | 0       | "Ally"      | `§b` (aqua)   | `#55FFFF` | Formal alliance — mutual benefits apply. |
-| `TRUCE`   | 1       | "Truce"     | `§e` (yellow) | `#FFFF55` | Agreed ceasefire — no active hostility. |
+| `ALLY`    | 0       | "Ally"      | `§b` (aqua)   | `#55FFFF` | Formal alliance - mutual benefits apply. |
+| `TRUCE`   | 1       | "Truce"     | `§e` (yellow) | `#FFFF55` | Agreed ceasefire - no active hostility. |
 | `NEUTRAL` | 2       | "Neutral"   | `§7` (gray)   | `#AAAAAA` | No formal relation (default when none is set). |
 | `ENEMY`   | 3       | "Enemy"     | `§c` (red)    | `#FF5555` | Actively hostile. |
-| `MEMBER`  | 4       | "Member"    | `§a` (green)  | `#55FF55` | Same team — players are teammates. Providers should return this when both team UUIDs are equal. |
+| `MEMBER`  | 4       | "Member"    | `§a` (green)  | `#55FF55` | Same team - players are teammates. Providers should return this when both team UUIDs are equal. |
 
 Helper methods:
 
@@ -439,14 +440,14 @@ Helper methods:
 | `getDefaultHexColor()` | `String` | Default `#RRGGBB` hex string for Adventure / MiniMessage consumers. |
 | `isFriendly()` | `boolean` | Returns `true` for `MEMBER`, `ALLY`, and `TRUCE`. |
 | `isHostile()` | `boolean` | Returns `true` for `ENEMY`. |
-| `isMoreHostileThan(other)` | `boolean` | Returns `true` if this relation has a higher hostility level than `other`. Uses a dedicated field — not `ordinal()`. |
+| `isMoreHostileThan(other)` | `boolean` | Returns `true` if this relation has a higher hostility level than `other`. Uses a dedicated field - not `ordinal()`. |
 
 Additional `RelationNature` helpers:
 
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `getDefaultNature()` | `RelationNature` | Returns the compile-time default nature assigned to this relation constant. |
-| `getNature()` | `RelationNature` | Returns the effective nature — either the consumer-supplied override (if set) or the default. |
+| `getNature()` | `RelationNature` | Returns the effective nature - either the consumer-supplied override (if set) or the default. |
 | `setNatureOverride(nature)` | `void` | Sets or clears (if `null`) a JVM-wide override for the relation's nature. |
 
 ## `RelationNature` (enum)
@@ -481,19 +482,43 @@ Built-in notification categories for `TeamsNotificationService`.
 
 ## `TeamRole` (enum)
 
-| Constant | Priority | Description |
-|----------|----------|-------------|
-| `OWNER`  | 100      | Sole owner of the team. Full authority. |
-| `ADMIN`  | 50       | Can manage regular members. |
-| `MEMBER` | 10       | Regular member with no elevated permissions. |
+| Constant | Priority | Default prefix | Description |
+|----------|----------|----------------|-------------|
+| `OWNER`  | 100      | `Owner` | Sole owner of the team. Full authority. |
+| `ADMIN`  | 50       | `Admin` | Can manage regular members. |
+| `MEMBER` | 10       | `Member` | Regular member with no elevated permissions. |
 
 Helper methods:
 
 | Method | Description |
 |--------|-------------|
 | `getPriority()` | Numeric priority value. Higher = more authority. |
+| `getPrefix()` | Effective display prefix - returns the consumer-supplied override if one is set, otherwise the compile-time default. |
+| `getDefaultPrefix()` | Compile-time default prefix. Always `"Owner"`, `"Admin"`, or `"Member"` regardless of any active override. |
+| `setPrefixOverride(prefix)` | Sets or clears (if `null`) a JVM-wide prefix override for this constant. |
+| `applyPrefixes(prefixes)` | Static. Applies prefix overrides from a `Map<TeamRole, String>`. A `null` value in the map clears that role's override; `null` keys are silently skipped. |
+| `resetAllPrefixes()` | Static. Clears prefix overrides on every built-in role constant. |
 | `outranks(other)` | Returns `true` if this role has a higher priority than `other`. |
 | `canManage(target)` | Returns `true` if this role can manage members of the `target` role. |
+
+## `TeamRoleDefinition` (class)
+
+A role definition that associates a unique string key with a priority and display prefix.
+Used with the custom role registry on `TeamsAPI` to publish roles beyond the three built-in
+`TeamRole` constants.
+
+**Constructor:** `TeamRoleDefinition(String key, int priority, String defaultPrefix)`
+
+| Method | Description |
+|--------|-------------|
+| `getKey()` | The unique key for this role (e.g. `"co_owner"`). |
+| `getPriority()` | Numeric priority. Higher = more authority. |
+| `getPrefix()` | Effective prefix - returns the override if set, otherwise the default. |
+| `getDefaultPrefix()` | Compile-time default prefix; unaffected by `setPrefixOverride`. |
+| `setPrefixOverride(String)` | Sets or clears (`null`) a prefix override for this definition. |
+| `outranks(other)` | Returns `true` if this definition has higher priority than `other`. |
+| `canManage(target)` | Returns `true` if this definition can manage the `target` role. |
+| `of(TeamRole)` | Static factory. Creates a `TeamRoleDefinition` mirroring a built-in role (key = lower-case name). |
 
 ## `TeamPowerHistoryEntry` (interface)
 
@@ -566,6 +591,26 @@ All concrete events implement `Cancellable`.
 
 ## Migration notes
 
+### 2.4.0
+
+Non-breaking additions. No changes required for existing providers or consumers.
+
+- **Role prefix overrides**: `TeamRole.getPrefix()` now returns a consumer-supplied
+  override when one has been set, otherwise falls back to the compile-time default.
+  Existing calls to `getPrefix()` are unaffected - the return value is identical
+  unless an override is explicitly set.
+- New `TeamRole.getDefaultPrefix()`: always returns the compile-time default
+  (`"Owner"`, `"Admin"`, `"Member"`) regardless of any active override.
+- New `TeamRole.setPrefixOverride(String)`: sets or clears (if `null`) a JVM-wide
+  prefix override for the role constant.
+- New `TeamRole.applyPrefixes(Map<TeamRole, String>)`: bulk-sets overrides from a map.
+- New `TeamRole.resetAllPrefixes()`: clears overrides on every built-in role constant.
+- New `TeamRoleDefinition` class: custom role definitions with key, priority, and prefix.
+- New `TeamsAPI` registry methods: `registerCustomRole`, `unregisterCustomRole`,
+  `getCustomRole`, `getCustomRoles`, `isCustomRoleRegistered`.
+- New `TeamMember.getRoleDefinition()` default method: wraps the member's `TeamRole`
+  in a `TeamRoleDefinition`. Providers with custom roles should override this.
+
 ### 2.3.0
 
 Non-breaking addition. No changes required for existing providers or consumers.
@@ -577,10 +622,10 @@ Non-breaking addition. No changes required for existing providers or consumers.
 
 ### 2.0.0
 
-**Breaking changes** — providers and consumers relying on `ALLY` or `TRUCE` default
+**Breaking changes** - providers and consumers relying on `ALLY` or `TRUCE` default
 colors must update their color references.
 
-- **New `TeamRelation.MEMBER` constant** (ordinal 4) — represents the same-team
+- **New `TeamRelation.MEMBER` constant** (ordinal 4) - represents the same-team
   relationship. Providers should return `MEMBER` from `getRelation(A, A)` when both
   UUIDs are equal. `isFriendly()` now returns `true` for `MEMBER`.
 - **`ALLY` color changed**: `§a` (green / `#55FF55`) → `§b` (aqua / `#55FFFF`).

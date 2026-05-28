@@ -8,12 +8,11 @@
 TeamsAPI is a passive, server-side bridge plugin for Paper, Spigot, Purpur, and Folia servers, inspired by [URL='https://github.com/MilkBowl/VaultAPI']Vault[/URL].
 It defines a clean, stable interface for team operations so that any plugin needing team data can work with any compatible team plugin, without either plugin knowing about the other.
 
-[IMG]https://i.ibb.co/VpzgC9SK/teams-api-header.png[/IMG]
 [LEFT]
 [LIST]
-[*][B]Providers[/B] - faction, clan, guild, or custom team plugins [I]implement[/I] [icode]TeamsService[/icode] and register with TeamsAPI on startup.
-[*][B]Consumers[/B] - scoreboard plugins, chat formatters, quest plugins, or any plugin that needs team data calls [icode]TeamsAPI.getService()[/icode] once and uses the returned interface.
-[*][B]Server owners[/B] - install [icode]TeamsAPI.jar[/icode] alongside one compatible team plugin. Done.
+[*][B]Providers[/B] -- faction, clan, guild, or custom team plugins [I]implement[/I] [COLOR=#6cb4ff]TeamsService[/COLOR] and register with TeamsAPI on startup.
+[*][B]Consumers[/B] -- scoreboard plugins, chat formatters, quest plugins, or any plugin that needs team data calls [COLOR=#6cb4ff]TeamsAPI.getService()[/COLOR] once and uses the returned interface.
+[*][B]Server owners[/B] -- install [COLOR=#6cb4ff]TeamsAPI.jar[/COLOR] alongside one compatible team plugin. Done.
 [/LIST][/LEFT]
 
 [quote]
@@ -23,32 +22,31 @@ No two plugins need to know about each other. When the team plugin changes, ever
 [SIZE=5][B][COLOR=#6cb4ff]Features[/COLOR][/B][/SIZE]
 
 [LIST]
-[*][B]Official extensions[/B] - ready-to-use provider bridges for [URL='https://www.spigotmc.org/resources/betterteams.17664/']BetterTeams[/URL], [URL='https://modrinth.com/plugin/towny']Towny Advanced[/URL], and [URL='https://www.spigotmc.org/resources/kingdomsx.77782/']KingdomsX[/URL] - bundled inside the main JAR, install in-game with [icode]/teamsapi install <name>[/icode].
-[*][B]Provider-agnostic[/B] - works with any team plugin that ships a [icode]TeamsService[/icode] implementation.
-[*][B]Graceful fallback[/B] - if no provider is present, [/icode]TeamsAPI.isAvailable()[/icode] returns [COLOR=#f08080]false[/COLOR]; consumers can disable team features cleanly instead of crashing.
-[*][B]Read-only snapshots[/B] - [icode]Team[/icode] and [icode]TeamMember[/icode] are immutable interfaces; providers own the backing data.
-[*][B]Role hierarchy[/B] - built-in [COLOR=#ffd700]OWNER[/COLOR] > [COLOR=#ffd700]ADMIN[/COLOR] > [COLOR=#ffd700]MEMBER[/COLOR] with [icode]outranks()[/icode] and [icode]canManage()[/icode] helpers.
-[*][B]Optional invite service[/B] - providers can expose [icode]TeamsInviteService[/icode] for invitation workflows.
-[*][B]Optional warp service[/B] - providers can expose [icode]TeamsWarpService[/icode] for named team warps.
-[*][B]Optional chest service[/B] - providers can expose [icode]TeamsChestService[/icode] for team chest contents and add/remove operations.
-[*][B]Optional claim service[/B] - providers can expose [icode]TeamsClaimService[/icode] for chunk-claim management, including SafeZone and WarZone support.
-[*][B]Optional power service[/B] - providers can expose [icode]TeamsPowerService[/icode] for player and team power values.
-[*][B]Optional power-history service[/B] - providers can expose [icode]TeamsPowerHistoryService[/icode] for reading and managing player/team power-history entries.
-[*][B]Optional relation service[/B] - providers can expose [icode]TeamsRelationService[/icode] for inter-team diplomacy (ally / truce / neutral / enemy).
-[*][B]Optional notification service[/B] - providers can expose [icode]TeamsNotificationService[/icode] for cross-plugin player notifications with built-in enum types and custom string types.
-[*][B]Custom subcommands[/B] - any plugin registers a [icode]TeamsSubcommand[/icode] via [icode]TeamsAPI.registerSubcommand()[/icode]; team plugins call [icode]TeamsAPI.getSubcommands()[/icode] in their own command handler to dispatch them without coupling.
-[*][B]Cancellable events[/B] - fifteen Bukkit events that providers can fire so other plugins can react to or cancel team operations.
-[*][B]Lightweight[/B] - a single shaded JAR with no required runtime dependencies beyond the Bukkit API (optional: [URL='https://github.com/MilkBowl/VaultAPI']Vault[/URL] for the built-in power shop).
-[*][B]JitPack-ready[/B] - depend on just the API module at compile time via Maven or Gradle.
-[*][B]Velocity bridge[/B] [COLOR=#f08080](experimental)[/COLOR] - optional [icode]teams-api-velocity[/icode] plugin queries team data from the Velocity proxy. Supports multi-proxy networks via Redis.
-[*][B]BungeeCord bridge[/B] [COLOR=#f08080](experimental)[/COLOR] - optional [icode]teams-api-bungeecord[/icode] plugin for BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
+[*][B]Official extensions[/B] -- ready-to-use provider bridges for [URL='https://www.spigotmc.org/resources/betterteams.17664/']BetterTeams[/URL], [URL='https://modrinth.com/plugin/towny']Towny Advanced[/URL], and [URL='https://www.spigotmc.org/resources/kingdomsx.77782/']KingdomsX[/URL] -- bundled inside the main JAR, install in-game with [COLOR=#6cb4ff]/teamsapi install <name>[/COLOR].
+[*][B]Provider-agnostic[/B] -- works with any team plugin that ships a [COLOR=#6cb4ff]TeamsService[/COLOR] implementation.
+[*][B]Graceful fallback[/B] -- if no provider is present, [COLOR=#6cb4ff]TeamsAPI.isAvailable()[/COLOR] returns [COLOR=#f08080]false[/COLOR]; consumers can disable team features cleanly instead of crashing.
+[*][B]Read-only snapshots[/B] -- [COLOR=#6cb4ff]Team[/COLOR] and [COLOR=#6cb4ff]TeamMember[/COLOR] are immutable interfaces; providers own the backing data.
+[*][B]Role hierarchy[/B] -- built-in [COLOR=#ffd700]OWNER[/COLOR] > [COLOR=#ffd700]ADMIN[/COLOR] > [COLOR=#ffd700]MEMBER[/COLOR] with [COLOR=#6cb4ff]outranks()[/COLOR], [COLOR=#6cb4ff]canManage()[/COLOR], and customisable display prefixes via [COLOR=#6cb4ff]setPrefixOverride()[/COLOR].
+[*][B]Optional invite service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsInviteService[/COLOR] for invitation workflows.
+[*][B]Optional warp service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsWarpService[/COLOR] for named team warps.
+[*][B]Optional claim service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsClaimService[/COLOR] for chunk-claim management, including SafeZone and WarZone support.
+[*][B]Optional power service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerService[/COLOR] for player and team power values.
+[*][B]Optional power-history service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsPowerHistoryService[/COLOR] for reading and managing player/team power-history entries.
+[*][B]Optional relation service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsRelationService[/COLOR] for inter-team diplomacy (ally / truce / neutral / enemy).
+[*][B]Optional notification service[/B] -- providers can expose [COLOR=#6cb4ff]TeamsNotificationService[/COLOR] for cross-plugin player notifications with built-in enum types and custom string types.
+[*][B]Custom subcommands[/B] -- any plugin registers a [COLOR=#6cb4ff]TeamsSubcommand[/COLOR] via [COLOR=#6cb4ff]TeamsAPI.registerSubcommand()[/COLOR]; team plugins call [COLOR=#6cb4ff]TeamsAPI.getSubcommands()[/COLOR] in their own command handler to dispatch them without coupling.
+[*][B]Cancellable events[/B] -- fifteen Bukkit events that providers can fire so other plugins can react to or cancel team operations.
+[*][B]Lightweight[/B] -- a single shaded JAR with no required runtime dependencies beyond the Bukkit API (optional: [URL='https://github.com/MilkBowl/VaultAPI']Vault[/URL] for the built-in power shop).
+[*][B]JitPack-ready[/B] -- depend on just the API module at compile time via Maven or Gradle.
+[*][B]Velocity bridge[/B] [COLOR=#f08080](experimental)[/COLOR] -- optional [COLOR=#6cb4ff]teams-api-velocity[/COLOR] plugin queries team data from the Velocity proxy. Supports multi-proxy networks via Redis.
+[*][B]BungeeCord bridge[/B] [COLOR=#f08080](experimental)[/COLOR] -- optional [COLOR=#6cb4ff]teams-api-bungeecord[/COLOR] plugin for BungeeCord / Waterfall proxies. Supports multi-proxy networks via Redis.
 [/LIST]
 
 [SIZE=5][B][COLOR=#6cb4ff]Requirements[/COLOR][/B][/SIZE]
 
 [LIST]
-[*][B]Server software:[/B] Paper, Spigot, Purpur, or Folia [icode]1.16+[/icode]
-[*][B]Java:[/B] [icode]17+[/icode] (25 recommended)
+[*][B]Server software:[/B] Paper, Spigot, Purpur, or Folia [COLOR=#6cb4ff]1.16+[/COLOR]
+[*][B]Java:[/B] [COLOR=#6cb4ff]17+[/COLOR] (25 recommended)
 [*][B]Plugin dependencies:[/B] None (optional: [URL='https://github.com/MilkBowl/VaultAPI']Vault[/URL] for power shop)
 [/LIST]
 
@@ -56,16 +54,18 @@ No two plugins need to know about each other. When the team plugin changes, ever
 
 [LIST=1]
 [*]Download [B]teams-api-plugin-VERSION.jar[/B] from the [B]Download[/B] button at the top of this page or from [URL='https://github.com/ez-plugins/teams-api/releases']GitHub Releases[/URL].
-[*]Drop it into your server's [icode]plugins/[/icode] folder.
-[*]Install a compatible team plugin. Official extensions for [URL='https://www.spigotmc.org/resources/betterteams.17664/']BetterTeams[/URL], [URL='https://modrinth.com/plugin/towny']Towny Advanced[/URL], and [URL='https://www.spigotmc.org/resources/kingdomsx.77782/']KingdomsX[/URL] are bundled -- run [icode]/teamsapi install betterteams[/icode] (or [icode]towny[/icode] / [icode]kingdomsx[/icode]) in-game, or let TeamsAPI provision them automatically to [icode]plugins/TeamsAPI/extensions/[/icode].
+[*]Drop it into your server's [COLOR=#6cb4ff]plugins/[/COLOR] folder.
+[*]Install a compatible team plugin. Official extensions for [URL='https://www.spigotmc.org/resources/betterteams.17664/']BetterTeams[/URL], [URL='https://modrinth.com/plugin/towny']Towny Advanced[/URL], and [URL='https://www.spigotmc.org/resources/kingdomsx.77782/']KingdomsX[/URL] are bundled -- run [COLOR=#6cb4ff]/teamsapi install betterteams[/COLOR] (or [COLOR=#6cb4ff]towny[/COLOR] / [COLOR=#6cb4ff]kingdomsx[/COLOR]) in-game, or let TeamsAPI provision them automatically to [COLOR=#6cb4ff]plugins/TeamsAPI/extensions/[/COLOR].
 [*]Restart the server.
 [/LIST]
 
 [COLOR=#aaaaaa]TeamsAPI has no configuration files.[/COLOR]
 
+[HR][/HR]
+
 [SIZE=5][B][COLOR=#6cb4ff]For Developers[/COLOR][/B][/SIZE]
 
-Add the API artifact to your project via [URL='https://jitpack.io/#ez-plugins/teams-api']JitPack[/URL]. Use scope: provided (Maven) or compileOnly (Gradle), the classes are provided by TeamsAPI.jar at runtime.
+[COLOR=#dddddd]Add the API artifact to your project via [URL='https://jitpack.io/#ez-plugins/teams-api']JitPack[/URL]. Use [COLOR=#6cb4ff]scope: provided[/COLOR] (Maven) or [COLOR=#6cb4ff]compileOnly[/COLOR] (Gradle) -- the classes are provided by [COLOR=#6cb4ff]TeamsAPI.jar[/COLOR] at runtime.[/COLOR]
 
 [SPOILER=Maven dependency]
 [CODE=xml]
@@ -79,7 +79,7 @@ Add the API artifact to your project via [URL='https://jitpack.io/#ez-plugins/te
 <dependency>
     <groupId>com.github.ez-plugins</groupId>
     <artifactId>teams-api</artifactId>
-    <version>2.3.0</version>
+    <version>2.4.0</version>
     <scope>provided</scope>
 </dependency>
 [/CODE]
@@ -91,14 +91,14 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.ez-plugins:teams-api:2.3.0'
+    compileOnly 'com.github.ez-plugins:teams-api:2.4.0'
 }
 [/CODE]
 [/SPOILER]
 
 [SIZE=4][B]Consumer quick-start[/B][/SIZE]
 
-[COLOR=#aaaaaa]Declare the dependency in [icode]plugin.yml[/icode] (use [icode]softdepend[/icode] if team support is optional):[/COLOR]
+[COLOR=#aaaaaa]Declare the dependency in [COLOR=#6cb4ff]plugin.yml[/COLOR] (use [COLOR=#6cb4ff]softdepend[/COLOR] if team support is optional):[/COLOR]
 
 [CODE=yaml]
 depend:
@@ -125,7 +125,7 @@ team.ifPresent(t -> player.sendMessage("Your team: " + t.getDisplayName()));
 
 [SIZE=4][B]Provider quick-start[/B][/SIZE]
 
-[COLOR=#aaaaaa]Declare a soft-dependency in [icode]plugin.yml[/icode] and register your implementation:[/COLOR]
+[COLOR=#aaaaaa]Declare a soft-dependency in [COLOR=#6cb4ff]plugin.yml[/COLOR] and register your implementation:[/COLOR]
 
 [CODE=yaml]
 softdepend:
@@ -149,152 +149,136 @@ public void onDisable() {
 [SIZE=4][B]Team lifecycle & lookup[/B][/SIZE]
 
 [LIST]
-[*][icode]createTeam(name, ownerUUID)[/icode] -> [COLOR=#ffd700]Optional<Team>[/COLOR] - Creates a new team
-[*][icode]deleteTeam(teamId)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Deletes a team by UUID
-[*][icode]getTeam(teamId)[/icode] -> [COLOR=#ffd700]Optional<Team>[/COLOR] - Looks up a team by UUID
-[*][icode]getTeamByName(name)[/icode] -> [COLOR=#ffd700]Optional<Team>[/COLOR] - Looks up a team by name
-[*][icode]getPlayerTeam(playerUUID)[/icode] -> [COLOR=#ffd700]Optional<Team>[/COLOR] - Returns the player's current team
-[*][icode]getAllTeams()[/icode] -> [COLOR=#ffd700]Collection<Team>[/COLOR] - Returns every registered team
-[*][icode]getTeamCount()[/icode] -> [COLOR=#ffd700]int[/COLOR] - Total number of teams
+[*][COLOR=#6cb4ff]createTeam(name, ownerUUID)[/COLOR] -> [COLOR=#ffd700]Optional<Team>[/COLOR] -- Creates a new team
+[*][COLOR=#6cb4ff]deleteTeam(teamId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Deletes a team by UUID
+[*][COLOR=#6cb4ff]getTeam(teamId)[/COLOR] -> [COLOR=#ffd700]Optional<Team>[/COLOR] -- Looks up a team by UUID
+[*][COLOR=#6cb4ff]getTeamByName(name)[/COLOR] -> [COLOR=#ffd700]Optional<Team>[/COLOR] -- Looks up a team by name
+[*][COLOR=#6cb4ff]getPlayerTeam(playerUUID)[/COLOR] -> [COLOR=#ffd700]Optional<Team>[/COLOR] -- Returns the player's current team
+[*][COLOR=#6cb4ff]getAllTeams()[/COLOR] -> [COLOR=#ffd700]Collection<Team>[/COLOR] -- Returns every registered team
+[*][COLOR=#6cb4ff]getTeamCount()[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Total number of teams
 [/LIST]
 
 [SIZE=4][B]Membership management[/B][/SIZE]
 
 [LIST]
-[*][icode]addMember(teamId, playerUUID, role)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Adds a player with the given role
-[*][icode]removeMember(teamId, playerUUID)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Removes a player from the team
-[*][icode]setMemberRole(teamId, playerUUID, role)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Changes a member's role
-[*][icode]getMemberRole(teamId, playerUUID)[/icode] -> [COLOR=#ffd700]Optional<TeamRole>[/COLOR] - Returns the member's current role
+[*][COLOR=#6cb4ff]addMember(teamId, playerUUID, role)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Adds a player with the given role
+[*][COLOR=#6cb4ff]removeMember(teamId, playerUUID)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes a player from the team
+[*][COLOR=#6cb4ff]setMemberRole(teamId, playerUUID, role)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Changes a member's role
+[*][COLOR=#6cb4ff]getMemberRole(teamId, playerUUID)[/COLOR] -> [COLOR=#ffd700]Optional<TeamRole>[/COLOR] -- Returns the member's current role
 [/LIST]
 
 [SIZE=4][B]Invite service (optional)[/B][/SIZE]
 
-[COLOR=#aaaaaa]Check availability with [icode]TeamsAPI.isInviteAvailable()[/icode] before calling [icode]TeamsAPI.getInviteService()[/icode].[/COLOR]
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isInviteAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getInviteService()[/COLOR].[/COLOR]
 
 [LIST]
-[*][icode]invitePlayer(teamId, inviterUUID, inviteeUUID)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Sends an invitation
-[*][icode]acceptInvite(teamId, playerUUID)[/icode] -> [COLOR=#ffd700]Optional<Team>[/COLOR] - Accepts the invitation and joins the team
-[*][icode]declineInvite(teamId, playerUUID)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Declines an invitation
+[*][COLOR=#6cb4ff]invitePlayer(teamId, inviterUUID, inviteeUUID)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Sends an invitation
+[*][COLOR=#6cb4ff]acceptInvite(teamId, playerUUID)[/COLOR] -> [COLOR=#ffd700]Optional<Team>[/COLOR] -- Accepts the invitation and joins the team
+[*][COLOR=#6cb4ff]declineInvite(teamId, playerUUID)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Declines an invitation
 [/LIST]
 
 [SIZE=4][B]Warp service (optional)[/B][/SIZE]
 
-[COLOR=#aaaaaa]Check availability with [icode]TeamsAPI.isWarpAvailable()[/icode] before calling [icode]TeamsAPI.getWarpService()[/icode].[/COLOR]
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isWarpAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getWarpService()[/COLOR].[/COLOR]
 
 [LIST]
-[*][icode]setWarp(teamId, name, location, creatorUUID)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Creates or updates a named warp
-[*][icode]removeWarp(teamId, name)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Deletes a warp by name
-[*][icode]getWarp(teamId, name)[/icode] -> [COLOR=#ffd700]Optional<TeamWarp>[/COLOR] - Looks up a warp by name
-[*][icode]getWarps(teamId)[/icode] -> [COLOR=#ffd700]Collection<TeamWarp>[/COLOR] - Returns all warps for a team
-[/LIST]
-
-[SIZE=4][B]Chest service (optional)[/B][/SIZE]
-
-[COLOR=#aaaaaa]Check availability with [icode]TeamsAPI.isChestAvailable()[/icode] before calling [icode]TeamsAPI.getChestService()[/icode].[/COLOR]
-
-[LIST]
-[*][icode]getChestIds(teamId)[/icode] -> [COLOR=#ffd700]Collection<String>[/COLOR] - Returns available chest identifiers for the team
-[*][icode]getContents(teamId)[/icode] -> [COLOR=#ffd700]Collection<ItemStack>[/COLOR] - Returns the default chest contents
-[*][icode]getContents(teamId, chestId)[/icode] -> [COLOR=#ffd700]Collection<ItemStack>[/COLOR] - Returns contents for a specific chest identifier`r`n
-[*][icode]setContents(teamId, contents)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Replaces the default chest contents`r`n
-[*][icode]setContents(teamId, chestId, contents)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Replaces contents for a specific chest identifier
-[*][icode]addItem(teamId, item)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Adds one item stack to the default chest
-[*][icode]addItem(teamId, chestId, item)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Adds one item stack to a specific chest identifier
-[*][icode]removeItem(teamId, item)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Removes one matching item stack from the default chest
-[*][icode]removeItem(teamId, chestId, item)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Removes one matching item stack from a specific chest identifier
+[*][COLOR=#6cb4ff]setWarp(teamId, name, location, creatorUUID)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Creates or updates a named warp
+[*][COLOR=#6cb4ff]removeWarp(teamId, name)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Deletes a warp by name
+[*][COLOR=#6cb4ff]getWarp(teamId, name)[/COLOR] -> [COLOR=#ffd700]Optional<TeamWarp>[/COLOR] -- Looks up a warp by name
+[*][COLOR=#6cb4ff]getWarps(teamId)[/COLOR] -> [COLOR=#ffd700]Collection<TeamWarp>[/COLOR] -- Returns all warps for a team
 [/LIST]
 
 [SIZE=4][B]Claim service (optional)[/B][/SIZE]
 
-[COLOR=#aaaaaa]Check availability with [icode]TeamsAPI.isClaimAvailable()[/icode] before calling [icode]TeamsAPI.getClaimService()[/icode].[/COLOR]
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isClaimAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getClaimService()[/COLOR].[/COLOR]
 
 [LIST]
-[*][icode]claimChunk(teamId, playerUUID, world, x, z)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Claims a chunk for the team
-[*][icode]unclaimChunk(teamId, playerUUID, world, x, z)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Removes the claim
-[*][icode]unclaimAll(teamId)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes all claims for the team
-[*][icode]getClaimAt(world, x, z)[/icode] -> [COLOR=#ffd700]Optional<TeamClaim>[/COLOR] - Returns the claim at a chunk, if any
-[*][icode]getTeamClaims(teamId)[/icode] -> [COLOR=#ffd700]Collection<TeamClaim>[/COLOR] - All claims for the team
-[*][icode]getClaimCount(teamId)[/icode] -> [COLOR=#ffd700]int[/COLOR] - Number of claimed chunks
-[*][icode]isClaimed(world, x, z)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Whether the chunk is claimed by anyone
-[*][icode]isClaimedBy(teamId, world, x, z)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Whether the chunk is claimed by this team
-[*][icode]getTerritoryTypeAt(world, x, z)[/icode] -> [COLOR=#ffd700]ClaimTerritoryType[/COLOR] - Returns [COLOR=#ffd700]WILDERNESS[/COLOR], [COLOR=#ffd700]TEAM[/COLOR], [COLOR=#ffd700]SAFE_ZONE[/COLOR], or [COLOR=#ffd700]WAR_ZONE[/COLOR]
-[*][icode]isSafeZone(world, x, z)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Whether the chunk is a SafeZone
-[*][icode]isWarZone(world, x, z)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Whether the chunk is a WarZone
-[*][icode]getTeamMaxClaims(teamId)[/icode] -> [COLOR=#ffd700]int[/COLOR] - Claim limit (-1 means unlimited)
+[*][COLOR=#6cb4ff]claimChunk(teamId, playerUUID, world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Claims a chunk for the team
+[*][COLOR=#6cb4ff]unclaimChunk(teamId, playerUUID, world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes the claim
+[*][COLOR=#6cb4ff]unclaimAll(teamId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes all claims for the team
+[*][COLOR=#6cb4ff]getClaimAt(world, x, z)[/COLOR] -> [COLOR=#ffd700]Optional<TeamClaim>[/COLOR] -- Returns the claim at a chunk, if any
+[*][COLOR=#6cb4ff]getTeamClaims(teamId)[/COLOR] -> [COLOR=#ffd700]Collection<TeamClaim>[/COLOR] -- All claims for the team
+[*][COLOR=#6cb4ff]getClaimCount(teamId)[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Number of claimed chunks
+[*][COLOR=#6cb4ff]isClaimed(world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether the chunk is claimed by anyone
+[*][COLOR=#6cb4ff]isClaimedBy(teamId, world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether the chunk is claimed by this team
+[*][COLOR=#6cb4ff]getTerritoryTypeAt(world, x, z)[/COLOR] -> [COLOR=#ffd700]ClaimTerritoryType[/COLOR] -- Returns [COLOR=#ffd700]WILDERNESS[/COLOR], [COLOR=#ffd700]TEAM[/COLOR], [COLOR=#ffd700]SAFE_ZONE[/COLOR], or [COLOR=#ffd700]WAR_ZONE[/COLOR]
+[*][COLOR=#6cb4ff]isSafeZone(world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether the chunk is a SafeZone
+[*][COLOR=#6cb4ff]isWarZone(world, x, z)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether the chunk is a WarZone
+[*][COLOR=#6cb4ff]getTeamMaxClaims(teamId)[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Claim limit (-1 means unlimited)
 [/LIST]
 
 [SIZE=4][B]Power service (optional)[/B][/SIZE]
 
-[COLOR=#aaaaaa]Check availability with [icode]TeamsAPI.isPowerAvailable()[/icode] before calling [icode]TeamsAPI.getPowerService()[/icode].[/COLOR]
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isPowerAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getPowerService()[/COLOR].[/COLOR]
 
 [LIST]
-[*][icode]getPlayerPower(playerUUID)[/icode] -> [COLOR=#ffd700]double[/COLOR] - Current power of the player
-[*][icode]getPlayerMaxPower(playerUUID)[/icode] -> [COLOR=#ffd700]double[/COLOR] - Maximum power the player can hold
-[*][icode]setPlayerPower(playerUUID, power)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Sets the player's power
-[*][icode]getTeamPower(teamId)[/icode] -> [COLOR=#ffd700]double[/COLOR] - Combined power of all team members
-[*][icode]getTeamMaxPower(teamId)[/icode] -> [COLOR=#ffd700]double[/COLOR] - Maximum combined power the team can hold
+[*][COLOR=#6cb4ff]getPlayerPower(playerUUID)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Current power of the player
+[*][COLOR=#6cb4ff]getPlayerMaxPower(playerUUID)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Maximum power the player can hold
+[*][COLOR=#6cb4ff]setPlayerPower(playerUUID, power)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Sets the player's power
+[*][COLOR=#6cb4ff]getTeamPower(teamId)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Combined power of all team members
+[*][COLOR=#6cb4ff]getTeamMaxPower(teamId)[/COLOR] -> [COLOR=#ffd700]double[/COLOR] -- Maximum combined power the team can hold
 [/LIST]
 
 [SIZE=4][B]Power history service (optional)[/B][/SIZE]
 
-[COLOR=#aaaaaa]Check availability with [icode]TeamsAPI.isPowerHistoryAvailable()[/icode] before calling [icode]TeamsAPI.getPowerHistoryService()[/icode].[/COLOR]
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isPowerHistoryAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getPowerHistoryService()[/COLOR].[/COLOR]
 
 [LIST]
-[*][icode]getPlayerPowerHistory(playerUUID, limit)[/icode] -> [COLOR=#ffd700]Collection<TeamPowerHistoryEntry>[/COLOR] - Recent entries for a player, newest first.
-[*][icode]getPlayerPowerHistory(playerUUID, fromInclusive, toExclusive, limit)[/icode] -> [COLOR=#ffd700]Collection<TeamPowerHistoryEntry>[/COLOR] - Player entries in a time window, newest first.
-[*][icode]getTeamPowerHistory(teamId, limit)[/icode] -> [COLOR=#ffd700]Collection<TeamPowerHistoryEntry>[/COLOR] - Recent entries linked to a team.
-[*][icode]addPowerHistoryEntry(entryId, playerUUID, teamId, delta, type, reason, actorUUID, occurredAt, details)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Inserts a history entry.
-[*][icode]updatePowerHistoryEntry(entryId, delta, type, reason, actorUUID, occurredAt, details)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Updates an existing entry.
-[*][icode]removePowerHistoryEntry(entryId)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Deletes one entry by ID.
-[*][icode]clearPlayerPowerHistory(playerUUID)[/icode] -> [COLOR=#ffd700]int[/COLOR] - Deletes all player entries; returns removed count.
-[*][icode]clearTeamPowerHistory(teamId)[/icode] -> [COLOR=#ffd700]int[/COLOR] - Deletes all team-linked entries; returns removed count.
+[*][COLOR=#6cb4ff]getPlayerPowerHistory(playerUUID, limit)[/COLOR] -> [COLOR=#ffd700]Collection<TeamPowerHistoryEntry>[/COLOR] -- Recent entries for a player, newest first.
+[*][COLOR=#6cb4ff]getPlayerPowerHistory(playerUUID, fromInclusive, toExclusive, limit)[/COLOR] -> [COLOR=#ffd700]Collection<TeamPowerHistoryEntry>[/COLOR] -- Player entries in a time window, newest first.
+[*][COLOR=#6cb4ff]getTeamPowerHistory(teamId, limit)[/COLOR] -> [COLOR=#ffd700]Collection<TeamPowerHistoryEntry>[/COLOR] -- Recent entries linked to a team.
+[*][COLOR=#6cb4ff]addPowerHistoryEntry(entryId, playerUUID, teamId, delta, type, reason, actorUUID, occurredAt, details)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Inserts a history entry.
+[*][COLOR=#6cb4ff]updatePowerHistoryEntry(entryId, delta, type, reason, actorUUID, occurredAt, details)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Updates an existing entry.
+[*][COLOR=#6cb4ff]removePowerHistoryEntry(entryId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Deletes one entry by ID.
+[*][COLOR=#6cb4ff]clearPlayerPowerHistory(playerUUID)[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Deletes all player entries; returns removed count.
+[*][COLOR=#6cb4ff]clearTeamPowerHistory(teamId)[/COLOR] -> [COLOR=#ffd700]int[/COLOR] -- Deletes all team-linked entries; returns removed count.
 [/LIST]
 
 [SIZE=4][B]Relation service (optional)[/B][/SIZE]
 
-[COLOR=#aaaaaa]Check availability with [icode]TeamsAPI.isRelationAvailable()[/icode] before calling [icode]TeamsAPI.getRelationService()[/icode].[/COLOR]
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isRelationAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getRelationService()[/COLOR].[/COLOR]
 
 [LIST]
-[*][icode]setRelation(fromTeamId, toTeamId, relation, initiatorUUID)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Declares a relation toward another team. Fires [icode]TeamRelationChangeEvent[/icode]; returns [COLOR=#f08080]false[/COLOR] if cancelled. Setting [COLOR=#ffd700]NEUTRAL[/COLOR] removes the relation.
-[*][icode]getRelation(fromTeamId, toTeamId)[/icode] -> [COLOR=#ffd700]TeamRelation[/COLOR] - Returns the declared relation (defaults to [COLOR=#ffd700]NEUTRAL[/COLOR] if none set).
-[*][icode]getRelations(teamId)[/icode] -> [COLOR=#ffd700]Map<UUID, TeamRelation>[/COLOR] - All non-neutral relations declared by the team.
-[*][icode]clearRelations(teamId)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Removes all relations declared by or toward the team (use on disband).
-[*][icode]areAllies(teamAId, teamBId)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - [COLOR=#ffd700]true[/COLOR] when both teams have declared [COLOR=#ffd700]ALLY[/COLOR] toward each other.
-[*][icode]areEnemies(teamAId, teamBId)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - [COLOR=#ffd700]true[/COLOR] when either team has declared [COLOR=#ffd700]ENEMY[/COLOR] toward the other.
-[*][icode]getTeamsInRelation(teamId, relation)[/icode] -> [COLOR=#ffd700]Collection<UUID>[/COLOR] - All team UUIDs toward which [COLOR=#ffd700]teamId[/COLOR] has declared the given relation; providers may override for efficiency.
-[*][icode]getRelationColor(relation)[/icode] -> [COLOR=#ffd700]String[/COLOR] - [COLOR=#ffd700]#RRGGBB[/COLOR] hex color for the relation. Default returns [icode]TeamRelation.getDefaultHexColor()[/icode]; providers override to supply server-configured colors.
+[*][COLOR=#6cb4ff]setRelation(fromTeamId, toTeamId, relation, initiatorUUID)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Declares a relation toward another team. Fires [COLOR=#6cb4ff]TeamRelationChangeEvent[/COLOR]; returns [COLOR=#f08080]false[/COLOR] if cancelled. Setting [COLOR=#ffd700]NEUTRAL[/COLOR] removes the relation.
+[*][COLOR=#6cb4ff]getRelation(fromTeamId, toTeamId)[/COLOR] -> [COLOR=#ffd700]TeamRelation[/COLOR] -- Returns the declared relation (defaults to [COLOR=#ffd700]NEUTRAL[/COLOR] if none set).
+[*][COLOR=#6cb4ff]getRelations(teamId)[/COLOR] -> [COLOR=#ffd700]Map<UUID, TeamRelation>[/COLOR] -- All non-neutral relations declared by the team.
+[*][COLOR=#6cb4ff]clearRelations(teamId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Removes all relations declared by or toward the team (use on disband).
+[*][COLOR=#6cb4ff]areAllies(teamAId, teamBId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- [COLOR=#ffd700]true[/COLOR] when both teams have declared [COLOR=#ffd700]ALLY[/COLOR] toward each other.
+[*][COLOR=#6cb4ff]areEnemies(teamAId, teamBId)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- [COLOR=#ffd700]true[/COLOR] when either team has declared [COLOR=#ffd700]ENEMY[/COLOR] toward the other.
+[*][COLOR=#6cb4ff]getTeamsInRelation(teamId, relation)[/COLOR] -> [COLOR=#ffd700]Collection<UUID>[/COLOR] -- All team UUIDs toward which [COLOR=#ffd700]teamId[/COLOR] has declared the given relation; providers may override for efficiency.
+[*][COLOR=#6cb4ff]getRelationColor(relation)[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- [COLOR=#ffd700]#RRGGBB[/COLOR] hex color for the relation. Default returns [COLOR=#6cb4ff]TeamRelation.getDefaultHexColor()[/COLOR]; providers override to supply server-configured colors.
 [/LIST]
 
 [COLOR=#aaaaaa]TeamRelation display names, legacy color codes, and hex colors:[/COLOR]
 
 [LIST]
-[*][icode]ALLY[/icode] - display: "Ally", legacy: [icode]§a[/icode] (green), hex: [COLOR=#55FF55]#55FF55[/COLOR]
-[*][icode]TRUCE[/icode] - display: "Truce", legacy: [icode]§6[/icode] (gold), hex: [COLOR=#FFAA00]#FFAA00[/COLOR]
-[*][icode]NEUTRAL[/icode] - display: "Neutral", legacy: [icode]§7[/icode] (gray), hex: [COLOR=#AAAAAA]#AAAAAA[/COLOR]
-[*][icode]ENEMY[/icode] - display: "Enemy", legacy: [icode]§c[/icode] (red), hex: [COLOR=#FF5555]#FF5555[/COLOR]
+[*][COLOR=#55FF55][COLOR=#ffd700]ALLY[/COLOR][/COLOR] -- display: "Ally", legacy: [COLOR=#6cb4ff]§a[/COLOR] (green), hex: [COLOR=#55FF55]#55FF55[/COLOR]
+[*][COLOR=#FFAA00][COLOR=#ffd700]TRUCE[/COLOR][/COLOR] -- display: "Truce", legacy: [COLOR=#6cb4ff]§6[/COLOR] (gold), hex: [COLOR=#FFAA00]#FFAA00[/COLOR]
+[*][COLOR=#AAAAAA][COLOR=#ffd700]NEUTRAL[/COLOR][/COLOR] -- display: "Neutral", legacy: [COLOR=#6cb4ff]§7[/COLOR] (gray), hex: [COLOR=#AAAAAA]#AAAAAA[/COLOR]
+[*][COLOR=#FF5555][COLOR=#ffd700]ENEMY[/COLOR][/COLOR] -- display: "Enemy", legacy: [COLOR=#6cb4ff]§c[/COLOR] (red), hex: [COLOR=#FF5555]#FF5555[/COLOR]
 [/LIST]
 
 [SIZE=4][B]Notification service (optional)[/B][/SIZE]
 
-[COLOR=#aaaaaa]Check availability with [icode]TeamsAPI.isNotificationAvailable()[/icode] before calling [icode]TeamsAPI.getNotificationService()[/icode].[/COLOR]
+[COLOR=#aaaaaa]Check availability with [COLOR=#6cb4ff]TeamsAPI.isNotificationAvailable()[/COLOR] before calling [COLOR=#6cb4ff]TeamsAPI.getNotificationService()[/COLOR].[/COLOR]
 
 [LIST]
-[*][icode]sendNotification(senderPlugin, recipientUUID, type, message)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Sends a notification using built-in [COLOR=#ffd700]TeamNotificationType[/COLOR].
-[*][icode]sendNotification(senderPlugin, recipientUUID, notificationType, message)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Sends a notification using a custom string type ([COLOR=#ffd700]non-null, non-blank[/COLOR]).
-[*][icode]isNotificationEnabled(playerUUID, type)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Whether this built-in notification type is enabled for the player.
-[*][icode]isNotificationEnabled(playerUUID, notificationType)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Whether this custom notification type is enabled for the player.
-[*][icode]setNotificationEnabled(playerUUID, type, enabled)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Enables or disables a built-in notification type for the player.
-[*][icode]setNotificationEnabled(playerUUID, notificationType, enabled)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Enables or disables a custom notification type for the player.
+[*][COLOR=#6cb4ff]sendNotification(senderPlugin, recipientUUID, type, message)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Sends a notification using built-in [COLOR=#ffd700]TeamNotificationType[/COLOR].
+[*][COLOR=#6cb4ff]sendNotification(senderPlugin, recipientUUID, notificationType, message)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Sends a notification using a custom string type ([COLOR=#ffd700]non-null, non-blank[/COLOR]).
+[*][COLOR=#6cb4ff]isNotificationEnabled(playerUUID, type)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether this built-in notification type is enabled for the player.
+[*][COLOR=#6cb4ff]isNotificationEnabled(playerUUID, notificationType)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Whether this custom notification type is enabled for the player.
+[*][COLOR=#6cb4ff]setNotificationEnabled(playerUUID, type, enabled)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Enables or disables a built-in notification type for the player.
+[*][COLOR=#6cb4ff]setNotificationEnabled(playerUUID, notificationType, enabled)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Enables or disables a custom notification type for the player.
 [/LIST]
 
-[COLOR=#aaaaaa]Built-in [icode]TeamNotificationType[/icode] values:[/COLOR]
+[COLOR=#aaaaaa]Built-in [COLOR=#6cb4ff]TeamNotificationType[/COLOR] values:[/COLOR]
 [CODE]
 GENERAL, TEAM_JOIN, TEAM_LEAVE, TEAM_INVITE, TEAM_INVITE_ACCEPT, TEAM_INVITE_DECLINE
 [/CODE]
 
 [SIZE=4][B]Custom subcommands[/B][/SIZE]
 
-[COLOR=#aaaaaa]Any plugin registers a [icode]TeamsSubcommand[/icode] and team plugins call [icode]TeamsAPI.getSubcommands()[/icode] in their own command executor to dispatch them. This extends the team plugin's command tree without any coupling between plugins.[/COLOR]
+[COLOR=#aaaaaa]Any plugin registers a [COLOR=#6cb4ff]TeamsSubcommand[/COLOR] and team plugins call [COLOR=#6cb4ff]TeamsAPI.getSubcommands()[/COLOR] in their own command executor to dispatch them. This extends the team plugin's command tree without any coupling between plugins.[/COLOR]
 
 [CODE=java]
 // onEnable
@@ -305,62 +289,66 @@ TeamsAPI.unregisterSubcommand(mySubcommand);
 [/CODE]
 
 [LIST]
-[*][icode]getName()[/icode] -> [COLOR=#ffd700]String[/COLOR] - Matched case-insensitively against the first argument
-[*][icode]getDescription()[/icode] -> [COLOR=#ffd700]String[/COLOR] - Optional description for help output
-[*][icode]getPermission()[/icode] -> [COLOR=#ffd700]String[/COLOR] - Permission required, or [COLOR=#f08080]null[/COLOR] for no check
-[*][icode]execute(sender, args)[/icode] -> [COLOR=#ffd700]boolean[/COLOR] - Called when the subcommand is dispatched; return [COLOR=#f08080]false[/COLOR] to show usage
-[*][icode]getUsage()[/icode] -> [COLOR=#ffd700]String[/COLOR] - Usage hint sent when [icode]execute[/icode] returns [COLOR=#f08080]false[/COLOR]
-[*][icode]tabComplete(sender, args)[/icode] -> [COLOR=#ffd700]List<String>[/COLOR] - Tab-completion suggestions; default: empty list
+[*][COLOR=#6cb4ff]getName()[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- Matched case-insensitively against the first argument
+[*][COLOR=#6cb4ff]getDescription()[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- Optional description for help output
+[*][COLOR=#6cb4ff]getPermission()[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- Permission required, or [COLOR=#f08080]null[/COLOR] for no check
+[*][COLOR=#6cb4ff]execute(sender, args)[/COLOR] -> [COLOR=#ffd700]boolean[/COLOR] -- Called when the subcommand is dispatched; return [COLOR=#f08080]false[/COLOR] to show usage
+[*][COLOR=#6cb4ff]getUsage()[/COLOR] -> [COLOR=#ffd700]String[/COLOR] -- Usage hint sent when [COLOR=#6cb4ff]execute[/COLOR] returns [COLOR=#f08080]false[/COLOR]
+[*][COLOR=#6cb4ff]tabComplete(sender, args)[/COLOR] -> [COLOR=#ffd700]List<String>[/COLOR] -- Tab-completion suggestions; default: empty list
 [/LIST]
 
 [SIZE=4][B]Commands & permissions[/B][/SIZE]
 
 [LIST]
-[*][icode]/teamsapi[/icode] / [icode]/teamsapi help[/icode] - [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.use[/COLOR] (default: everyone)[/COLOR] - Lists commands the sender can use
-[*][icode]/teamsapi version[/icode] - [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.use[/COLOR] (default: everyone)[/COLOR] -- Prints plugin and API version
-[*][icode]/teamsapi status[/icode] - [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.status[/COLOR] (default: everyone)[/COLOR] -- Active provider, team count, registered services
-[*][icode]/teamsapi info[/icode] - [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.admin[/COLOR] (default: op)[/COLOR] -- Full internal diagnostic
-[*][icode]/teamsapi power status[/icode] - [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.power[/COLOR] (default: op)[/COLOR] -- Sender's current and max power
-[*][icode]/teamsapi power buy <n>[/icode] - [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.power.buy[/COLOR] (default: disabled)[/COLOR] - Disabled by default; enable with [COLOR=#ffd700]power-shop.enabled: true[/COLOR] in config.yml. Requires Vault.
-[*][icode]/teamsapi install <extension>[/icode] - [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.install[/COLOR] (default: op)[/COLOR] - Copies a bundled extension JAR to [icode]plugins/TeamsAPI/extensions/[/icode]. Valid names: [COLOR=#ffd700]betterteams[/COLOR], [COLOR=#ffd700]towny[/COLOR], [COLOR=#ffd700]kingdomsx[/COLOR].
-[*][icode]/teamsapi load <file>.jar[/icode] - [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.load[/COLOR] (default: op)[/COLOR] -- Loads and enables an extension from [icode]plugins/TeamsAPI/extensions/[/icode] without a server restart.
+[*][COLOR=#6cb4ff]/teamsapi[/COLOR] / [COLOR=#6cb4ff]/teamsapi help[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.use[/COLOR] (default: everyone)[/COLOR] -- Lists commands the sender can use
+[*][COLOR=#6cb4ff]/teamsapi version[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.use[/COLOR] (default: everyone)[/COLOR] -- Prints plugin and API version
+[*][COLOR=#6cb4ff]/teamsapi status[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.status[/COLOR] (default: everyone)[/COLOR] -- Active provider, team count, registered services
+[*][COLOR=#6cb4ff]/teamsapi info[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.admin[/COLOR] (default: op)[/COLOR] -- Full internal diagnostic
+[*][COLOR=#6cb4ff]/teamsapi power status[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.power[/COLOR] (default: op)[/COLOR] -- Sender's current and max power
+[*][COLOR=#6cb4ff]/teamsapi power buy <n>[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.power.buy[/COLOR] (default: disabled)[/COLOR] -- Disabled by default; enable with [COLOR=#ffd700]power-shop.enabled: true[/COLOR] in config.yml. Requires Vault.
+[*][COLOR=#6cb4ff]/teamsapi install <extension>[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.install[/COLOR] (default: op)[/COLOR] -- Copies a bundled extension JAR to [COLOR=#6cb4ff]plugins/TeamsAPI/extensions/[/COLOR]. Valid names: [COLOR=#ffd700]betterteams[/COLOR], [COLOR=#ffd700]towny[/COLOR], [COLOR=#ffd700]kingdomsx[/COLOR].
+[*][COLOR=#6cb4ff]/teamsapi load <file>.jar[/COLOR] -- [COLOR=#aaaaaa]requires [COLOR=#ffd700]teamsapi.load[/COLOR] (default: op)[/COLOR] -- Loads and enables an extension from [COLOR=#6cb4ff]plugins/TeamsAPI/extensions/[/COLOR] without a server restart.
 [/LIST]
 
 [SIZE=4][B]Events[/B][/SIZE]
 
-All events live in com.skyblockexp.teamsapi.event.
-Providers are encouraged (but not required) to fire them.
+[COLOR=#aaaaaa]All events live in [COLOR=#6cb4ff]com.skyblockexp.teamsapi.event[/COLOR].[/COLOR]
+[COLOR=#aaaaaa]Providers are encouraged (but not required) to fire them.[/COLOR]
 
 [LIST]
-[*][icode]TeamCreateEvent[/icode] [COLOR=#aaaaaa](cancellable)[/COLOR] - fired before a team is created
-[*][icode]TeamDeleteEvent[/icode] [COLOR=#aaaaaa](cancellable)[/COLOR] - fired before a team is deleted
-[*][icode]TeamJoinEvent[/icode] [COLOR=#aaaaaa](cancellable)[/COLOR] - fired before a player joins a team
-[*][icode]TeamLeaveEvent[/icode] [COLOR=#aaaaaa](cancellable)[/COLOR] - fired before a player leaves a team
-[*][icode]TeamRoleChangeEvent[/icode] [COLOR=#aaaaaa](cancellable)[/COLOR] - fired before a member's role changes
-[*][icode]TeamInviteEvent[/icode] [COLOR=#aaaaaa](cancellable)[/COLOR] - fired before an invitation is sent
-[*][icode]TeamInviteAcceptEvent[/icode] [COLOR=#aaaaaa](informational)[/COLOR] - fired after a player accepts an invitation
-[*][icode]TeamInviteDeclineEvent[/icode] [COLOR=#aaaaaa](informational)[/COLOR] - fired after a player declines an invitation
-[*][icode]TeamWarpSetEvent[/icode] [COLOR=#aaaaaa](cancellable)[/COLOR] - fired before a warp is created or updated
-[*][icode]TeamWarpDeleteEvent[/icode] [COLOR=#aaaaaa](cancellable)[/COLOR] - fired before a warp is deleted
-[*][icode]TeamClaimEvent[/icode] [COLOR=#aaaaaa](cancellable)[/COLOR] - fired before a chunk is claimed
-[*][icode]TeamUnclaimEvent[/icode] [COLOR=#aaaaaa](cancellable)[/COLOR] - fired before a chunk is unclaimed
+[*][COLOR=#6cb4ff]TeamCreateEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a team is created
+[*][COLOR=#6cb4ff]TeamDeleteEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a team is deleted
+[*][COLOR=#6cb4ff]TeamJoinEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a player joins a team
+[*][COLOR=#6cb4ff]TeamLeaveEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a player leaves a team
+[*][COLOR=#6cb4ff]TeamRoleChangeEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a member's role changes
+[*][COLOR=#6cb4ff]TeamInviteEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before an invitation is sent
+[*][COLOR=#6cb4ff]TeamInviteAcceptEvent[/COLOR] [COLOR=#aaaaaa](informational)[/COLOR] -- fired after a player accepts an invitation
+[*][COLOR=#6cb4ff]TeamInviteDeclineEvent[/COLOR] [COLOR=#aaaaaa](informational)[/COLOR] -- fired after a player declines an invitation
+[*][COLOR=#6cb4ff]TeamWarpSetEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a warp is created or updated
+[*][COLOR=#6cb4ff]TeamWarpDeleteEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a warp is deleted
+[*][COLOR=#6cb4ff]TeamClaimEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a chunk is claimed
+[*][COLOR=#6cb4ff]TeamUnclaimEvent[/COLOR] [COLOR=#aaaaaa](cancellable)[/COLOR] -- fired before a chunk is unclaimed
 [/LIST]
 
 [SIZE=4][B]Roles[/B][/SIZE]
 
 [LIST]
-[*][icode]OWNER[/icode] (priority 100) - Full control; cannot be removed by others
-[*][icode]ADMIN[/icode] (priority 50) - Can manage members with a lower priority
-[*][icode]MEMBER[/icode] (priority 10) - Regular team member
+[*][COLOR=#ffd700]OWNER[/COLOR] (priority 100, default prefix [icode]Owner[/icode]) -- Full control; cannot be removed by others
+[*][COLOR=#ffd700]ADMIN[/COLOR] (priority 50, default prefix [icode]Admin[/icode]) -- Can manage members with a lower priority
+[*][COLOR=#ffd700]MEMBER[/COLOR] (priority 10, default prefix [icode]Member[/icode]) -- Regular team member
 [/LIST]
+
+Prefixes are customisable at runtime. Set a single override with [COLOR=#6cb4ff]setPrefixOverride("Leader")[/COLOR], apply multiple at once with [COLOR=#6cb4ff]TeamRole.applyPrefixes(map)[/COLOR], or clear all with [COLOR=#6cb4ff]TeamRole.resetAllPrefixes()[/COLOR]. [COLOR=#6cb4ff]getDefaultPrefix()[/COLOR] always returns the built-in default.
+
+Providers that expose roles beyond the three built-in constants can publish them via [COLOR=#6cb4ff]TeamsAPI.registerCustomRole(plugin, definition)[/COLOR] and consumers can discover them with [COLOR=#6cb4ff]TeamsAPI.getCustomRoles()[/COLOR]. [COLOR=#6cb4ff]TeamMember.getRoleDefinition()[/COLOR] returns the appropriate [COLOR=#6cb4ff]TeamRoleDefinition[/COLOR] for any member.
 
 [SIZE=5][B][COLOR=#6cb4ff]Links[/COLOR][/B][/SIZE]
 
 [LIST]
-[*][URL='https://github.com/ez-plugins/teams-api'][B]GitHub[/B][/URL] - source code & issue tracker
-[*][URL='https://ez-plugins.github.io/teams-api/developer-guide.html'][B]Developer Guide[/B][/URL] - full integration walkthrough
-[*][URL='https://ez-plugins.github.io/teams-api/api.html'][B]API Reference[/B][/URL] - complete method tables
-[*][URL='https://jitpack.io/#ez-plugins/teams-api'][B]JitPack[/B][/URL] - Maven / Gradle dependency
+[*][URL='https://github.com/ez-plugins/teams-api'][B]GitHub[/B][/URL] -- source code & issue tracker
+[*][URL='https://ez-plugins.github.io/teams-api/developer-guide.html'][B]Developer Guide[/B][/URL] -- full integration walkthrough
+[*][URL='https://ez-plugins.github.io/teams-api/api.html'][B]API Reference[/B][/URL] -- complete method tables
+[*][URL='https://jitpack.io/#ez-plugins/teams-api'][B]JitPack[/B][/URL] -- Maven / Gradle dependency
 [/LIST]
 
-[CENTER][COLOR=#aaaaaa]MIT License - free to use in any project, open- or closed-source.[/COLOR][/CENTER]
+[CENTER][COLOR=#aaaaaa]MIT License -- free to use in any project, open- or closed-source.[/COLOR][/CENTER]

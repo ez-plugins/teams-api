@@ -3,12 +3,126 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.4.0]
+
+Non-breaking additions. No changes required for existing providers or consumers.
+
+### Added
+
+#### Role prefix overrides
+
+Consumers can now customise the display prefix for any built-in `TeamRole`
+constant at runtime:
+
+```java
+// Override a single role
+TeamRole.OWNER.setPrefixOverride("[Lord]");
+
+// Read back: returns override when set, default otherwise
+String prefix = TeamRole.OWNER.getPrefix(); // "[Lord]"
+
+// Original default is always available
+String def = TeamRole.OWNER.getDefaultPrefix(); // "Owner"
+
+// Clear the override
+TeamRole.OWNER.setPrefixOverride(null);
+```
+
+For bulk operations two static helpers are available:
+
+```java
+// Apply multiple overrides at once (null value clears that role's override)
+TeamRole.applyPrefixes(Map.of(
+    TeamRole.OWNER, "[Lord]",
+    TeamRole.ADMIN, "[Officer]"
+));
+
+// Clear all overrides for every built-in role
+TeamRole.resetAllPrefixes();
+```
+
+New methods on `TeamRole`:
+
+- `getDefaultPrefix()` - compile-time default prefix, unaffected by any override
+- `setPrefixOverride(String)` - sets or clears (`null`) a JVM-wide prefix override
+- `applyPrefixes(Map<TeamRole, String>)` - bulk-sets overrides from a map
+- `resetAllPrefixes()` - clears overrides on every built-in role constant
+
+`getPrefix()` now returns the override when set, otherwise the compile-time
+default. **Existing calls to `getPrefix()` require no changes.**
+
+#### Custom role definitions and registry
+
+Providers that model roles beyond the three built-in constants (`OWNER`, `ADMIN`,
+`MEMBER`) can now publish them through a server-wide registry:
+
+```java
+// In your provider plugin's onEnable()
+TeamRoleDefinition coOwner = new TeamRoleDefinition("co_owner", 75, "Co-Owner");
+TeamsAPI.registerCustomRole(this, coOwner);
+
+// In onDisable()
+TeamsAPI.unregisterCustomRole("co_owner");
+```
+
+Consumers can look up or enumerate registered definitions:
+
+```java
+// Look up by key
+Optional<TeamRoleDefinition> role = TeamsAPI.getCustomRole("co_owner");
+
+// Iterate all custom roles (sorted highest priority first)
+for (TeamRoleDefinition def : TeamsAPI.getCustomRoles()) {
+    getLogger().info(def.getKey() + " - priority " + def.getPriority());
+}
+
+// Test presence
+if (TeamsAPI.isCustomRoleRegistered("co_owner")) { ... }
+```
+
+`TeamRoleDefinition` also supports prefix overrides via `setPrefixOverride(String)`,
+matching the same pattern as `TeamRole`.
+
+New methods on `TeamsAPI`:
+
+- `registerCustomRole(Plugin, TeamRoleDefinition)` - publishes a custom role
+- `unregisterCustomRole(String)` - removes a custom role by key
+- `getCustomRole(String)` - looks up a definition by key, returns `Optional`
+- `getCustomRoles()` - snapshot sorted by descending priority
+- `isCustomRoleRegistered(String)` - tests presence by key
+
+#### TeamMember.getRoleDefinition()
+
+`TeamMember` now has a default method `getRoleDefinition()` that returns a
+`TeamRoleDefinition` wrapping the member's current built-in role:
+
+```java
+TeamMember member = ...;
+TeamRoleDefinition def = member.getRoleDefinition();
+// def.getKey()      -> "owner" / "admin" / "member"
+// def.getPriority() -> 100 / 50 / 10
+```
+
+Providers that register custom roles should override this method to return the
+precise custom definition for the member.
+
+- `TeamsAPI.API_VERSION` updated to `2.4.0`.
+
+### Migration
+
+No behavioural changes for existing providers or consumers. `getPrefix()` still
+returns the same defaults (`"Owner"`, `"Admin"`, `"Member"`) unless a plugin
+explicitly calls `setPrefixOverride(...)`. The new `getDefaultPrefix()` method
+gives a stable, always-available fallback. The custom role registry starts empty;
+absence of a registered definition for a role key is a valid state.
+
 ## [2.3.0]
 
 ### Added
 
 - New optional `TeamsChestService` interface for team chest access:
-  `getChestIds(teamId)`, `getContents(...)`, `setContents(...)`, `addItem(...)`, and `removeItem(...)`.
+  `getChestIds(teamId)`, `getContents(...)`, `setContents(...)`, `addItem(...)`,
+  and `removeItem(...)`.
 - New `TeamsAPI` chest facade methods:
   `getChestService()`, `isChestAvailable()`,
   `registerChestProvider(plugin, service)`,
@@ -212,17 +326,17 @@ their color expectations accordingly. Providers that configure their own colors 
 
 ### Added
 
-- `TeamRelation.getDisplayName()` — returns a human-friendly relation name
+- `TeamRelation.getDisplayName()` - returns a human-friendly relation name
   ("Ally", "Truce", "Neutral", "Enemy").
-- `TeamRelation.getLegacyColorCode()` — returns the legacy Minecraft color code
+- `TeamRelation.getLegacyColorCode()` - returns the legacy Minecraft color code
   character (`'a'` green, `'6'` gold, `'7'` gray, `'c'` red) for use in chat
   formatting: `"§" + relation.getLegacyColorCode()`.
-- `TeamRelation.getDefaultHexColor()` — returns a `#RRGGBB` hex string suitable
+- `TeamRelation.getDefaultHexColor()` - returns a `#RRGGBB` hex string suitable
   for Adventure / MiniMessage consumers (`#55FF55`, `#FFAA00`, `#AAAAAA`, `#FF5555`).
-- `TeamsRelationService.getTeamsInRelation(teamId, relation)` — default convenience
+- `TeamsRelationService.getTeamsInRelation(teamId, relation)` - default convenience
   method that returns all team UUIDs toward which `teamId` has declared the given
   relation. Providers may override for a more efficient implementation.
-- `TeamsRelationService.getRelationColor(relation)` — default method that returns
+- `TeamsRelationService.getRelationColor(relation)` - default method that returns
   the display color for a relation as a `#RRGGBB` hex string. Providers may override
   to supply server-configured colors; falls back to `TeamRelation.getDefaultHexColor()`.
 - `TeamsAPI.API_VERSION` bumped to `1.6.1`.
@@ -237,7 +351,7 @@ their color expectations accordingly. Providers that configure their own colors 
 
 ### Added
 
-- `TeamRelation` enum (`ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY`) — models the declared
+- `TeamRelation` enum (`ALLY`, `TRUCE`, `NEUTRAL`, `ENEMY`) - models the declared
   relationship one team holds toward another. Includes `isFriendly()`, `isHostile()`,
   and `isMoreHostileThan(other)` helpers.
 - `TeamsRelationService` interface: optional extension service for inter-team relation
@@ -264,20 +378,20 @@ their color expectations accordingly. Providers that configure their own colors 
   `/teamsapi <name>` via `TeamsAPI.registerSubcommand(plugin, subcommand)`. Each
   subcommand declares a `getName()`, `getDescription()`, optional `getPermission()`,
   and `execute(CommandSender, String[])`.
-- `TeamsAPI.registerSubcommand(plugin, subcommand)` — registers via Bukkit ServicesManager.
-- `TeamsAPI.unregisterSubcommand(subcommand)` — unregisters; call from `onDisable`.
-- `TeamsAPI.getSubcommands()` — returns all registered subcommands as a snapshot.
-- `/teamsapi status` — player-accessible (no admin permission required); shows the
+- `TeamsAPI.registerSubcommand(plugin, subcommand)` - registers via Bukkit ServicesManager.
+- `TeamsAPI.unregisterSubcommand(subcommand)` - unregisters; call from `onDisable`.
+- `TeamsAPI.getSubcommands()` - returns all registered subcommands as a snapshot.
+- `/teamsapi status` - player-accessible (no admin permission required); shows the
   active provider, team count, and which optional services (invites, warps, claims,
   power) are registered.
 - `/teamsapi info` now shows all five registered service types (TeamsService,
   InviteService, WarpService, ClaimService, PowerService) and the registered
   subcommand count.
-- `teamsapi.use` permission (default: `true`) — basic access to `/teamsapi`.
-- `teamsapi.status` permission (default: `true`) — access to `/teamsapi status`.
-- `PowerGainSource` enum (`PASSIVE`, `PURCHASE`, `GAMEPLAY`, `ADMIN`) — identifies
+- `teamsapi.use` permission (default: `true`) - basic access to `/teamsapi`.
+- `teamsapi.status` permission (default: `true`) - access to `/teamsapi status`.
+- `PowerGainSource` enum (`PASSIVE`, `PURCHASE`, `GAMEPLAY`, `ADMIN`) - identifies
   the origin of a power gain for use in events and listeners.
-- `PowerLossCause` enum (`DEATH`, `DECAY`, `ADMIN`) — identifies the reason for a
+- `PowerLossCause` enum (`DEATH`, `DECAY`, `ADMIN`) - identifies the reason for a
   power loss.
 - `TeamPowerGainEvent` (cancellable): fired before a player's power is increased.
   Listeners can modify the gain amount or cancel the event entirely.
@@ -289,8 +403,8 @@ their color expectations accordingly. Providers that configure their own colors 
   team's claim count exceeds its power-gated maximum (power-negative state).
 - `config.yml` in the plugin: opt-in `passive-regen` (periodic power gain for
   online players) and `power-shop` (buy power via `/teamsapi power buy <n>`).
-- `/teamsapi power status` — shows the sender's current and max power.
-- `/teamsapi power buy <amount>` — purchases power units with Vault economy
+- `/teamsapi power status` - shows the sender's current and max power.
+- `/teamsapi power buy <amount>` - purchases power units with Vault economy
   (requires Vault and `power-shop.enabled: true` in config).
 - `teamsapi.power` and `teamsapi.power.buy` permission nodes (default: `op`).
 - Passive regen scheduler: when `passive-regen.enabled: true`, grants configurable

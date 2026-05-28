@@ -1,10 +1,14 @@
 package com.skyblockexp.teamsapi.api;
 
+import com.skyblockexp.teamsapi.model.TeamRoleDefinition;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -52,7 +56,16 @@ public final class TeamsAPI {
      * compatibility when the API introduces breaking changes. The version follows
      * Semantic Versioning ({@code MAJOR.MINOR.PATCH}).</p>
      */
-    public static final String API_VERSION = "2.3.0";
+    public static final String API_VERSION = "2.4.0";
+
+    /**
+     * Registry of custom role definitions, keyed by role key.
+     *
+     * <p>Populated via {@link #registerCustomRole} and emptied via
+     * {@link #unregisterCustomRole}.</p>
+     */
+    private static final ConcurrentHashMap<String, TeamRoleDefinition> CUSTOM_ROLES =
+        new ConcurrentHashMap<>();
 
     /** Suppresses default constructor, ensuring non-instantiability. */
     private TeamsAPI() { }
@@ -1086,6 +1099,83 @@ public final class TeamsAPI {
             }
         }
         return Collections.emptyList();
+    }
+
+    // -------------------------------------------------------------------------
+    // Custom role definition registry
+    // -------------------------------------------------------------------------
+
+    /**
+     * Registers a custom role definition in the server-wide role registry.
+     *
+     * <p>The definition is stored by its {@link TeamRoleDefinition#getKey() key}
+     * (compared case-sensitively). Registering a definition whose key already exists
+     * replaces the previous entry.</p>
+     *
+     * <p>This method silently ignores {@code null} arguments.</p>
+     *
+     * @param plugin     the plugin registering the role; must not be {@code null}
+     * @param definition the role definition to register; must not be {@code null}
+     */
+    public static void registerCustomRole(final Plugin plugin,
+            final TeamRoleDefinition definition) {
+        if (plugin == null || definition == null) {
+            return;
+        }
+        CUSTOM_ROLES.put(definition.getKey(), definition);
+    }
+
+    /**
+     * Removes a previously registered custom role definition from the registry.
+     *
+     * <p>This method silently ignores a {@code null} or unrecognised key.</p>
+     *
+     * @param key the key of the role to remove; may be {@code null}
+     */
+    public static void unregisterCustomRole(final String key) {
+        if (key == null) {
+            return;
+        }
+        CUSTOM_ROLES.remove(key);
+    }
+
+    /**
+     * Returns the custom role definition registered under the given key, if any.
+     *
+     * @param key the role key to look up; may be {@code null}
+     * @return an {@link Optional} containing the definition, or empty if not found
+     */
+    public static Optional<TeamRoleDefinition> getCustomRole(final String key) {
+        if (key == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(CUSTOM_ROLES.get(key));
+    }
+
+    /**
+     * Returns a snapshot of all currently registered custom role definitions.
+     *
+     * <p>The returned collection is unmodifiable and sorted by descending priority
+     * (highest authority first). It never includes the three built-in
+     * {@link com.skyblockexp.teamsapi.model.TeamRole} constants; use
+     * {@link com.skyblockexp.teamsapi.model.TeamRole#values()} for those.</p>
+     *
+     * @return all registered custom role definitions; never {@code null}, may be empty
+     */
+    public static Collection<TeamRoleDefinition> getCustomRoles() {
+        final List<TeamRoleDefinition> roles = new ArrayList<>(CUSTOM_ROLES.values());
+        roles.sort((a, b) -> Integer.compare(b.getPriority(), a.getPriority()));
+        return Collections.unmodifiableList(roles);
+    }
+
+    /**
+     * Returns {@code true} if a custom role definition with the given key is registered.
+     *
+     * @param key the role key to check; may be {@code null}
+     * @return {@code true} if a definition is registered under {@code key}
+     */
+    public static boolean isCustomRoleRegistered(final String key) {
+        return key != null && CUSTOM_ROLES.containsKey(key);
     }
 
 }

@@ -35,4 +35,19 @@ public interface TeamMember {
      * @return the join timestamp; never {@code null}
      */
     Instant getJoinedAt();
+
+    /**
+     * Returns a {@link TeamRoleDefinition} for the role this member currently holds.
+     *
+     * <p>The default implementation wraps the built-in {@link #getRole()} constant via
+     * {@link TeamRoleDefinition#of(TeamRole)}. Providers that expose custom roles beyond
+     * {@link TeamRole#OWNER}, {@link TeamRole#ADMIN}, and {@link TeamRole#MEMBER} should
+     * override this method to return the precise custom definition.</p>
+     *
+     * @return the role definition; never {@code null}
+     */
+    default TeamRoleDefinition getRoleDefinition() {
+        return TeamRoleDefinition.of(getRole());
+    }
+
 }
