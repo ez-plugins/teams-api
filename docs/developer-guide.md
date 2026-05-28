@@ -102,8 +102,6 @@ libs/                               # Test-fixture JARs used in CI smoke tests
 | `model` | Read-only data interfaces and enums. No Bukkit state. |
 | `event` | Bukkit event classes. Each concrete event owns its `HandlerList`. |
 
-
-
 ## Installation (server owners)
 
 1. Download `teams-api-plugin-VERSION.jar` from the [Releases page](https://github.com/ez-plugins/teams-api/releases).
