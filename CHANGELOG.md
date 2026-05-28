@@ -116,6 +116,31 @@ explicitly calls `setPrefixOverride(...)`. The new `getDefaultPrefix()` method
 gives a stable, always-available fallback. The custom role registry starts empty;
 absence of a registered definition for a role key is a valid state.
 
+## [2.3.0]
+
+### Added
+
+- New optional `TeamsChestService` interface for team chest access:
+  `getChestIds(teamId)`, `getContents(...)`, `setContents(...)`, `addItem(...)`,
+  and `removeItem(...)`.
+- New `TeamsAPI` chest facade methods:
+  `getChestService()`, `isChestAvailable()`,
+  `registerChestProvider(plugin, service)`,
+  `registerChestProvider(plugin, service, priority)`,
+  and `unregisterChestProvider(service)`.
+- New API tests: `TeamsAPIChestTest` for chest provider registration, null-safety,
+  priority registration, and service independence from core `TeamsService`.
+- New docs pages:
+  `provider-chests` (provider implementation/registration guidance) and
+  `consumer-chests` (consumer usage patterns and fallback guards).
+
+### Changed
+
+- TeamsAPI version bumped from `2.2.0` to `2.3.0` (non-breaking minor release).
+- `TeamsAPI.API_VERSION` bumped to `2.3.0`.
+- README, API docs, provider/consumer guides, server guide, and public listings
+  updated to include the optional chest capability and `2.3.0` dependency examples.
+
 ## [2.2.0]
 
 TeamsAPI now ships official extensions for three popular team plugins. Drop the
