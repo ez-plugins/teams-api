@@ -167,6 +167,30 @@ class TeamRoleTest {
     }
 
     /**
+     * prefix_owner_isOwner verifies that OWNER exposes the expected display prefix.
+     */
+    @Test
+    void prefix_owner_isOwner() {
+        assertEquals("Owner", TeamRole.OWNER.getPrefix());
+    }
+
+    /**
+     * prefix_admin_isAdmin verifies that ADMIN exposes the expected display prefix.
+     */
+    @Test
+    void prefix_admin_isAdmin() {
+        assertEquals("Admin", TeamRole.ADMIN.getPrefix());
+    }
+
+    /**
+     * prefix_member_isMember verifies that MEMBER exposes the expected display prefix.
+     */
+    @Test
+    void prefix_member_isMember() {
+        assertEquals("Member", TeamRole.MEMBER.getPrefix());
+    }
+
+    /**
      * enumValues_hasExpectedCount verifies the total number of roles is as expected.
      * Update this test when adding new roles.
      */

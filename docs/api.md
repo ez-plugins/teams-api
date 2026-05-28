@@ -481,17 +481,18 @@ Built-in notification categories for `TeamsNotificationService`.
 
 ## `TeamRole` (enum)
 
-| Constant | Priority | Description |
-|----------|----------|-------------|
-| `OWNER`  | 100      | Sole owner of the team. Full authority. |
-| `ADMIN`  | 50       | Can manage regular members. |
-| `MEMBER` | 10       | Regular member with no elevated permissions. |
+| Constant | Priority | Prefix | Description |
+|----------|----------|--------|-------------|
+| `OWNER`  | 100      | `Owner` | Sole owner of the team. Full authority. |
+| `ADMIN`  | 50       | `Admin` | Can manage regular members. |
+| `MEMBER` | 10       | `Member` | Regular member with no elevated permissions. |
 
 Helper methods:
 
 | Method | Description |
 |--------|-------------|
 | `getPriority()` | Numeric priority value. Higher = more authority. |
+| `getPrefix()` | Display prefix for chat/placeholders. |
 | `outranks(other)` | Returns `true` if this role has a higher priority than `other`. |
 | `canManage(target)` | Returns `true` if this role can manage members of the `target` role. |
 

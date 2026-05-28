@@ -17,30 +17,35 @@ public enum TeamRole {
      * The owner of the team. There is exactly one owner at any time.
      * Owners have full authority over the team and all its members.
      */
-    OWNER(100),
+    OWNER(100, "Owner"),
 
     /**
      * A team administrator. Admins can manage regular members but cannot
      * manage other admins or the owner. Specific capabilities depend on the
      * provider implementation.
      */
-    ADMIN(50),
+    ADMIN(50, "Admin"),
 
     /**
      * A regular team member with no elevated permissions within the team.
      */
-    MEMBER(10);
+    MEMBER(10, "Member");
 
     /** The numeric priority of this role. Higher value means higher rank. */
     private final int priority;
 
+    /** The display prefix of this role, suitable for chat or placeholders. */
+    private final String prefix;
+
     /**
-     * Creates a new {@link TeamRole} constant with the given priority.
+     * Creates a new {@link TeamRole} constant with the given priority and prefix.
      *
      * @param priority the numeric priority of the role
+     * @param prefix the display prefix of the role
      */
-    TeamRole(final int priority) {
+    TeamRole(final int priority, final String prefix) {
         this.priority = priority;
+        this.prefix = prefix;
     }
 
     /**
@@ -51,6 +56,15 @@ public enum TeamRole {
      */
     public int getPriority() {
         return priority;
+    }
+
+    /**
+     * Returns the display prefix for this role.
+     *
+     * @return the role prefix; never {@code null}
+     */
+    public String getPrefix() {
+        return prefix;
     }
 
     /**
