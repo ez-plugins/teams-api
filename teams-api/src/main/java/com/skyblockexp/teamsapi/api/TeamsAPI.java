@@ -56,7 +56,7 @@ public final class TeamsAPI {
      * compatibility when the API introduces breaking changes. The version follows
      * Semantic Versioning ({@code MAJOR.MINOR.PATCH}).</p>
      */
-    public static final String API_VERSION = "2.4.0";
+    public static final String API_VERSION = "2.5.0";
 
     /**
      * Registry of custom role definitions, keyed by role key.
