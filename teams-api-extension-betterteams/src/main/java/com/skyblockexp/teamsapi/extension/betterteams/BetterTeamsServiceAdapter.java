@@ -101,7 +101,13 @@ final class BetterTeamsServiceAdapter implements TeamsService {
 
     @Override
     public int getTeamCount() {
-        return getAllTeams().size();
+        return Team.getTeamManager().getLoadedTeamListClone().size();
+    }
+
+    @Override
+    public Collection<UUID> getTeamIds() {
+        final Map<UUID, Team> loaded = Team.getTeamManager().getLoadedTeamListClone();
+        return Collections.unmodifiableCollection(new ArrayList<>(loaded.keySet()));
     }
 
     @Override
