@@ -3,6 +3,45 @@
 All notable changes to TeamsAPI are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.5.0]
+
+Non-breaking additions. No changes required for existing providers or consumers.
+
+### Added
+
+#### Convenience methods
+
+- `TeamsService.getTeamIds()` - returns all team UUIDs for iteration without
+  loading full team objects.
+- `Team.getOwner()` - default method returning the owner's `TeamMember` record.
+- `VelocityTeam.getMemberUUIDs()` - returns UUIDs of all members.
+- `VelocityTeam.getOwner()` - default method returning the owner's record.
+
+#### Role prefix reset
+
+New `resetPrefixOverride()` method on both `TeamRole` and `TeamRoleDefinition`
+clears any active prefix override, restoring the built-in default:
+
+```java
+TeamRole.OWNER.setPrefixOverride("[Lord]");
+TeamRole.OWNER.resetPrefixOverride(); // back to "Owner"
+```
+
+Equivalent to calling `setPrefixOverride(null)`.
+
+- `TeamsAPI.API_VERSION` updated to `2.5.0`.
+
+### Changed
+
+- `docs/api.md` Team lookup section now correctly lists `getTeam`, `getTeamByName`,
+  and `getPlayerTeam` alongside `getAllTeams`, `getTeamCount`, and `getTeamIds`.
+- `docs/velocity.md` updated to document `getMemberUUIDs()` and `getOwner()` on
+  `VelocityTeam`.
+
+### Migration
+
+No behavioural changes for existing providers or consumers.
+
 ## [2.4.0]
 
 Non-breaking additions. No changes required for existing providers or consumers.

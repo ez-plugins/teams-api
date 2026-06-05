@@ -96,13 +96,13 @@ public interface TeamsService {
      */
     Optional<Team> getTeamByName(String name);
 
-    /**
-     * Retrieves the team that the given player currently belongs to.
-     *
-     * @param playerUUID the UUID of the player; must not be {@code null}
-     * @return an {@link Optional} containing the player's {@link Team}, or empty if
-     *         the player does not belong to any team
-     */
+/**
+      * Retrieves the team that the given player currently belongs to.
+      *
+      * @param playerUUID the UUID of the player; must not be {@code null}
+      * @return an {@link Optional} containing the player's {@link Team}, or empty if
+      *         the player does not belong to any team
+      */
     Optional<Team> getPlayerTeam(UUID playerUUID);
 
     /**
@@ -118,6 +118,16 @@ public interface TeamsService {
      * @return the team count; always {@code >= 0}
      */
     int getTeamCount();
+
+    /**
+     * Returns the UUIDs of all registered teams.
+     *
+     * <p>This is a convenience method equivalent to mapping {@link #getAllTeams()} by
+     * {@link com.skyblockexp.teamsapi.model.Team#getId()}.</p>
+     *
+     * @return an unmodifiable collection of team UUIDs; never {@code null}
+     */
+    Collection<UUID> getTeamIds();
 
     // -------------------------------------------------------------------------
     // Membership management

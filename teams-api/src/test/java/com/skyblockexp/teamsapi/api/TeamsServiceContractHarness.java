@@ -233,9 +233,14 @@ abstract class TeamsServiceContractHarness {
             return Collections.unmodifiableCollection(new ArrayList<>(teams.values()));
         }
 
-        @Override
+@Override
         public int getTeamCount() {
             return teams.size();
+        }
+
+        @Override
+        public Collection<UUID> getTeamIds() {
+            return Collections.unmodifiableCollection(new ArrayList<>(teams.keySet()));
         }
 
         @Override

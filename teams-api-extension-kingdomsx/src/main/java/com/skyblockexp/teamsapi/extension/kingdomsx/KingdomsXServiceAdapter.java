@@ -105,6 +105,17 @@ final class KingdomsXServiceAdapter implements TeamsService {
     }
 
     @Override
+    public Collection<UUID> getTeamIds() {
+        final Collection<Kingdom> kingdoms =
+                Kingdoms.get().getDataCenter().getKingdomManager().getKingdoms();
+        final Collection<UUID> ids = new ArrayList<>(kingdoms.size());
+        for (final Kingdom kingdom : kingdoms) {
+            ids.add(kingdom.getId());
+        }
+        return Collections.unmodifiableCollection(ids);
+    }
+
+    @Override
     public boolean addMember(final UUID teamId, final UUID playerUUID, final TeamRole role) {
         if (teamId == null || playerUUID == null || role == null) {
             return false;

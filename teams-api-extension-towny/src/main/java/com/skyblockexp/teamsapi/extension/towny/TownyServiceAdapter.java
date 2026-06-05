@@ -139,6 +139,16 @@ final class TownyServiceAdapter implements TeamsService {
     }
 
     @Override
+    public Collection<UUID> getTeamIds() {
+        final Collection<Team> teams = getAllTeams();
+        final Collection<UUID> ids = new ArrayList<>(teams.size());
+        for (final Team team : teams) {
+            ids.add(team.getId());
+        }
+        return Collections.unmodifiableCollection(ids);
+    }
+
+    @Override
     public boolean addMember(final UUID teamId, final UUID playerUUID, final TeamRole role) {
         if (teamId == null || playerUUID == null || role == null) {
             return false;
