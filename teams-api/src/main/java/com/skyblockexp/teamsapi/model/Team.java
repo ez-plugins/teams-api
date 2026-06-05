@@ -116,4 +116,17 @@ public interface Team {
      * @return {@code true} if the player holds the {@link TeamRole#OWNER} role
      */
     boolean isOwner(UUID playerUUID);
+
+    /**
+     * Returns the {@link TeamMember} record for the team owner.
+     *
+     * <p>This is a convenience method equivalent to {@code getMember(getOwnerUUID())}.</p>
+     *
+     * @return an {@link Optional} containing the owner's {@link TeamMember}, or empty
+     *         if the team has no owner (should not occur in valid implementations)
+     */
+    default Optional<TeamMember> getOwner() {
+        return getMember(getOwnerUUID());
+    }
+
 }

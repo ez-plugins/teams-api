@@ -145,11 +145,12 @@ Implemented by team plugins. Obtained via `TeamsAPI.getService()`.
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `getTeam(teamId)` | `Optional<Team>` | Finds a team by UUID. |
-| `getTeamByName(name)` | `Optional<Team>` | Finds a team by name (case-insensitive where possible). |
-| `getPlayerTeam(playerUUID)` | `Optional<Team>` | Returns the team the player belongs to. |
+| `getTeam(teamId)` | `Optional<Team>` | Retrieves a team by its unique ID. |
+| `getTeamByName(name)` | `Optional<Team>` | Retrieves a team by name (case-insensitive where possible). |
+| `getPlayerTeam(playerUUID)` | `Optional<Team>` | The team the given player belongs to. |
 | `getAllTeams()` | `Collection<Team>` | All registered teams. |
 | `getTeamCount()` | `int` | Total number of teams. |
+| `getTeamIds()` | `Collection<UUID>` | All team UUIDs (convenience). |
 
 ### Membership management
 
@@ -363,6 +364,7 @@ A read-only snapshot of a team. Obtain via `TeamsService` lookup methods.
 | `getMember(playerUUID)` | `Optional<TeamMember>` | The member record for the given player. |
 | `isMember(playerUUID)` | `boolean` | Whether the player is a member (any role). |
 | `isOwner(playerUUID)` | `boolean` | Whether the player holds the OWNER role. |
+| `getOwner()` | `Optional<TeamMember>` | Convenience: owner's member record. |
 
 ## `TeamMember` (interface)
 
@@ -496,6 +498,7 @@ Helper methods:
 | `getPrefix()` | Effective display prefix - returns the consumer-supplied override if one is set, otherwise the compile-time default. |
 | `getDefaultPrefix()` | Compile-time default prefix. Always `"Owner"`, `"Admin"`, or `"Member"` regardless of any active override. |
 | `setPrefixOverride(prefix)` | Sets or clears (if `null`) a JVM-wide prefix override for this constant. |
+| `resetPrefixOverride()` | Clears any prefix override on this role, restoring the built-in default. |
 | `applyPrefixes(prefixes)` | Static. Applies prefix overrides from a `Map<TeamRole, String>`. A `null` value in the map clears that role's override; `null` keys are silently skipped. |
 | `resetAllPrefixes()` | Static. Clears prefix overrides on every built-in role constant. |
 | `outranks(other)` | Returns `true` if this role has a higher priority than `other`. |
@@ -516,6 +519,7 @@ Used with the custom role registry on `TeamsAPI` to publish roles beyond the thr
 | `getPrefix()` | Effective prefix - returns the override if set, otherwise the default. |
 | `getDefaultPrefix()` | Compile-time default prefix; unaffected by `setPrefixOverride`. |
 | `setPrefixOverride(String)` | Sets or clears (`null`) a prefix override for this definition. |
+| `resetPrefixOverride()` | Clears any prefix override on this role, restoring the built-in default. |
 | `outranks(other)` | Returns `true` if this definition has higher priority than `other`. |
 | `canManage(target)` | Returns `true` if this definition can manage the `target` role. |
 | `of(TeamRole)` | Static factory. Creates a `TeamRoleDefinition` mirroring a built-in role (key = lower-case name). |
@@ -605,11 +609,17 @@ Non-breaking additions. No changes required for existing providers or consumers.
   prefix override for the role constant.
 - New `TeamRole.applyPrefixes(Map<TeamRole, String>)`: bulk-sets overrides from a map.
 - New `TeamRole.resetAllPrefixes()`: clears overrides on every built-in role constant.
+- New `TeamRole.resetPrefixOverride()`: clears override on a single role constant.
 - New `TeamRoleDefinition` class: custom role definitions with key, priority, and prefix.
+- New `TeamRoleDefinition.resetPrefixOverride()`: clears override on a role definition.
 - New `TeamsAPI` registry methods: `registerCustomRole`, `unregisterCustomRole`,
   `getCustomRole`, `getCustomRoles`, `isCustomRoleRegistered`.
+- New `TeamsService.getTeamIds()`: convenience method returning all team UUIDs.
+- New `Team.getOwner()`: convenience default method returning owner's member record.
 - New `TeamMember.getRoleDefinition()` default method: wraps the member's `TeamRole`
   in a `TeamRoleDefinition`. Providers with custom roles should override this.
+- New `VelocityTeam.getOwner()`: convenience default method returning owner's member record.
+- New `VelocityTeam.getMemberUUIDs()`: returns UUIDs of all team members.
 
 ### 2.3.0
 

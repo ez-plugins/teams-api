@@ -48,7 +48,7 @@ public interface VelocityTeam {
      */
     int getSize();
 
-    /**
+/**
      * Returns the maximum number of members allowed in this team.
      * A value of {@code -1} means the team size is unlimited.
      *
@@ -63,6 +63,16 @@ public interface VelocityTeam {
      * @return the collection of team members
      */
     Collection<VelocityTeamMember> getMembers();
+
+    /**
+     * Returns the UUIDs of all members in this team, including the owner.
+     *
+     * <p>This is a convenience method equivalent to mapping {@link #getMembers()} by
+     * {@link VelocityTeamMember#getPlayerUUID()}.</p>
+     *
+     * @return an unmodifiable collection of member UUIDs
+     */
+    Collection<UUID> getMemberUUIDs();
 
     /**
      * Looks up a member by their player UUID.
@@ -87,4 +97,16 @@ public interface VelocityTeam {
      * @return true if the player is the owner
      */
     boolean isOwner(UUID playerUUID);
+
+    /**
+     * Returns the {@link VelocityTeamMember} record for the team owner.
+     *
+     * <p>This is a convenience method equivalent to {@code getMember(getOwnerUUID())}.</p>
+     *
+     * @return an {@link Optional} containing the owner's member record
+     */
+    default Optional<VelocityTeamMember> getOwner() {
+        return getMember(getOwnerUUID());
+    }
+
 }

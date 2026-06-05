@@ -141,4 +141,15 @@ final class VelocityTeamData implements VelocityTeam {
     public boolean isOwner(final UUID playerUUID) {
         return ownerUUID.equals(playerUUID);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<UUID> getMemberUUIDs() {
+        return members.stream()
+            .map(VelocityTeamMember::getPlayerUUID)
+            .collect(java.util.stream.Collectors.toUnmodifiableList());
+    }
+
 }

@@ -198,12 +198,12 @@ All methods return `CompletableFuture<T>` and may complete exceptionally with
 | `getPlayerTeam(playerUUID)` | `CompletableFuture<Optional<VelocityTeam>>` | The team the player belongs to, if any. |
 | `getTeam(teamId)` | `CompletableFuture<Optional<VelocityTeam>>` | Finds a team by UUID. |
 | `getTeamByName(name)` | `CompletableFuture<Optional<VelocityTeam>>` | Finds a team by name. |
+| `getAllTeams()` | `CompletableFuture<Collection<VelocityTeam>>` | All teams registered on the backend. |
 | `getTeamCount()` | `CompletableFuture<Integer>` | Total number of teams on the backend. |
 | `teamExists(name)` | `CompletableFuture<Boolean>` | Whether a team with that name exists. |
 | `isMember(teamId, playerUUID)` | `CompletableFuture<Boolean>` | Whether the player is a member of the team. |
 | `getMemberRole(teamId, playerUUID)` | `CompletableFuture<Optional<VelocityTeamRole>>` | The player's role within the team, if a member. |
 | `getMemberInfo(teamId, playerUUID)` | `CompletableFuture<Optional<VelocityTeamMember>>` | The player's full membership record, if a member. |
-| `getAllTeams()` | `CompletableFuture<Collection<VelocityTeam>>` | All teams registered on the backend. |
 
 ### `VelocityTeam` (interface)
 
@@ -215,6 +215,11 @@ All methods return `CompletableFuture<T>` and may complete exceptionally with
 | `getOwnerUUID()` | `UUID` | UUID of the team owner. |
 | `getSize()` | `int` | Current member count. |
 | `getMaxSize()` | `int` | Maximum member cap; `-1` means unlimited. |
+| `getMembers()` | `Collection<VelocityTeamMember>` | All members, may be empty if not included in response. |
+| `getMemberUUIDs()` | `Collection<UUID>` | UUIDs of all members. |
+| `isMember(playerUUID)` | `boolean` | Whether the player is a member. |
+| `isOwner(playerUUID)` | `boolean` | Whether the player is the owner. |
+| `getOwner()` | `Optional<VelocityTeamMember>` | Convenience: owner's member record. |
 
 ### `VelocityTeamMember` (interface)
 

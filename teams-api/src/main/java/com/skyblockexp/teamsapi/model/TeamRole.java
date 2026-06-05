@@ -117,6 +117,15 @@ public enum TeamRole {
     }
 
     /**
+     * Clears any prefix override on this role, restoring the built-in default.
+     *
+     * <p>Equivalent to calling {@link #setPrefixOverride(String) setPrefixOverride(null)}.</p>
+     */
+    public void resetPrefixOverride() {
+        this.prefixOverride = null;
+    }
+
+    /**
      * Returns {@code true} if this role has a higher priority than {@code other}.
      *
      * @param other the role to compare against

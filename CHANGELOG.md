@@ -106,7 +106,20 @@ TeamRoleDefinition def = member.getRoleDefinition();
 Providers that register custom roles should override this method to return the
 precise custom definition for the member.
 
+#### Convenience methods
+
+- `TeamsService.getTeamIds()` - returns all team UUIDs for iteration without
+  loading full team objects.
+- `Team.getOwner()` - default method returning the owner's `TeamMember` record.
+- `VelocityTeam.getMemberUUIDs()` - returns UUIDs of all members.
+- `VelocityTeam.getOwner()` - default method returning the owner's record.
+
 - `TeamsAPI.API_VERSION` updated to `2.4.0`.
+
+### Changed
+
+- `docs/api.md` Team lookup section now correctly lists `getTeam`, `getTeamByName`,
+  and `getPlayerTeam` alongside `getAllTeams`, `getTeamCount`, and `getTeamIds`.
 
 ### Migration
 
